@@ -103,20 +103,22 @@ public class AzureDatabricksTemplateTests : TemplateTestCollection
         await _terraformService.CopyTemplateAsync(module.Name, command);
         await _terraformService.ExtractVariables(module.Name, command);
 
-        var expectedVariablesFilename = Path.Join(
+        var actualVariablesFilename = Path.Join(
             DirectoryUtils.GetProjectPath(_resourceProvisionerConfiguration, workspaceAcronym),
             $"{module.Name}.auto.tfvars.json");
             
-        Assert.That(File.Exists(expectedVariablesFilename), Is.True);
+        Assert.That(File.Exists(actualVariablesFilename), Is.True);
 
-        var actualVariables = JsonSerializer.Deserialize<JsonObject>(await File.ReadAllTextAsync(expectedVariablesFilename));
+        var actualVariables = JsonSerializer.Deserialize<JsonObject>(await File.ReadAllTextAsync(actualVariablesFilename));
+        Assert.NotNull(actualVariables);
 
-        foreach (var (key, value) in actualVariables!)
+        foreach (var (key, value) in expectedVariables!)
         {
             Assert.Multiple(() =>
             {
-                Assert.That(expectedVariables.ContainsKey(key), Is.True);
-                Assert.That(value?.ToJsonString(), Is.EqualTo(expectedVariables[key]?.ToJsonString()));
+                Assert.That(actualVariables.ContainsKey(key), Is.True, $"Expected variable '{key}' was not found.");
+                Assert.That(actualVariables[key]?.ToJsonString() ?? string.Empty, Is.EqualTo(value?.ToJsonString() ?? string.Empty),
+                    $"Expected variable '{key}' to have value '{value?.ToJsonString()}' but found '{actualVariables[key]?.ToJsonString()}'.");
             });
         }
     }
@@ -145,13 +147,14 @@ public class AzureDatabricksTemplateTests : TemplateTestCollection
         Assert.That(File.Exists(expectedVariablesFilename), Is.True);
 
         var actualVariables = JsonSerializer.Deserialize<JsonObject>(await File.ReadAllTextAsync(expectedVariablesFilename));
+        Assert.NotNull(actualVariables);
 
-        foreach (var (key, value) in actualVariables!)
+        foreach (var (key, value) in expectedVariables!)
         {
             Assert.Multiple(() =>
             {
-                Assert.That(expectedVariables.ContainsKey(key), Is.True);
-                Assert.That(value?.ToJsonString(), Is.EqualTo(expectedVariables[key]?.ToJsonString()));
+                Assert.That(actualVariables.ContainsKey(key), Is.True, $"Expected variable '{key}' was not found.");
+                Assert.That(actualVariables[key]?.ToJsonString(), Is.EqualTo(value?.ToJsonString()));
             });
         }
     }
@@ -182,13 +185,14 @@ public class AzureDatabricksTemplateTests : TemplateTestCollection
         Assert.That(File.Exists(expectedVariablesFilename), Is.True);
 
         var actualVariables = JsonSerializer.Deserialize<JsonObject>(await File.ReadAllTextAsync(expectedVariablesFilename));
+        Assert.NotNull(actualVariables);
 
-        foreach (var (key, value) in actualVariables!)
+        foreach (var (key, value) in expectedVariables!)
         {
             Assert.Multiple(() =>
             {
-                Assert.That(expectedVariables.ContainsKey(key), Is.True);
-                Assert.That(value?.ToJsonString(), Is.EqualTo(expectedVariables[key]?.ToJsonString()));
+                Assert.That(actualVariables.ContainsKey(key), Is.True, $"Expected variable '{key}' was not found.");
+                Assert.That(actualVariables[key]?.ToJsonString(), Is.EqualTo(value?.ToJsonString()));
             });
         }
     }

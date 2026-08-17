@@ -51,6 +51,7 @@
       "automation_account_uai_sub": "overwritten-by-terraform",
       "log_analytics_workspace_id": "overwritten-by-terraform",
       "ssc_cbrid": "1234",
+      "service_bus_id": "overwritten-by-terraform",
       "common_tags": {
         "Sector": "Science Program",
         "Environment": "$Environment",

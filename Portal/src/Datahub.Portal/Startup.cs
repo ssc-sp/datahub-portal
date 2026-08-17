@@ -94,7 +94,7 @@ public class Startup
     public void ConfigureServices(IServiceCollection services)
     {
         // To consume scoped services, AddScopedFeatureManagement should be used instead of AddFeatureManagement.
-        // This will ensure that feature management services, including feature filters, targeting context accessor, are added as scoped services.
+        // This will ensure that feature management services, including feature filters, targeting contextAccessor, are added as scoped services.
         services.AddScopedFeatureManagement();
         services.AddApplicationInsightsTelemetry(x =>
         {
@@ -294,10 +294,18 @@ public class Startup
             InitializeDatabase(logger, ctx);
         }
 
-        InitializeDatabase(logger, metadataFactory, true);
+        if (dbDriver == DbDriver.Sqlite)
+        {
+            var metadataContextFactory = services.GetRequiredService<IDbContextFactory<SqliteMetadataDbContext>>();
+            InitializeDatabase(logger, metadataContextFactory);
+        }
+        else
+        {
+            var metadataContextFactory = services.GetRequiredService<IDbContextFactory<SqlServerMetadataDbContext>>();
+            InitializeDatabase(logger, metadataContextFactory);
+        }
 
-        app.UseRequestLocalization(services.GetService<IOptions<RequestLocalizationOptions>>()
-            .Value);
+        app.UseRequestLocalization(services.GetService<IOptions<RequestLocalizationOptions>>()?.Value ?? throw new InvalidOperationException("RequestLocalizationOptions not configured"));
 
         if (Debug)
         {
@@ -481,9 +489,11 @@ public class Startup
     {
         var projectsDatabaseConnectionString = Configuration.GetConnectionString("datahub_mssql_project");
         var useSqlite = projectsDatabaseConnectionString?.StartsWith("Data Source=") ?? false;
-        
-        ConfigureDbContext<DatahubProjectDBContext, SqlServerDatahubContext,SqliteDatahubContext>(services, "datahub_mssql_project", useSqlite ? DbDriver.Sqlite : DbDriver.Azure);
-        ConfigureDbContext<MetadataDbContext, SqlServerMetadataDbContext, SqlServerMetadataDbContext>(services, "datahub_mssql_metadata", DbDriver.Azure);
+        var metadataDatabaseConnectionString = Configuration.GetConnectionString("datahub_mssql_metadata");
+        var useMetadataSqlite = metadataDatabaseConnectionString?.StartsWith("Data Source=") ?? false;
+
+        ConfigureDbContext<DatahubProjectDBContext, SqlServerDatahubContext, SqliteDatahubContext>(services, "datahub_mssql_project", useSqlite ? DbDriver.Sqlite : DbDriver.Azure);
+        ConfigureDbContext<MetadataDbContext, SqlServerMetadataDbContext, SqliteMetadataDbContext>(services, "datahub_mssql_metadata", useMetadataSqlite ? DbDriver.Sqlite : DbDriver.Azure);
     }
 
     private void ConfigureDbContext<TGen, Tsql, Tsqlite>(IServiceCollection services, string connectionStringName, DbDriver dbDriver)
