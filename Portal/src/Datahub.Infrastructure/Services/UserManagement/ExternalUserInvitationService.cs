@@ -32,7 +32,7 @@ public class ExternalUserInvitationService : IExternalUserInvitationService
         _logger = logger;
     }
 
-    public async Task<bool> IsInvitationTokenValidAsync(
+    public async Task<bool> IsInvitationTokenExpired(
         Guid invitationToken,
         CancellationToken cancellationToken = default)
     {
@@ -51,6 +51,17 @@ public class ExternalUserInvitationService : IExternalUserInvitationService
                 i.InvitationTokenAccepted == null &&
                 i.InvitationExpiry >= now,
                 cancellationToken);
+    }
+
+    public async Task<bool> TokenExists(
+        Guid invitationToken,
+        CancellationToken cancellationToken = default)
+    {
+        if (invitationToken == Guid.Empty)
+        {
+            return false;
+        }
+        return true;
     }
 
     public async Task<WorkspaceInvitation> CreateInvitationAsync(
