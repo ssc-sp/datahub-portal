@@ -1,4 +1,4 @@
-﻿using System.Text.Json;
+using System.Text.Json;
 using Azure;
 using Azure.Core;
 using Azure.ResourceManager;
@@ -109,8 +109,7 @@ namespace Datahub.SpecflowTests.Hooks
             var project2 = projects.First(p => p.Project_Acronym_CD == Testing.WorkspaceAcronym2);
             var resourceTypes = new List<string>
             {
-                TerraformTemplate.GetTerraformServiceType(TerraformTemplate.NewProjectTemplate),
-                TerraformTemplate.GetTerraformServiceType(TerraformTemplate.AzureStorageBlob),
+                TerraformTemplate.GetTerraformServiceType(TerraformTemplate.NewProjectTemplate)
             };
             var projectResources = new List<Project_Resources2>();
             foreach (var resource in resourceTypes)

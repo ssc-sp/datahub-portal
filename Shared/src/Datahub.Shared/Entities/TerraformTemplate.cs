@@ -9,7 +9,6 @@ public class TerraformTemplate
 
     public const string NewProjectTemplate = "new-project-template";
     public const string VariableUpdate = "variable-update";
-    public const string AzureStorageBlob = "azure-storage-blob";
     public const string AzureDatabricks = "azure-databricks";
     public const string AzureVirtualMachine = "azure-virtual-machine";
     public const string AzureAppService = "azure-app-service";
@@ -80,7 +79,6 @@ public class TerraformTemplate
         return normalizedName switch
         {
             NewProjectTemplate => "Groupe de ressources de l'espace de travail",
-            AzureStorageBlob => "Blob de stockage Azure",
             AzureDatabricks => "Azure Databricks",
             AzureAppService => "Service App Azure",
             AzurePostgres => "Azure Postgres",
@@ -100,7 +98,6 @@ public class TerraformTemplate
         return normalizedName switch
         {
             NewProjectTemplate => "Workspace Resource Group",
-            AzureStorageBlob => "Azure Storage Blob",
             AzureDatabricks => "Azure Databricks",
             AzureAppService => "Azure App Service",
             AzurePostgres => "Azure Postgres",
@@ -119,7 +116,6 @@ public class TerraformTemplate
         return templateName switch
         {
             NewProjectTemplate => NewProjectTemplate,
-            AzureStorageBlob => AzureStorageBlob,
             AzureDatabricks => AzureDatabricks,
             AzureAppService => AzureAppService,
             AzurePostgres => AzurePostgres,
@@ -132,7 +128,6 @@ public class TerraformTemplate
     {
         NewProjectTemplate => [],
         VariableUpdate => [],
-        AzureStorageBlob => [NewProjectTemplate],
         AzureDatabricks => [NewProjectTemplate],
         AzureAppService => [NewProjectTemplate],
         AzurePostgres => [NewProjectTemplate],
@@ -147,26 +142,10 @@ public class TerraformTemplate
             .ToList() ?? throw new ArgumentException($"Unknown template name: {name}");
     }
 
-#nullable enable
-    public static IEnumerable<string>? GetPreCreatedResourceNames(string toolName) => toolName switch
-    {
-        NewProjectTemplate => [AzureStorageBlob],
-        _ => []
-    };
-#nullable disable
-
-    public static List<TerraformTemplate> GetPreCreatedResources(string name, string status)
-    {
-        return GetPreCreatedResourceNames(name)
-            .Select(t => new TerraformTemplate(t, status, DateTime.UtcNow))
-            .ToList() ?? throw new ArgumentException($"Unknown template name: {name}");
-    }
-
     public static string MapHealthResourceTypeToTemplateConstant(InfrastructureHealthResourceType resourceType)
     {
         return resourceType switch
         {
-            InfrastructureHealthResourceType.AzureStorageAccount => GetTerraformServiceType(AzureStorageBlob),
             InfrastructureHealthResourceType.AzureDatabricks => GetTerraformServiceType(AzureDatabricks),
             InfrastructureHealthResourceType.AzureWebApp => GetTerraformServiceType(AzureAppService),
             InfrastructureHealthResourceType.AzureSqlDatabase => GetTerraformServiceType(AzurePostgres),

@@ -44,12 +44,6 @@ the correct information in the page.
       | new-project-template | delete-requested |
       | new-project-template | del-in-progress  |
       | new-project-template | failed           |
-      | azure-storage-blob   | completed        |
-      | azure-storage-blob   | in-progress      |
-      | azure-storage-blob   | create-requested |
-      | azure-storage-blob   | delete-requested |
-      | azure-storage-blob   | del-in-progress  |
-      | azure-storage-blob   | failed           |
       | azure-databricks     | completed        |
       | azure-databricks     | in-progress      |
       | azure-databricks     | create-requested |
@@ -80,7 +74,6 @@ the correct information in the page.
     Examples:
       | existing-tool        |
       | new-project-template |
-      | azure-storage-blob   |
       | azure-databricks     |
       | azure-app-service    |
       | azure-postgres       |
@@ -94,7 +87,6 @@ the correct information in the page.
     Examples:
       | catalog-tool         |
       | new-project-template |
-      | azure-storage-blob   |
       | azure-databricks     |
       | azure-app-service    |
       | azure-postgres       |
@@ -115,7 +107,6 @@ the correct information in the page.
     Examples:
 	  | catalog-tool         | available | configurable | configuration-type                                                         | version |
 	  | new-project-template | true      | false        | null                                                                       | v5.0.6  |
-	  | azure-storage-blob   | true      | false        | null                                                                       | v5.0.6  |
 	  | azure-databricks     | true      | false        | null                                                                       | v5.0.6  |
 	  | azure-databricks     | true      | true         | Datahub.Shared.Entities.WorkspaceToolConfiguration.DatabricksConfiguration | v5.2.1  |
 	  | azure-app-service    | true      | false        | null                                                                       | v5.0.6  |
@@ -137,7 +128,6 @@ the correct information in the page.
     Examples:
       | existing-tool        | removable |
       | new-project-template | false     |
-      | azure-storage-blob   | false     |
       | azure-databricks     | false     |
       | azure-app-service    | true      |
       | azure-postgres       | true      |
@@ -159,7 +149,6 @@ the correct information in the page.
     Examples:
       | existing-tool        | configurable | configuration-type                                                         | configuration-parameter | db-name                 | existing-configuration | version |
       | new-project-template | false        | null                                                                       | null                    | null                    | null                   | v5.0.6  |
-      | azure-storage-blob   | false        | null                                                                       | null                    | null                    | null                   | v5.0.6  |
       | azure-databricks     | false        | null                                                                       | null                    | null                    | null                   | v5.0.6  |
       | azure-databricks     | true         | Datahub.Shared.Entities.WorkspaceToolConfiguration.DatabricksConfiguration | general_purpose_cluster | general_purpose_cluster | Standard_D4ds_v5       | v5.2.1  |
       | azure-app-service    | false        | null                                                                       | null                    | null                    | null                   | v5.0.6  |
@@ -179,7 +168,6 @@ the correct information in the page.
 
     Examples:
       | catalog-tool       | available | dependency-count | example-dependency   |
-      | azure-storage-blob | true      | 1                | new-project-template |
       | azure-databricks   | true      | 1                | new-project-template   |
       | azure-app-service  | true      | 1                | new-project-template   |
       | azure-postgres     | true      | 1                | new-project-template |
@@ -235,7 +223,6 @@ the correct information in the page.
     Examples:
       | tool                 |
       | new-project-template |
-      | azure-storage-blob   |
       | azure-databricks     |
       | azure-app-service    |
       | azure-postgres       |
@@ -328,7 +315,6 @@ the correct information in the page.
     Examples:
 	    | catalog-tool         | available | configurable | configuration    | version |
 	    | new-project-template | true      | false        | null             | v5.0.6  |
-	    | azure-storage-blob   | true      | false        | null             | v5.0.6  |
 	    | azure-databricks     | true      | false        | null             | v5.0.6  |
 	    | azure-app-service    | true      | false        | null             | v5.0.6  |
 	    | azure-postgres       | true      | true         | B_Standard_B1ms  | v5.0.6  |

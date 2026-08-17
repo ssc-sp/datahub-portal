@@ -334,47 +334,38 @@ namespace Datahub.Infrastructure.Services.Helpers
                 }
                 else
                 {
-                    var isRequested = TerraformVariableExtraction.IsResourceRequested(project, TerraformTemplate.AzureStorageBlob);
+                    string accountName = projectStorageConfigurationService.GetProjectStorageAccountName(request.Name);
+                    var accountKey = await projectStorageConfigurationService.GetProjectStorageAccountKey(request.Name);
 
-                    if (!isRequested)
+                    if (accountKey is null)
                     {
                         status = InfrastructureHealthStatus.Undefined;
+                        errors.Add("System cannot access storage account (expected in Protected B)");
                     }
                     else
                     {
-                        string accountName = projectStorageConfigurationService.GetProjectStorageAccountName(request.Name);
-                        var accountKey = await projectStorageConfigurationService.GetProjectStorageAccountKey(request.Name);
+                        var projectStorageManager = new AzureCloudStorageManager(accountName, accountKey);
 
-                        if (accountKey is null)
+                        if (projectStorageManager is null)
                         {
-                            status = InfrastructureHealthStatus.Undefined;
-                            errors.Add("System cannot access storage account (expected in Protected B)");
+                            status = InfrastructureHealthStatus.Unhealthy;
+                            errors.Add("Unable to find the data container.");
                         }
                         else
                         {
-                            var projectStorageManager = new AzureCloudStorageManager(accountName, accountKey);
-
-                            if (projectStorageManager is null)
+                            var containers = await projectStorageManager.GetContainersAsync();
+                            if (containers is null || containers.Count < 1)
                             {
-                                status = InfrastructureHealthStatus.Unhealthy;
-                                errors.Add("Unable to find the data container.");
+                                errors.Add("Storage account appears to have no containers.");
+                                status = InfrastructureHealthStatus.Degraded;
                             }
                             else
                             {
-                                var containers = await projectStorageManager.GetContainersAsync();
-                                if (containers is null || containers.Count < 1)
+                                var metadata = await projectStorageManager.GetStorageMetadataAsync(containers[0]);
+                                if (metadata is null)
                                 {
-                                    errors.Add("Storage account appears to have no containers.");
+                                    errors.Add("Unable to get container metadata. There may be something wrong with the container.");
                                     status = InfrastructureHealthStatus.Degraded;
-                                }
-                                else
-                                {
-                                    var metadata = await projectStorageManager.GetStorageMetadataAsync(containers[0]);
-                                    if (metadata is null)
-                                    {
-                                        errors.Add("Unable to get container metadata. There may be something wrong with the container.");
-                                        status = InfrastructureHealthStatus.Degraded;
-                                    }
                                 }
                             }
                         }
@@ -508,8 +499,8 @@ namespace Datahub.Infrastructure.Services.Helpers
                 // [VB] Datahub SP has different default subscription: we have explicitely select correct one 
                 //var subscription = await armClient.GetDefaultSubscriptionAsync();
                 var subscriptionResourceId = SubscriptionResource.CreateResourceIdentifier(portalConfiguration.SubscriptionId);
-                var subscription = armClient.GetSubscriptionResource(subscriptionResourceId); 
-                
+                var subscription = armClient.GetSubscriptionResource(subscriptionResourceId);
+
                 var resourceGroup = await subscription.GetResourceGroupAsync($"fsdh-{configuration.GetCurrentEnvironment()}-rg");
                 var functionApp = await resourceGroup.Value.GetWebSiteAsync($"{InfrastructureHealthCheckConstants.FSDHFunctionPrefix}-{configuration.GetCurrentEnvironment()}");
                 var hostKeys = await functionApp.Value.GetHostKeysAsync();
@@ -706,7 +697,7 @@ namespace Datahub.Infrastructure.Services.Helpers
                     if (!isRequested)
                     {
                         status = InfrastructureHealthStatus.Undefined;
-                    } 
+                    }
                     else if (appServiceConfig is null)
                     {
                         errors.Add("Unable to retrieve App Service configuration from project resource.");

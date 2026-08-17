@@ -198,8 +198,8 @@
 	private bool IsEntraUser;
     private ClaimsPrincipal? _authenticatedUser;
 	private int NumberOfRepositories => Workspace?.Repositories?.Count ?? 0;
-	private static List<string> EntraToolActions => [TerraformTemplate.AzureStorageBlob, TerraformTemplate.AzureDatabricks, TerraformTemplate.AzurePostgres, TerraformTemplate.AzureAppService];
-	private static List<string> ExternalToolActions => [TerraformTemplate.AzureStorageBlob, TerraformTemplate.AzureAppService];
+	private static List<string> EntraToolActions => [TerraformTemplate.NewProjectTemplate, TerraformTemplate.AzureDatabricks, TerraformTemplate.AzurePostgres, TerraformTemplate.AzureAppService];
+	private static List<string> ExternalToolActions => [TerraformTemplate.NewProjectTemplate, TerraformTemplate.AzureAppService];
 	private Tuple<decimal, decimal> WorkspaceUsage => ShowCost ? new Tuple<decimal, decimal>(Workspace.Credits == null ? 0 : (decimal)Workspace.Credits.Current, Workspace.Project_Budget ?? 100) : null;
 
 	protected override async Task OnParametersSetAsync()
@@ -291,7 +291,7 @@
         var projectAcronym = Workspace.Project_Acronym_CD;
         return toolName switch
         {
-            TerraformTemplate.AzureStorageBlob => _authenticatedUser.IsInRole($"{projectAcronym}{RoleConstants.STORAGE_SUFFIX}"),
+            TerraformTemplate.NewProjectTemplate => _authenticatedUser.IsInRole($"{projectAcronym}{RoleConstants.STORAGE_SUFFIX}"),
             TerraformTemplate.AzureAppService => _authenticatedUser.IsInRole($"{projectAcronym}{RoleConstants.WEBAPP_SUFFIX}"),
             _ => false
         };
@@ -301,7 +301,7 @@
     {
         return toolName switch
         {
-            TerraformTemplate.AzureStorageBlob => Localizer["Storage"],
+            TerraformTemplate.NewProjectTemplate => Localizer["Storage"],
             TerraformTemplate.AzureDatabricks => Localizer["Databricks"],
             TerraformTemplate.AzurePostgres => Localizer["Database"],
             TerraformTemplate.AzureAppService => Localizer["Web app"],
@@ -313,7 +313,7 @@
     {
         return toolName switch
         {
-            TerraformTemplate.AzureStorageBlob => IsEntraUser
+            TerraformTemplate.NewProjectTemplate => IsEntraUser
                 ? $"/{PageRoutes.WorkspacePrefix}/{Workspace?.Project_Acronym_CD}/{PageRoutes.WorkspaceStoragePrefix}"
                 : $"/{PageRoutes.WorkspacePrefix}/{Workspace?.Project_Acronym_CD}/{PageRoutes.WorkspaceExternalStoragePrefix}",
             TerraformTemplate.AzureDatabricks => TerraformVariableExtraction.ExtractDatabricksUrl(Workspace, CultureService.IsFrench)!,

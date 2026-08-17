@@ -349,7 +349,7 @@ public class TerraformOutputHandler(
             GetStatusMapping(outputVariables[TerraformVariables.OutputAzureStorageBlobStatus].Value);
 
         var projectResource = await GetProjectResource(outputVariables,
-            TerraformTemplate.GetTerraformServiceType(TerraformTemplate.AzureStorageBlob));
+            TerraformTemplate.GetTerraformServiceType(TerraformTemplate.NewProjectTemplate));
 
         if (storageBlobStatus == TerraformStatus.Completed)
         {

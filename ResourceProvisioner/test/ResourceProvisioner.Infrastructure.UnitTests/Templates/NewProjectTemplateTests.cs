@@ -133,6 +133,7 @@ public class NewProjectTemplateTests : TemplateTestCollection
             ["resource_prefix"] = _resourceProvisionerConfiguration.Terraform.Variables.resource_prefix,
             ["project_cd"] = workspaceAcronym,
             ["budget_amount"] = _resourceProvisionerConfiguration.Terraform.Variables.budget_amount,
+            ["service_bus_id"] = _resourceProvisionerConfiguration.Terraform.Variables.service_bus_id,
             ["storage_size_limit_tb"] = _resourceProvisionerConfiguration.Terraform.Variables.storage_size_limit_tb,
             ["aad_admin_group_oid"] = _resourceProvisionerConfiguration.Terraform.Variables.aad_admin_group_oid,
             ["common_tags"] = new JsonObject
