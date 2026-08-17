@@ -175,10 +175,10 @@ else if (_gccfEnabled)
                                 {
                                     <DHButton Variant="Variant.Filled" OnClick="() => CancelInvitationAsync(rowContext)">@Localizer["Cancel invitation"]</DHButton>
                                 }
-                                @if (CanResendInvitation(rowContext) || IsInviteExpired(rowContext))
-                                {
-                                    <DHButton Variant="Variant.Filled" OnClick="() => ResendInvitationAsync(rowContext)">@Localizer["Resend invitation"]</DHButton>
-                                }
+                            }
+                            @if (CanResendInvitation(rowContext) || IsInviteExpired(rowContext))
+                            {
+                                <DHButton Variant="Variant.Filled" OnClick="() => ResendInvitationAsync(rowContext)">@Localizer["Resend invitation"]</DHButton>
                             }
                         </MudStack>
                     </MudTd>
