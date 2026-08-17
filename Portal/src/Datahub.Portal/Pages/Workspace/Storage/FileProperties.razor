@@ -12,6 +12,7 @@
 @using Datahub.Shared.Entities
 
 @inject CommonAzureServices _commonAzureServices;
+@inject MudBlazor.IDialogService DialogService;
 
 @if (File != null)
 {
@@ -38,6 +39,17 @@
                 <ProfileCircle FullName="@ProjectAcronym"/>
                 <MudText>@ProjectAcronym</MudText>
             </span>
+        </div>
+
+        <div class="properties">
+            <MudText class="properties-title" Typo="Typo.h4">@Localizer["Storage Metadata"]</MudText>
+            <MudIconButton Icon="@Icons.Material.Filled.Edit" OnClick="OpenEditMetadataDialog" Title="Edit metadata" />
+
+            @foreach (var (key, value) in _metadata)
+            {
+                <MudText class="label">@key</MudText>
+                <MudText class="text">@value</MudText>
+            }
         </div>
 
         <div class="properties">
@@ -93,12 +105,13 @@
     public string FolderName { get; set; }
 
     [Parameter]
-    public bool Readonly { get; set; }
-
-    [Parameter]
     public EventCallback OnMetadataChanged { get; set; }
 
+    [Parameter]
+    public ICloudStorageManager StorageManager { get; set; }
+
     private List<(string, string)> _properties;
+    private IDictionary<string, string> _metadata = new Dictionary<string, string>();
     private string _powerBiPasteText;
     private string _fileLinkUrl;
     private string _databricksPasteText;
@@ -134,6 +147,7 @@
             _databricksPasteText = $"/mnt/fsdh-dbk-main-mount/{fullFilePath}";
         }
         _classification = Project.Data_Sensitivity;
+        _metadata = await StorageManager.GetFileMetadataAsync(ContainerName, File.filename);
     }
 
     private string GenerateEffectiveFolderPath()
@@ -144,6 +158,42 @@
         }
 
         return $"{FolderName}/{File.folderpath}".Replace("//", "/");
+    }
+
+    private async Task OpenEditMetadataDialog()
+    {
+        var parameters = new MudBlazor.DialogParameters
+        {
+            { "Metadata", new Dictionary<string,string>(_metadata) },
+            { "ContainerName", ContainerName },
+            { "FileName", File.filename },
+            { "StorageManager", StorageManager }
+        };
+
+        var options = new MudBlazor.DialogOptions { MaxWidth = MudBlazor.MaxWidth.Medium, FullWidth = true };
+
+        var dialog = await DialogService.ShowAsync<FileMetadataEditor>(Localizer["Edit Storage Metadata"], parameters, options);
+        var result = await dialog.Result;
+
+        if (!result.Canceled && result.Data is IDictionary<string, string> newMetadata)
+        {
+            // refresh from storage to ensure we have latest persisted values
+            try
+            {
+                _metadata = await StorageManager.GetFileMetadataAsync(ContainerName, File.filename);
+            }
+            catch
+            {
+                // fallback to returned metadata
+                _metadata = newMetadata.ToDictionary(kv => kv.Key, kv => kv.Value);
+            }
+
+            if (OnMetadataChanged.HasDelegate)
+            {
+                await OnMetadataChanged.InvokeAsync();
+            }
+            StateHasChanged();
+        }
     }
 }
 

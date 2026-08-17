@@ -1,0 +1,108 @@
+@using Datahub.Core.Storage
+@using MudBlazor
+@inject ILogger<FileMetadataEditor> Logger
+
+<MudDialog>
+    <DialogContent>
+        <MudText Typo="Typo.h5">Edit Storage Metadata</MudText>
+        <MudDivider Class="my-2" />
+
+        <div class="metadata-entries">
+            @for (int i = 0; i < _entries.Count; i++)
+            {
+                <div class="d-flex align-items-center mb-2">
+                    <MudTextField @bind-Value="_entries[i].Key" Placeholder="Key" Class="me-2" Immediate="true" />
+                    <MudTextField @bind-Value="_entries[i].Value" Placeholder="Value" Class="me-2" Immediate="true" />
+                    <MudIconButton Icon="@Icons.Material.Filled.Delete" Color="Color.Error" OnClick="(() => RemoveEntry(i))" />
+                </div>
+            }
+        </div>
+
+        <div class="mt-3">
+            <MudButton Variant="Variant.Text" StartIcon="@Icons.Material.Filled.Add" OnClick="AddEntry">Add key</MudButton>
+        </div>
+
+        @if (!string.IsNullOrEmpty(_error))
+        {
+            <MudText Color="Color.Error">@_error</MudText>
+        }
+    </DialogContent>
+    <DialogActions>
+        <MudButton Variant="Variant.Text" OnClick="Cancel">Cancel</MudButton>
+        <MudButton Variant="Variant.Filled" Color="Color.Primary" OnClick="Save">Save</MudButton>
+    </DialogActions>
+</MudDialog>
+
+@code {
+    [CascadingParameter] IMudDialogInstance MudDialog { get; set; } = null!;
+
+    [Parameter] public IDictionary<string, string> Metadata { get; set; } = new Dictionary<string, string>();
+    [Parameter] public string ContainerName { get; set; } = "datahub";
+    [Parameter] public string FileName { get; set; } = string.Empty;
+    [Parameter] public ICloudStorageManager StorageManager { get; set; } = null!;
+
+    private class MetadataEntry { public string Key { get; set; } = string.Empty; public string Value { get; set; } = string.Empty; }
+    private List<MetadataEntry> _entries = new();
+    private string? _error;
+
+    protected override void OnInitialized()
+    {
+        base.OnInitialized();
+        _entries = Metadata.Select(kv => new MetadataEntry { Key = kv.Key, Value = kv.Value }).ToList();
+        if (!_entries.Any())
+        {
+            _entries.Add(new MetadataEntry { Key = string.Empty, Value = string.Empty });
+        }
+    }
+
+    private void AddEntry()
+    {
+        _entries.Add(new MetadataEntry { Key = string.Empty, Value = string.Empty });
+    }
+
+    private void RemoveEntry(int i)
+    {
+        if (i >= 0 && i < _entries.Count)
+            _entries.RemoveAt(i);
+    }
+
+    private async Task Save()
+    {
+        _error = null;
+
+        // Validate keys
+        var dict = new Dictionary<string, string>(StringComparer.OrdinalIgnoreCase);
+        foreach (var kv in _entries.Where(e => !string.IsNullOrWhiteSpace(e.Key)))
+        {
+            if (dict.ContainsKey(kv.Key))
+            {
+                _error = "Duplicate keys are not allowed.";
+                return;
+            }
+            dict[kv.Key] = kv.Value ?? string.Empty;
+        }
+
+        try
+        {
+            if (StorageManager is null)
+            {
+                _error = "Storage manager unavailable.";
+                return;
+            }
+
+            await StorageManager.SetFileMetadataAsync(ContainerName, FileName, dict);
+
+            MudDialog.Close(DialogResult.Ok<IDictionary<string, string>>(dict));
+        }
+        catch (Exception ex)
+        {
+            Logger.LogError(ex, "Failed to save metadata");
+            _error = ex.Message;
+        }
+    }
+
+    private void Cancel()
+    {
+        MudDialog.Cancel();
+    }
+}
