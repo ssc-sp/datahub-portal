@@ -138,9 +138,9 @@
                             <FileProperties @key=@_selectedItem
                                             ProjectId=@ProjectId
                                             File=@file
-                                            Readonly="!OwnsFile(file)"
                                             OnMetadataChanged=@HandleMetadataChanged
-                                            StorageTier="@(file is null ? _selectedStorageTier : GetStorageTierFor(file.name))" />
+                                            StorageTier="@(file is null ? _selectedStorageTier : GetStorageTierFor(file.name))"
+                                            StorageManager=@StorageManager />
                         }
                     </div>
                 </div>

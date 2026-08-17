@@ -352,5 +352,15 @@ namespace Datahub.Infrastructure.Services.Storage
                 "ARCHIVE"
             };
         }
+
+        public async Task<IDictionary<string, string>> GetFileMetadataAsync(string container, string file)
+        {
+            throw new NotImplementedException();
+        }
+
+        public async Task SetFileMetadataAsync(string container, string file, Dictionary<string, string> metadata)
+        {
+            throw new NotImplementedException();
+        }
     }
 }
