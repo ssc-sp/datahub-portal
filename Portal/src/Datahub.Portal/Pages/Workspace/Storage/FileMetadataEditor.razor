@@ -2,68 +2,72 @@
 @using MudBlazor
 @inject ILogger<FileMetadataEditor> Logger
 
-<MudDialog>
-    <DialogContent>
-        <MudText Typo="Typo.h5">Edit Storage Metadata</MudText>
-        <MudDivider Class="my-2" />
+<div>
+    <MudText Typo="Typo.h5">Storage Metadata</MudText>
 
+    @if (EditMode)
+    {
         <div class="metadata-entries">
-            @for (int i = 0; i < _entries.Count; i++)
+            @foreach (var entry in _metadata)
             {
-                <div class="d-flex align-items-center mb-2">
-                    <MudTextField @bind-Value="_entries[i].Key" Placeholder="Key" Class="me-2" Immediate="true" />
-                    <MudTextField @bind-Value="_entries[i].Value" Placeholder="Value" Class="me-2" Immediate="true" />
-                    <MudIconButton Icon="@Icons.Material.Filled.Delete" Color="Color.Error" OnClick="(() => RemoveEntry(i))" />
+                <div class="d-flex align-items-center">
+                    <MudTextField Value="entry.Key" Placeholder="Key" Class="me-2" Immediate="false" />
+                    <MudTextField Value="entry.Value" Placeholder="Value" Class="me-2" Immediate="false" />
+                    <MudIconButton Icon="@Icons.Material.Filled.Delete" Color="Color.Error" OnClick="(() => RemoveEntry(entry.Key))" />
                 </div>
             }
         </div>
-
-        <div class="mt-3">
-            <MudButton Variant="Variant.Text" StartIcon="@Icons.Material.Filled.Add" OnClick="AddEntry">Add key</MudButton>
-        </div>
+        <DHButton Variant="Variant.Text" StartIcon="@Icons.Material.Filled.Add" OnClick="AddEntry">Add key</DHButton>
 
         @if (!string.IsNullOrEmpty(_error))
         {
             <MudText Color="Color.Error">@_error</MudText>
         }
-    </DialogContent>
-    <DialogActions>
-        <MudButton Variant="Variant.Text" OnClick="Cancel">Cancel</MudButton>
-        <MudButton Variant="Variant.Filled" Color="Color.Primary" OnClick="Save">Save</MudButton>
-    </DialogActions>
-</MudDialog>
+        <MudSpacer />
+        <DHButton Variant="Variant.Filled" Color="Color.Primary" OnClick="Save" FullWidth="false">Save</DHButton>
+        <DHButton Variant="Variant.Filled" Color="Color.Secondary" OnClick="EditModeToggle" FullWidth="false">Cancel</DHButton>
+    }
+    else
+    {
+        <DHButton StartIcon="@Icons.Material.Filled.Edit" OnClick="EditModeToggle" Title="Edit metadata">@Localizer["Edit metadata"]</DHButton>
+        <div class="properties">
+            @foreach (var entry in _metadata)
+            {
+                <MudText Class="label">@entry.Key</MudText>
+                <MudText Class="text">@entry.Value</MudText>
+            }
+        </div>
+    }
+</div>
 
 @code {
-    [CascadingParameter] IMudDialogInstance MudDialog { get; set; } = null!;
-
-    [Parameter] public IDictionary<string, string> Metadata { get; set; } = new Dictionary<string, string>();
+    [Parameter] public bool EditMode { get; set; } = false;
     [Parameter] public string ContainerName { get; set; } = "datahub";
     [Parameter] public string FileName { get; set; } = string.Empty;
     [Parameter] public ICloudStorageManager StorageManager { get; set; } = null!;
 
-    private class MetadataEntry { public string Key { get; set; } = string.Empty; public string Value { get; set; } = string.Empty; }
-    private List<MetadataEntry> _entries = new();
+    private IDictionary<string, string> _metadata { get; set; } = new Dictionary<string, string>();
     private string? _error;
 
-    protected override void OnInitialized()
+    protected override async Task OnInitializedAsync()
     {
         base.OnInitialized();
-        _entries = Metadata.Select(kv => new MetadataEntry { Key = kv.Key, Value = kv.Value }).ToList();
-        if (!_entries.Any())
-        {
-            _entries.Add(new MetadataEntry { Key = string.Empty, Value = string.Empty });
-        }
+        _metadata = await StorageManager.GetFileMetadataAsync(ContainerName, FileName);
     }
 
     private void AddEntry()
     {
-        _entries.Add(new MetadataEntry { Key = string.Empty, Value = string.Empty });
+        _metadata.Add(string.Empty, string.Empty);
     }
 
-    private void RemoveEntry(int i)
+    private void RemoveEntry(string key)
     {
-        if (i >= 0 && i < _entries.Count)
-            _entries.RemoveAt(i);
+        _metadata.Remove(key);
+    }
+
+    private void EditModeToggle()
+    {
+        EditMode = !EditMode;
     }
 
     private async Task Save()
@@ -72,7 +76,7 @@
 
         // Validate keys
         var dict = new Dictionary<string, string>(StringComparer.OrdinalIgnoreCase);
-        foreach (var kv in _entries.Where(e => !string.IsNullOrWhiteSpace(e.Key)))
+        foreach (var kv in _metadata.Where(e => !string.IsNullOrWhiteSpace(e.Key)))
         {
             if (dict.ContainsKey(kv.Key))
             {
@@ -92,17 +96,12 @@
 
             await StorageManager.SetFileMetadataAsync(ContainerName, FileName, dict);
 
-            MudDialog.Close(DialogResult.Ok<IDictionary<string, string>>(dict));
+            EditMode = false;
         }
         catch (Exception ex)
         {
             Logger.LogError(ex, "Failed to save metadata");
             _error = ex.Message;
         }
-    }
-
-    private void Cancel()
-    {
-        MudDialog.Cancel();
     }
 }
