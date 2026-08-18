@@ -8,12 +8,13 @@
     @if (EditMode)
     {
         <div class="metadata-entries">
-            @foreach (var entry in _metadata)
+            @for (var i = 0; i < _metadata.Count; i++)
             {
+                var entry = _metadata[i];
                 <div class="d-flex align-items-center">
-                    <MudTextField Value="entry.Key" Placeholder="Key" Class="me-2" Immediate="false" />
-                    <MudTextField Value="entry.Value" Placeholder="Value" Class="me-2" Immediate="false" />
-                    <MudIconButton Icon="@Icons.Material.Filled.Delete" Color="Color.Error" OnClick="(() => RemoveEntry(entry.Key))" />
+                    <MudTextField @bind-Value="entry.Key" Placeholder="Key" Class="me-2" Immediate="false" />
+                    <MudTextField @bind-Value="entry.Value" Placeholder="Value" Class="me-2" Immediate="false" />
+                    <MudIconButton Icon="@Icons.Material.Filled.Delete" Color="Color.Error" OnClick="(() => RemoveEntry(entry))" />
                 </div>
             }
         </div>
@@ -46,28 +47,46 @@
     [Parameter] public string FileName { get; set; } = string.Empty;
     [Parameter] public ICloudStorageManager StorageManager { get; set; } = null!;
 
-    private IDictionary<string, string> _metadata { get; set; } = new Dictionary<string, string>();
+    private List<MetadataEntry> _metadata { get; set; } = new List<MetadataEntry>();
     private string? _error;
+
+    private class MetadataEntry
+    {
+        public string Key { get; set; } = string.Empty;
+        public string Value { get; set; } = string.Empty;
+    }
 
     protected override async Task OnInitializedAsync()
     {
-        base.OnInitialized();
-        _metadata = await StorageManager.GetFileMetadataAsync(ContainerName, FileName);
+        await base.OnInitializedAsync();
+        if (StorageManager is not null)
+        {
+            var dict = await StorageManager.GetFileMetadataAsync(ContainerName, FileName);
+            _metadata = dict.Select(kv => new MetadataEntry { Key = kv.Key, Value = kv.Value }).ToList();
+        }
     }
 
     private void AddEntry()
     {
-        _metadata.Add(string.Empty, string.Empty);
+        _metadata.Add(new MetadataEntry());
     }
 
-    private void RemoveEntry(string key)
+    private void RemoveEntry(MetadataEntry entry)
     {
-        _metadata.Remove(key);
+        if (entry is not null)
+            _metadata.Remove(entry);
     }
 
-    private void EditModeToggle()
+    private async Task EditModeToggle()
     {
         EditMode = !EditMode;
+        // If cancelling edits, reload metadata to discard changes
+        if (!EditMode && StorageManager is not null)
+        {
+            var dict = await StorageManager.GetFileMetadataAsync(ContainerName, FileName);
+            _metadata = dict.Select(kv => new MetadataEntry { Key = kv.Key, Value = kv.Value }).ToList();
+            StateHasChanged();
+        }
     }
 
     private async Task Save()
@@ -76,14 +95,14 @@
 
         // Validate keys
         var dict = new Dictionary<string, string>(StringComparer.OrdinalIgnoreCase);
-        foreach (var kv in _metadata.Where(e => !string.IsNullOrWhiteSpace(e.Key)))
+        foreach (var entry in _metadata.Where(e => !string.IsNullOrWhiteSpace(e.Key)))
         {
-            if (dict.ContainsKey(kv.Key))
+            if (dict.ContainsKey(entry.Key))
             {
                 _error = "Duplicate keys are not allowed.";
                 return;
             }
-            dict[kv.Key] = kv.Value ?? string.Empty;
+            dict[entry.Key] = entry.Value ?? string.Empty;
         }
 
         try
