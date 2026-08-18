@@ -41,12 +41,15 @@
                 </div>
             }
         </div>
-        <DHButton Class="mr-2" Variant="Variant.Text" StartIcon="@Icons.Material.Filled.Add" OnClick="AddEntry">@Localizer["Add key"]</DHButton>
 
         @if (!string.IsNullOrEmpty(_error))
         {
-            <MudText Color="Color.Error">@_error</MudText>
+            <DHAlert Severity="Severity.Error">
+                <MudText Typo="Typo.h5">@Localizer["Error"]</MudText>
+                <MudText Class="my-1">@_error</MudText>
+            </DHAlert>
         }
+        <DHButton Class="mr-2" Variant="Variant.Text" StartIcon="@Icons.Material.Filled.Add" OnClick="AddEntry">@Localizer["Add key"]</DHButton>
         <DHButton Variant="Variant.Filled" Color="Color.Primary" OnClick="Save" FullWidth="false">@Localizer["Save"]</DHButton>
         <DHButton Variant="Variant.Outlined" Color="Color.Primary" OnClick="EditModeToggle" FullWidth="false">@Localizer["Cancel"]</DHButton>
     }
