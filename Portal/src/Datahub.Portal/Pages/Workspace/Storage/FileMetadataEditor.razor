@@ -8,12 +8,14 @@
 
         @if (!EditMode)
         {
-            <DHButton Variant="Variant.Outlined"
-                    StartIcon="@Icons.Material.Filled.Edit"
-                    OnClick="EditModeToggle"
-                    Title=@Localizer["Edit metadata"]>
-                @Localizer["Edit metadata"]
-            </DHButton>
+            <DatahubAuthView AuthLevel="DatahubAuthView.AuthLevels.WorkspaceCollaborator" ProjectAcronym="@ProjectAcronym">
+                <DHButton Variant="Variant.Outlined"
+                        StartIcon="@Icons.Material.Filled.Edit"
+                        OnClick="EditModeToggle"
+                        Title=@Localizer["Edit metadata"]>
+                    @Localizer["Edit metadata"]
+                </DHButton>
+            </DatahubAuthView>
         }
     </div>
 
@@ -68,6 +70,7 @@
     [Parameter] public bool EditMode { get; set; } = false;
     [Parameter] public string ContainerName { get; set; } = "datahub";
     [Parameter] public string FileName { get; set; } = string.Empty;
+    [Parameter] public string ProjectAcronym { get; set; } = "";
     [Parameter] public ICloudStorageManager StorageManager { get; set; } = null!;
 
     private List<string> _fsdhMandatoryKeys = new List<string>
