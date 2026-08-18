@@ -3,7 +3,24 @@
 @inject ILogger<FileMetadataEditor> Logger
 
 <div>
-    <MudText Typo="Typo.h5">Storage Metadata</MudText>
+    <div style="display:flex; align-items:center; justify-content:space-between; gap: 0.5rem;">
+        <MudText Typo="Typo.h5" Class="mb-0">@Localizer["Storage Metadata"]</MudText>
+
+        @if (!EditMode)
+        {
+            <DHButton Variant="Variant.Outlined"
+                    StartIcon="@Icons.Material.Filled.Edit"
+                    OnClick="EditModeToggle"
+                    Title=@Localizer["Edit metadata"]>
+                @Localizer["Edit metadata"]
+            </DHButton>
+        }
+    </div>
+
+    @if (CountCustomMetadataFields() == 0)
+    {
+        <MudText Typo="Typo.body2">@Localizer["No custom metadata fields"]</MudText>
+    }
 
     @if (EditMode)
     {
@@ -11,6 +28,10 @@
             @for (var i = 0; i < _metadata.Count; i++)
             {
                 var entry = _metadata[i];
+                @if (_fsdhMandatoryKeys.Contains(entry.Key))
+                {
+                    continue;
+                }
                 <div class="d-flex align-items-center">
                     <MudTextField @bind-Value="entry.Key" Placeholder="Key" Class="me-2" Immediate="false" />
                     <MudTextField @bind-Value="entry.Value" Placeholder="Value" Class="me-2" Immediate="false" />
@@ -18,22 +39,24 @@
                 </div>
             }
         </div>
-        <DHButton Variant="Variant.Text" StartIcon="@Icons.Material.Filled.Add" OnClick="AddEntry">Add key</DHButton>
+        <DHButton Class="mr-2" Variant="Variant.Text" StartIcon="@Icons.Material.Filled.Add" OnClick="AddEntry">@Localizer["Add key"]</DHButton>
 
         @if (!string.IsNullOrEmpty(_error))
         {
             <MudText Color="Color.Error">@_error</MudText>
         }
-        <MudSpacer />
-        <DHButton Variant="Variant.Filled" Color="Color.Primary" OnClick="Save" FullWidth="false">Save</DHButton>
-        <DHButton Variant="Variant.Filled" Color="Color.Secondary" OnClick="EditModeToggle" FullWidth="false">Cancel</DHButton>
+        <DHButton Variant="Variant.Filled" Color="Color.Primary" OnClick="Save" FullWidth="false">@Localizer["Save"]</DHButton>
+        <DHButton Variant="Variant.Outlined" Color="Color.Primary" OnClick="EditModeToggle" FullWidth="false">@Localizer["Cancel"]</DHButton>
     }
     else
     {
-        <DHButton StartIcon="@Icons.Material.Filled.Edit" OnClick="EditModeToggle" Title="Edit metadata">@Localizer["Edit metadata"]</DHButton>
         <div class="properties">
             @foreach (var entry in _metadata)
             {
+                @if (_fsdhMandatoryKeys.Contains(entry.Key))
+                {
+                    continue;
+                }
                 <MudText Class="label">@entry.Key</MudText>
                 <MudText Class="text">@entry.Value</MudText>
             }
@@ -47,6 +70,10 @@
     [Parameter] public string FileName { get; set; } = string.Empty;
     [Parameter] public ICloudStorageManager StorageManager { get; set; } = null!;
 
+    private List<string> _fsdhMandatoryKeys = new List<string>
+    {
+        "createdby", "fileid", "uploadBatchId"
+    };
     private List<MetadataEntry> _metadata { get; set; } = new List<MetadataEntry>();
     private string? _error;
 
@@ -64,6 +91,20 @@
             var dict = await StorageManager.GetFileMetadataAsync(ContainerName, FileName);
             _metadata = dict.Select(kv => new MetadataEntry { Key = kv.Key, Value = kv.Value }).ToList();
         }
+    }
+
+    private int CountCustomMetadataFields()
+    {
+        int counter = 0;
+        foreach (var entry in _metadata)
+        {
+            if (_fsdhMandatoryKeys.Contains(entry.Key))
+            {
+                continue;
+            }
+            counter += 1;
+        }
+        return counter;
     }
 
     private void AddEntry()
