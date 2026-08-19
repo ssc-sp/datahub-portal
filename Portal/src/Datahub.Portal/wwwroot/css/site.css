@@ -2398,6 +2398,10 @@ code {
 
         .file-explorer-layout-wrapper .file-explorer-layout .heading {
             grid-area: heading;
+            position: sticky;
+            top: 96px;
+            z-index: 101;
+            background-color: white;
             border-bottom: 1px solid var(--bg-color-accent);
             display: grid;
             grid-template-columns: 1fr;
@@ -2539,7 +2543,7 @@ code {
 
             .file-explorer-layout-wrapper .file-explorer-layout .item-details .details-sticky {
                 position: sticky;
-                top: 60px;
+                top: 200px;
                 padding: calc((0 + 2 * (var(--design-unit) * var(--density))) * 1px);
             }
 

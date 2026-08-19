@@ -4,6 +4,7 @@ using Datahub.Core.Model.Achievements;
 using Datahub.Core.Model.Projects;
 using Datahub.Infrastructure.Services.Storage;
 using Microsoft.JSInterop;
+using Microsoft.TeamFoundation.Common;
 using MudBlazor;
 using System.Timers;
 
@@ -253,6 +254,11 @@ public partial class StorageHeading
     /// <returns></returns>
     private async Task HandleTierChange(string newTier)
     {
+        if (newTier.IsNullOrEmpty())
+        {
+            return; // Value was cleared
+        }
+
         if (newTier == AccessTier.Archive.ToString())
         {
             bool confirm = await _module.InvokeAsync<bool>("confirmStorageTierChange", Localizer["Are you sure you want to change the file(s) to archive tier? If you need to access them, it will take time to re-hydrate."].ToString());

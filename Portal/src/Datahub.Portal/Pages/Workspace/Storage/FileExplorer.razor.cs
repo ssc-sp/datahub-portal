@@ -388,6 +388,15 @@ public partial class FileExplorer
     {
         _selectedItems.RemoveWhere(i => i.EndsWith("/", StringComparison.InvariantCulture));
 
+        if (_selectedItems.Count > 0)
+        {
+            _selectedStorageTier = "";
+        }
+        else
+        {
+            _selectedStorageTier = GetStorageTierFor(filename);
+        }
+
         if (_selectedItems.Contains(filename))
         {
             _selectedItems.Remove(filename);
@@ -396,5 +405,11 @@ public partial class FileExplorer
         {
             _selectedItems.Add(filename);
         }
+    }
+
+    private void HandleClickingFileItem(string filename)
+    {
+        _selectedItems = new HashSet<string> { filename };
+        _selectedStorageTier = GetStorageTierFor(filename);
     }
 }

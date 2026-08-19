@@ -112,7 +112,7 @@
                                 <FileItem Name="@GetFileName(file.name)"
                                           Modified="@file.Modified"
                                           Size="@file.filesize"
-                                          @onclick="@(() => _selectedItems = new HashSet<string> { file.name })"
+                                          @onclick="@(() => HandleClickingFileItem(file.name))"
                                           OnSelectionClick="() => HandleFileSelectionClick(file.name)"
                                           Highlighted="_selectedItems.Contains(file.name)"
                                           StorageTier="@GetStorageTierFor(file.name)">
