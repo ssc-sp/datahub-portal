@@ -81,7 +81,7 @@
                                 {
                                     <!-- Search Section -->
                                     <MudStack Row Justify="Justify.SpaceBetween" AlignItems="AlignItems.Center" Class="mt-4">
-                                        <MudTextField @bind-Value="_searchQuery" Placeholder="@Localizer["Search files or folders"]" Class="mx-2" Adornment="Adornment.End" AdornmentIcon="fas fa-times" Variant="Variant.Outlined" OnAdornmentClick="ClearSearch" />
+                                        <MudTextField @bind-Value="_searchQuery" Placeholder="@Localizer["Search files or folders"]" Class="mx-2" Adornment="Adornment.End" AdornmentIcon="fas fa-times" Variant="MudBlazor.Variant.Outlined" Margin="Margin.Dense" OnAdornmentClick="ClearSearch" />
                                         <MudButton OnClick="SearchFiles" Color="Color.Primary">@Localizer["Search"]</MudButton>
                                     </MudStack>
 
