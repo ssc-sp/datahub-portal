@@ -43,7 +43,10 @@
 
         <div class="properties">
             <MudText class="properties-title" Typo="Typo.h4">@Localizer["Storage Properties"]</MudText>
-            <MudText class="label">@Localizer["Storage Tier"]</MudText>
+            <MudText class="label">
+                @Localizer["Storage Tier"]
+                <MudIconButton Icon="@Icons.Material.Filled.Help" Size="Size.Small" Class="ml-1" Href="@Localizer["http://documentation.sds.canada.ca/en/storage/Storage-Tiers.html"]" />
+            </MudText>
             <MudText class="text">@StorageTier</MudText>
             @foreach (var (key, value) in _properties)
             {

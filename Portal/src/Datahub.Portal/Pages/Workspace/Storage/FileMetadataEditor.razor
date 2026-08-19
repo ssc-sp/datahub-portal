@@ -1,3 +1,4 @@
+@using Azure.Storage.Blobs.Models;
 @using Datahub.Core.Storage
 @using MudBlazor
 @inject ILogger<FileMetadataEditor> Logger
@@ -12,6 +13,7 @@
                 <DHButton Variant="Variant.Outlined"
                         StartIcon="@Icons.Material.Filled.Edit"
                         OnClick="EditModeToggle"
+                        Disabled="@IsArchivedStorage"
                         Title=@Localizer["Edit Metadata"]>
                     @Localizer["Edit Metadata"]
                 </DHButton>
@@ -83,6 +85,8 @@
     private List<MetadataEntry> _metadata { get; set; } = new List<MetadataEntry>();
     private string? _error;
 
+    private bool IsArchivedStorage = false;
+
     private class MetadataEntry
     {
         public string Key { get; set; } = string.Empty;
@@ -97,6 +101,13 @@
             var dict = await StorageManager.GetFileMetadataAsync(ContainerName, FileName);
             _metadata = dict.Select(kv => new MetadataEntry { Key = kv.Key, Value = kv.Value }).ToList();
         }
+
+        IsArchivedStorage = await StorageHeading.CheckIfAnyFilesInTiers(
+            new List<string> { FileName },
+            new List<string> { AccessTier.Archive.ToString() },
+            StorageManager,
+            ContainerName
+        );
     }
 
     private int CountCustomMetadataFields()

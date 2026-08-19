@@ -2,6 +2,7 @@ using Azure.Storage.Blobs.Models;
 using Datahub.Core.Data;
 using Datahub.Core.Model.Achievements;
 using Datahub.Core.Model.Projects;
+using Datahub.Core.Storage;
 using Datahub.Infrastructure.Services.Storage;
 using Microsoft.JSInterop;
 using Microsoft.TeamFoundation.Common;
@@ -281,17 +282,17 @@ public partial class StorageHeading
             await OnStorageTierChanged.InvokeAsync(newTier);
     }
 
-    /// <summary>
-    /// Checks if any files in the selected are the matching tier and returns true if so.
-    /// </summary>
-    /// <param name="selectedFiles">List of selected files</param>
-    /// <returns>Whether there are cool or cold files present in the list</returns>
     private async Task<bool> CheckIfAnyFilesInTiers(List<PortalFileMetadata> selectedFiles, List<string> checkTiers)
+    {
+        bool result = await CheckIfAnyFilesInTiers(selectedFiles, checkTiers, StorageManager, ContainerName);
+        return result;
+    }
+
+    public static async Task<bool> CheckIfAnyFilesInTiers(List<string> selectedFiles, List<string> checkTiers, ICloudStorageManager storageManager, string containerName)
     {
         foreach (var file in selectedFiles)
         {
-            var path = file.fullPathFromRoot;
-            var fileTier = await StorageManager.GetFileStorageTierAsync(ContainerName, path);
+            var fileTier = await storageManager.GetFileStorageTierAsync(containerName, file);
 
             foreach (var tier in checkTiers)
             {
@@ -302,6 +303,17 @@ public partial class StorageHeading
             }
         }
         return false;
+    }
+
+    public static async Task<bool> CheckIfAnyFilesInTiers(List<PortalFileMetadata> selectedFiles, List<string> checkTiers, ICloudStorageManager storageManager, string containerName)
+    {
+        List<string> filePaths = new List<string>();
+        foreach (var file in selectedFiles)
+        {
+            filePaths.Add(file.fullPathFromRoot);
+        }
+        bool result = await CheckIfAnyFilesInTiers(filePaths, checkTiers, storageManager, containerName);
+        return result;
     }
 
     private async Task<bool> IsActionDisabled(ButtonAction buttonAction)

@@ -2578,7 +2578,7 @@ code {
 
                     .file-explorer-layout-wrapper .file-explorer-layout .item-details .details-sticky .details-container .storage-properties .properties {
                         display: grid;
-                        grid-template-columns: 120px 1fr;
+                        grid-template-columns: 140px 1fr;
                         gap: calc((0 + 2 * (var(--design-unit) * var(--density))) * 1px);
                     }
 
