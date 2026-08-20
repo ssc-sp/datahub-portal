@@ -56,7 +56,7 @@
   "https://documentation.sds.canada.ca/en/storage/Import-Azure-Storage.html": "https://documentation.sds.canada.ca/fr/stockage/Importer-le-stockage-Azure.html",
   "https://documentation.sds.canada.ca/en/storage/Import-GCP-Storage.html": "https://documentation.sds.canada.ca/fr/stockage/Importer-le-stockage-GCP.html",
   "https://documentation.sds.canada.ca/en/storage/Import-Storage.html": "https://documentation.sds.canada.ca/fr/stockage/Importer-le-stockage.html",
-  "http://documentation.sds.canada.ca/en/storage/Storage-Tiers.html": "https://documentation.sds.canada.ca/fr/stockage/Niveaux-acces.html",
+  "http://documentation.sds.canada.ca/en/storage/Storage-Tiers.html": "https://documentation.sds.canada.ca/fr/stockage/Niveaux-de-stockage.html",
   "https://documentation.sds.canada.ca/en/storage/Use-AzCopy.html": "https://documentation.sds.canada.ca/fr/stockage/Utiliser-AzCopy.html",
   "inscription-lt": "register",
   "metadata": "metadonnees",
