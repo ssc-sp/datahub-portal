@@ -7,13 +7,21 @@
     <div style="display:flex; align-items:center; justify-content:space-between; gap: 0.5rem;">
         <MudText Typo="Typo.h4" Class="mb-0">@Localizer["Storage Metadata"]</MudText>
 
+        @if (!string.IsNullOrEmpty(_error))
+        {
+            <DHAlert Severity="Severity.Error">
+                <MudText Typo="Typo.h5">@Localizer["Error"]</MudText>
+                <MudText Class="my-1">@_error</MudText>
+            </DHAlert>
+        }
+
         @if (!EditMode)
         {
             <DatahubAuthView AuthLevel="DatahubAuthView.AuthLevels.WorkspaceCollaborator" ProjectAcronym="@ProjectAcronym">
                 <DHButton Variant="Variant.Outlined"
                         StartIcon="@Icons.Material.Filled.Edit"
                         OnClick="EditModeToggle"
-                        Disabled="@IsArchivedStorage"
+                        Disabled="@BlockEditButton"
                         Title=@Localizer["Edit Metadata"]>
                     @Localizer["Edit Metadata"]
                 </DHButton>
@@ -44,13 +52,6 @@
             }
         </div>
 
-        @if (!string.IsNullOrEmpty(_error))
-        {
-            <DHAlert Severity="Severity.Error">
-                <MudText Typo="Typo.h5">@Localizer["Error"]</MudText>
-                <MudText Class="my-1">@_error</MudText>
-            </DHAlert>
-        }
         <DHButton Class="mr-2" Variant="Variant.Text" StartIcon="@Icons.Material.Filled.Add" OnClick="AddEntry">@Localizer["Add key"]</DHButton>
         <DHButton Variant="Variant.Filled" Color="Color.Primary" OnClick="Save" FullWidth="false">@Localizer["Save"]</DHButton>
         <DHButton Variant="Variant.Outlined" Color="Color.Primary" OnClick="EditModeToggle" FullWidth="false">@Localizer["Cancel"]</DHButton>
@@ -83,9 +84,9 @@
         "createdby", "fileid", "uploadBatchId"
     };
     private List<MetadataEntry> _metadata { get; set; } = new List<MetadataEntry>();
-    private string? _error;
+    private string _error = "";
 
-    private bool IsArchivedStorage = false;
+    private bool BlockEditButton = false;
 
     private class MetadataEntry
     {
@@ -98,16 +99,32 @@
         await base.OnInitializedAsync();
         if (StorageManager is not null)
         {
-            var dict = await StorageManager.GetFileMetadataAsync(ContainerName, FileName);
-            _metadata = dict.Select(kv => new MetadataEntry { Key = kv.Key, Value = kv.Value }).ToList();
+            try
+            {
+                var dict = await StorageManager.GetFileMetadataAsync(ContainerName, FileName);
+                _metadata = dict.Select(kv => new MetadataEntry { Key = kv.Key, Value = kv.Value }).ToList();
+            }
+            catch (NotImplementedException)
+            {
+                _error = Localizer["This storage container does not support metadata operations."];
+                BlockEditButton = true;
+            }
         }
 
-        IsArchivedStorage = await StorageHeading.CheckIfAnyFilesInTiers(
-            new List<string> { FileName },
-            new List<string> { AccessTier.Archive.ToString() },
-            StorageManager,
-            ContainerName
-        );
+        try
+        {
+            BlockEditButton = await StorageHeading.CheckIfAnyFilesInTiers(
+                new List<string> { FileName },
+                new List<string> { AccessTier.Archive.ToString() },
+                StorageManager,
+                ContainerName
+            );
+        }
+        catch (NotImplementedException)
+        {
+            // If the storage manager does not support tier checking, we can ignore this error.
+            BlockEditButton = false;
+        }
     }
 
     private int CountCustomMetadataFields()
@@ -137,6 +154,12 @@
 
     private async Task EditModeToggle()
     {
+        if (BlockEditButton)
+        {
+            EditMode = false;
+            return;
+        }
+
         EditMode = !EditMode;
         // If cancelling edits, reload metadata to discard changes
         if (!EditMode && StorageManager is not null)
