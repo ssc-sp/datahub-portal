@@ -175,6 +175,9 @@
     [Parameter]
     public EventCallback<string> OnStorageTierChanged { get; set; }
 
+    [Parameter]
+    public bool IsStorageTierDisabled { get; set; } = false;
+
     private Dictionary<ButtonAction, bool> _actionDisabled = new();
 
     private bool GetDisabled(ButtonAction action)

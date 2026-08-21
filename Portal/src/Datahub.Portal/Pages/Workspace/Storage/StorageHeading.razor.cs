@@ -341,7 +341,7 @@ public partial class StorageHeading
             ButtonAction.Rename => _selectedFiles is null || !_selectedFiles.Any() || !canWriteStorage || SelectedItems.Count > 1,
             ButtonAction.NewFolder => !canWriteStorage,
             ButtonAction.DeleteFolder => !CanDeleteCurrentFolder() || !canWriteStorage,
-            ButtonAction.TierChange => _selectedFiles is null || !_selectedFiles.Any() || !canWriteStorage,
+            ButtonAction.TierChange => _selectedFiles is null || !_selectedFiles.Any() || !canWriteStorage || IsStorageTierDisabled,
             ButtonAction.Publish => !_config.CkanConfiguration.IsFeatureEnabled || _selectedFiles is null || !_selectedFiles.Any() || !canWriteStorage,
             _ => false
         };

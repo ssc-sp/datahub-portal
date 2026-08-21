@@ -36,7 +36,7 @@
         </span>
         @Name
     </MudText>
-    <MudText class="file-item-size">@(ByteSize ?? "") @(!Folder ? $"({StorageTier})" : "")</MudText>
+    <MudText class="file-item-size">@(ByteSize ?? "") @(!Folder && !String.IsNullOrEmpty(StorageTier) ? $"({StorageTier})" : "")</MudText>
     <MudText class="file-item-modified">@(Modified?.ToString("r") ?? "")</MudText>
 </div>
 
@@ -73,7 +73,7 @@
     public EventCallback<MouseEventArgs> OnDblClick { get; set; }
 
     [Parameter]
-    public string StorageTier { get; set; } = "Hot";
+    public string StorageTier { get; set; }
 
     private string ByteSize
     {
