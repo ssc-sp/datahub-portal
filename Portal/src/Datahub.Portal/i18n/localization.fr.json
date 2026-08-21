@@ -3138,6 +3138,7 @@
   "This setting will allow shared key access to the workspace storage account": "Ce paramètre permettra l'accès par clé partagée au compte de stockage de l'espace de travail",
   "This setting will prevent the workspace from being automatically deleted after a period of inactivity or from going over budget": "Ce paramètre empêchera l'espace de travail d'être automatiquement supprimé après une période d'inactivité ou lors du dépassement du budget",
   "This site is monitored. Further attempts to log in may be reported to the authorities.": "Ce site est surveillé. Toute nouvelle tentative de connexion pourra être signalée aux autorités.",
+  "This storage container does not support metadata operations.": "Ce conteneur de stockage ne prend pas en charge les opérations de métadonnées.",
   "This tool cannot be configured currently.": "Cet outil ne peut pas être configuré actuellement.",
   "This tool cannot be removed currently.": "Cet outil ne peut pas être supprimé actuellement.",
   "This web application has not been configured yet.": "Cette application web n'a pas encore été configurée.",
