@@ -2,23 +2,23 @@
   "version": "2.0",
   "logging": {
     "logLevel": {
-      "Microsoft": "Warning",
       "Datahub": "Debug",
-      "Microsoft.Hosting.Lifetime": "Information",
-      "AspNetCore.Localizer": "Debug",
-      "Default": "Warning"
+      "ResourceProvisioner": "Information",
+      "Function": "Warning",
+      "Default": "Warning",
+      "Microsoft": "Warning"
     },
     "applicationInsights": {
       "samplingSettings": {
-        "isEnabled": true,
-        "excludedTypes": "Request",
-        "logLevel": {
-          "Microsoft": "Warning",
-          "Default": "Warning",
-          "Microsoft.Hosting.Lifetime": "Information",
-          "Datahub": "Information"
-        }
-      }
+        "isEnabled": false,
+        "excludedTypes": "Request"
+      },
+      "dependencyTrackingOptions": {
+        "enableSqlCommandTextInstrumentation": true
+      },
+      "enableLiveMetrics": true,
+      "enableDependencyTracking": true,
+      "enablePerformanceCountersCollection": true
     },
     "extensions": {
       "serviceBus": {

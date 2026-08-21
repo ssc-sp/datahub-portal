@@ -15,11 +15,8 @@ using Datahub.Shared.Entities;
 using MassTransit;
 using Microsoft.Azure.Functions.Worker;
 using Microsoft.EntityFrameworkCore;
-using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.Logging;
 using System.Data.Common;
-using System.Text.RegularExpressions;
-using static MudBlazor.FilterOperator;
 
 namespace Datahub.Functions;
 
@@ -235,7 +232,7 @@ public class VirusScanNotificationHandler(
         try
         {
             await using var ctx = await dbContextFactory.CreateDbContextAsync();
-            var tfType = TerraformTemplate.GetTerraformServiceType(TerraformTemplate.AzureStorageBlob)?? throw new InvalidOperationException("Failed to get Terraform service type for AzureStorageBlob");
+            var tfType = TerraformTemplate.GetTerraformServiceType(TerraformTemplate.NewProjectTemplate)?? throw new InvalidOperationException("Failed to get Terraform service type for NewProjectTemplate");
             var normalizedAccountName = storageAccountName.ToLower();
             var project = await ctx.Project_Resources2.Include(p => p.Project)
                 .AsNoTracking()

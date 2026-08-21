@@ -155,7 +155,6 @@ namespace Datahub.SpecflowTests.Hooks
             var resourceTypes = new List<string>
             {
                 TerraformTemplate.GetTerraformServiceType(TerraformTemplate.NewProjectTemplate),
-                TerraformTemplate.GetTerraformServiceType(TerraformTemplate.AzureStorageBlob),
                 TerraformTemplate.GetTerraformServiceType(TerraformTemplate.AzureDatabricks),
             };
             var projectResources = new List<Project_Resources2>();
