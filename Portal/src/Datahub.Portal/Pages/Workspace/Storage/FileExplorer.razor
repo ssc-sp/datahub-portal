@@ -141,7 +141,8 @@
                                             File=@file
                                             OnMetadataChanged=@HandleMetadataChanged
                                             StorageTier="@(file is null ? _selectedStorageTier : GetStorageTierFor(file.name))"
-                                            StorageManager=@StorageManager />
+                                            StorageManager=@StorageManager
+                                            ContainerName="@ContainerName"/>
                         }
                     </div>
                 </div>
