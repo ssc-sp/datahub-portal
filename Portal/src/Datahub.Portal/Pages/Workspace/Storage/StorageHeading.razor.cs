@@ -272,10 +272,21 @@ public partial class StorageHeading
         var filesToChange = SelectedItems?
             .Where(selectedItem => Files?.Any(f => f.name == selectedItem) ?? false);
 
+        bool result = true;
+
         foreach (var file in filesToChange)
         {
             string filePath = $"{CurrentFolder}/{file}";
-            await StorageManager.SetFileStorageTierAsync(ContainerName, filePath, newTier);
+            result = await StorageManager.SetFileStorageTierAsync(ContainerName, filePath, newTier) && result;
+        }
+
+        if (result)
+        {
+            _snackbar.Add(Localizer["Storage tier changed to {0} successfully", newTier], Severity.Success);
+        }
+        else
+        {
+            _snackbar.Add(Localizer["Failed to change storage tier"], Severity.Error);
         }
 
         if (OnStorageTierChanged.HasDelegate)

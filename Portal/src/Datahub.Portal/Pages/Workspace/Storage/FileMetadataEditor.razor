@@ -2,18 +2,11 @@
 @using Datahub.Core.Storage
 @using MudBlazor
 @inject ILogger<FileMetadataEditor> Logger
+@inject ISnackbar snackbar
 
 <div>
     <div style="display:flex; align-items:center; justify-content:space-between; gap: 0.5rem;">
         <MudText Typo="Typo.h4" Class="mb-0">@Localizer["Storage Metadata"]</MudText>
-
-        @if (!string.IsNullOrEmpty(_error))
-        {
-            <DHAlert Severity="Severity.Error">
-                <MudText Typo="Typo.h5">@Localizer["Error"]</MudText>
-                <MudText Class="my-1">@_error</MudText>
-            </DHAlert>
-        }
 
         @if (!EditMode)
         {
@@ -28,6 +21,14 @@
             </DatahubAuthView>
         }
     </div>
+
+    @if (!string.IsNullOrEmpty(_error))
+    {
+        <DHAlert Severity="Severity.Error">
+            <MudText Typo="Typo.h5">@Localizer["Error"]</MudText>
+            <MudText Class="my-1">@_error</MudText>
+        </DHAlert>
+    }
 
     @if (CountCustomMetadataFields() == 0)
     {
@@ -180,7 +181,7 @@
         {
             if (dict.ContainsKey(entry.Key))
             {
-                _error = "Duplicate keys are not allowed.";
+                _error = Localizer["Duplicate keys are not allowed."];
                 return;
             }
             dict[entry.Key] = entry.Value ?? string.Empty;
@@ -190,13 +191,14 @@
         {
             if (StorageManager is null)
             {
-                _error = "Storage manager unavailable.";
+                _error = Localizer["Storage manager unavailable."];
                 return;
             }
 
             await StorageManager.SetFileMetadataAsync(ContainerName, FileName, dict);
 
             EditMode = false;
+            snackbar.Add(Localizer["Successfully updated file metadata"], Severity.Success);
         }
         catch (Exception ex)
         {
