@@ -162,6 +162,33 @@ public class RepositoryServiceTests : TemplateTestCollection
     }
 
     [Test]
+    public void ShouldReportNoInfrastructureChangesWhenSourceMatchesMain()
+    {
+        var workspaceAcronym = GenerateWorkspaceAcronym();
+        using var repository = InitializeTestInfrastructureRepository(workspaceAcronym);
+        EnsureMainBranch(repository);
+        repository.CreateBranch(workspaceAcronym);
+
+        Assert.That(_repositoryService.HasInfrastructureChanges(workspaceAcronym), Is.False);
+    }
+
+    [Test]
+    public void ShouldReportInfrastructureChangesWhenSourceDiffersFromMain()
+    {
+        var workspaceAcronym = GenerateWorkspaceAcronym();
+        using var repository = InitializeTestInfrastructureRepository(workspaceAcronym);
+        EnsureMainBranch(repository);
+        var workspaceBranch = repository.CreateBranch(workspaceAcronym);
+        Commands.Checkout(repository, workspaceBranch);
+        CreateFakeFileInTestProject(workspaceAcronym);
+        Commands.Stage(repository, "*");
+        var signature = new Signature(RequestingUser, RequestingUser, DateTimeOffset.Now);
+        repository.Commit("Workspace change", signature, signature);
+
+        Assert.That(_repositoryService.HasInfrastructureChanges(workspaceAcronym), Is.True);
+    }
+
+    [Test]
     public async Task ShouldExecuteResourceRun()
     {
         var workspaceAcronym = GenerateWorkspaceAcronym();
@@ -494,6 +521,14 @@ public class RepositoryServiceTests : TemplateTestCollection
         }
 
         File.WriteAllText(Path.Join(projectPath, fileName), content);
+    }
+
+    private static void EnsureMainBranch(Repository repository)
+    {
+        if (repository.Branches[_resourceProvisionerConfiguration.InfrastructureRepository.MainBranch] is null)
+        {
+            repository.CreateBranch(_resourceProvisionerConfiguration.InfrastructureRepository.MainBranch);
+        }
     }
 
     private static async Task DeleteRemotePushBranch(string branchName)
