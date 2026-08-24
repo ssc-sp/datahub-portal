@@ -3,6 +3,27 @@
 <!-- markdownlint-disable MD024 -->
 # Changelog
 
+## [10.1.0](https://github.com/ssc-sp/datahub-portal/compare/v10.0.0...v10.1.0) (2026-08-21)
+
+
+### Features
+
+* remove workspace feature branches on merge  ([#2073](https://github.com/ssc-sp/datahub-portal/issues/2073)) ([53328ce](https://github.com/ssc-sp/datahub-portal/commit/53328ceea810bbc46331d6846fcd91818fdc2355))
+* Separating IsInvitationTokenValidAsync and new InviteExpired page ([#2099](https://github.com/ssc-sp/datahub-portal/issues/2099)) ([5645e6c](https://github.com/ssc-sp/datahub-portal/commit/5645e6cc2acea463bde03f3e307845abad985996))
+
+
+### Bug Fixes
+
+* added service bus id ([#2101](https://github.com/ssc-sp/datahub-portal/issues/2101)) ([035e2d1](https://github.com/ssc-sp/datahub-portal/commit/035e2d1816caa339502c31b195d69ba7a3e19677))
+* **deps:** update .net core & extensions to 10.0.10 ([#2078](https://github.com/ssc-sp/datahub-portal/issues/2078)) ([6a0b33c](https://github.com/ssc-sp/datahub-portal/commit/6a0b33cba937f4bae77d6a80a59eb4add1ffa72c))
+* **deps:** update dependency mudblazor to 9.7.0 ([#2079](https://github.com/ssc-sp/datahub-portal/issues/2079)) ([63a5d86](https://github.com/ssc-sp/datahub-portal/commit/63a5d86291f4a89af73ab37152c05ee68b6ca3cd))
+* **deps:** update microsoft identity ([#2080](https://github.com/ssc-sp/datahub-portal/issues/2080)) ([3dc6ba6](https://github.com/ssc-sp/datahub-portal/commit/3dc6ba6f76ed91526056dd3f6b514569a7ce7996))
+* fixed metadata db initialization and historical migrations ([#2100](https://github.com/ssc-sp/datahub-portal/issues/2100)) ([706c0f3](https://github.com/ssc-sp/datahub-portal/commit/706c0f371a3f050e21fb516ac655102e4f80239e))
+* Logging and other fixes on dotnet function ([#2088](https://github.com/ssc-sp/datahub-portal/issues/2088)) ([c2e7cef](https://github.com/ssc-sp/datahub-portal/commit/c2e7cef618cf4e415b9977e72f31a1144ea1badd))
+* misc small fixes for external users ([#2086](https://github.com/ssc-sp/datahub-portal/issues/2086)) ([8bfdf9b](https://github.com/ssc-sp/datahub-portal/commit/8bfdf9b085153c5b1c1e7960fb76480d42f20716))
+* more function fixes ([#2089](https://github.com/ssc-sp/datahub-portal/issues/2089)) ([af4d1fd](https://github.com/ssc-sp/datahub-portal/commit/af4d1fd5f99eb43ab286b9297361f2722cf1df4d))
+* **tests:** preserve main branch ([#2082](https://github.com/ssc-sp/datahub-portal/issues/2082)) ([83113ca](https://github.com/ssc-sp/datahub-portal/commit/83113ca32e022cb5947ab44bcc4ec8b3eedf4ed2))
+
 ## [10.0.0](https://github.com/ssc-sp/datahub-portal/compare/v9.0.1...v10.0.0) (2026-07-29)
 
 
