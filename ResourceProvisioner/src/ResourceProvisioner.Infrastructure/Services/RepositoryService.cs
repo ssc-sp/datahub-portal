@@ -152,9 +152,41 @@ public partial class RepositoryService(
             var repositoryUpdateEvents =
                 await ExecuteResourceRuns(workspaceDefinition, user);
 
+            var pullRequestMessage = new PullRequestUpdateMessage
+            {
+                TerraformWorkspace = workspaceDefinition.Workspace,
+                Events = repositoryUpdateEvents
+            };
+
+            if (pullRequestMessage.Events.Any(x => x.StatusCode == MessageStatusCode.Error))
+            {
+                pullRequestMessage.Events
+                    .Where(x => x.StatusCode == MessageStatusCode.Error)
+                    .ToList()
+                    .ForEach(x => logger.LogError(x.Message, x));
+                throw new Exception("Error while handling resource run request");
+            }
+
+            if (!pullRequestMessage.Events.Any(x => x.StatusCode == MessageStatusCode.Success))
+            {
+                logger.LogInformation(
+                    "No infrastructure changes were committed for {WorkspaceAcronym}; skipping pull request creation",
+                    workspaceDefinition.Workspace.Acronym);
+                return pullRequestMessage;
+            }
+
             logger.LogInformation("Pushing changes to remote repository for {WorkspaceAcronym}",
                 workspaceDefinition.Workspace.Acronym);
             await PushInfrastructureRepository(workspaceDefinition.Workspace.Acronym!);
+
+            if (!HasInfrastructureChanges(workspaceDefinition.Workspace.Acronym!))
+            {
+                logger.LogInformation(
+                    "Infrastructure branch {WorkspaceAcronym} has no changes relative to {MainBranch}; skipping pull request creation",
+                    workspaceDefinition.Workspace.Acronym,
+                    resourceProvisionerConfiguration.Value.InfrastructureRepository.MainBranch);
+                return pullRequestMessage;
+            }
 
             logger.LogInformation("Creating pull request for {WorkspaceAcronym}", workspaceDefinition.Workspace.Acronym);
             var pullRequestValueObject =
@@ -174,23 +206,8 @@ public partial class RepositoryService(
                     pullRequestValueObject.PullRequestId);
             }
 
-            var pullRequestMessage = new PullRequestUpdateMessage
-            {
-                PullRequestValueObject = pullRequestValueObject,
-                TerraformWorkspace = workspaceDefinition.Workspace,
-                Events = repositoryUpdateEvents
-            };
-
-            if (pullRequestMessage.Events.All(x => x.StatusCode != MessageStatusCode.Error))
-            {
-                return pullRequestMessage;
-            }
-
-            pullRequestMessage.Events
-                .Where(x => x.StatusCode == MessageStatusCode.Error)
-                .ToList()
-                .ForEach(x => logger.LogError(x.Message, x));
-            throw new Exception("Error while handling resource run request");
+            pullRequestMessage.PullRequestValueObject = pullRequestValueObject;
+            return pullRequestMessage;
         }
         finally
         {
@@ -400,6 +417,28 @@ public partial class RepositoryService(
 
         logger.LogInformation("Changes pushed in {LocalPath} to {Branch} branch", repositoryPath,
             branch.CanonicalName);
+    }
+
+    public bool HasInfrastructureChanges(string workspaceAcronym)
+    {
+        var repositoryPath = DirectoryUtils.GetInfrastructureRepositoryPath(resourceProvisionerConfiguration.Value);
+        using var repository = new Repository(repositoryPath);
+
+        var sourceBranch = repository.Branches[workspaceAcronym];
+        var targetBranch = repository.Branches[resourceProvisionerConfiguration.Value.InfrastructureRepository.MainBranch];
+
+        if (sourceBranch?.Tip is null)
+        {
+            throw new InvalidOperationException($"Source branch {workspaceAcronym} does not exist in {repositoryPath}");
+        }
+
+        if (targetBranch?.Tip is null)
+        {
+            throw new InvalidOperationException(
+                $"Target branch {resourceProvisionerConfiguration.Value.InfrastructureRepository.MainBranch} does not exist in {repositoryPath}");
+        }
+
+        return repository.Diff.Compare<TreeChanges>(targetBranch.Tip.Tree, sourceBranch.Tip.Tree).Any();
     }
 
     public const string HttpClientName = "InfrastructureHttpClient";

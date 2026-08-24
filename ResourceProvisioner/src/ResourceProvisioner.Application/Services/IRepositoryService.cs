@@ -13,6 +13,7 @@ public interface IRepositoryService
     public Task CheckoutInfrastructureBranch(string workspaceName);
     public Task CommitTerraformTemplate(TerraformTemplate template, string username);
     public Task PushInfrastructureRepository(string workspaceAcronym);
+    public bool HasInfrastructureChanges(string workspaceAcronym);
     public Task<PullRequestValueObject> CreateInfrastructurePullRequest(string workspaceAcrynom);
     public Task FetchRepositoriesAndCheckoutProjectBranch(TerraformWorkspace workspace);
     public Task<List<RepositoryUpdateEvent>> ExecuteResourceRuns(WorkspaceDefinition command, string username);
