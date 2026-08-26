@@ -270,13 +270,14 @@ public partial class StorageHeading
         SelectedStorageTier = newTier;
 
         var filesToChange = SelectedItems?
-            .Where(selectedItem => Files?.Any(f => f.name == selectedItem) ?? false);
+            .Where(selectedItem => Files?.Any(f => f.name == selectedItem) ?? false)
+            ?? Enumerable.Empty<string>();
 
         bool result = true;
 
         foreach (var file in filesToChange)
         {
-            string filePath = $"{CurrentFolder}/{file}";
+            string filePath = $"{CurrentFolder?.TrimEnd('/')}/{file.TrimStart('/')}".TrimStart('/');
             result = await StorageManager.SetFileStorageTierAsync(ContainerName, filePath, newTier) && result;
         }
 

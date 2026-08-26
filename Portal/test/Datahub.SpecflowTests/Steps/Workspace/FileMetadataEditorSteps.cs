@@ -7,6 +7,7 @@ using FluentAssertions;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Localization;
 using Microsoft.Extensions.Logging;
+using System.Reflection;
 using MudBlazor;
 using MudBlazor.Services;
 using NSubstitute;
@@ -67,11 +68,35 @@ public class FileMetadataEditorSteps : BunitTestSteps
             .Returns<Task<string>>(_ => throw new NotImplementedException());
     }
 
+    [Given("the file storage tier is {string}")]
+    public void GivenTheFileStorageTierIs(string tier)
+    {
+        _storageManager.GetFileStorageTierAsync(ContainerName, FileName).Returns(tier);
+    }
+
+    [Given("storage tier operations are unsupported")]
+    public void GivenStorageTierOperationsAreUnsupported()
+    {
+        _storageManager.GetFileStorageTierAsync(ContainerName, FileName)
+            .Returns<Task<string>>(_ => throw new NotImplementedException());
+    }
+
     [When("the file metadata editor is rendered for editing")]
     public void WhenTheFileMetadataEditorIsRenderedForEditing()
     {
         _component = Render<FileMetadataEditor>(parameters => parameters
             .Add(component => component.EditMode, true)
+            .Add(component => component.ContainerName, ContainerName)
+            .Add(component => component.FileName, FileName)
+            .Add(component => component.ProjectAcronym, "TEST")
+            .Add(component => component.StorageManager, _storageManager));
+    }
+
+    [When("the file metadata editor is rendered for viewing")]
+    public void WhenTheFileMetadataEditorIsRenderedForViewing()
+    {
+        _component = Render<FileMetadataEditor>(parameters => parameters
+            .Add(component => component.EditMode, false)
             .Add(component => component.ContainerName, ContainerName)
             .Add(component => component.FileName, FileName)
             .Add(component => component.ProjectAcronym, "TEST")
@@ -156,6 +181,15 @@ public class FileMetadataEditorSteps : BunitTestSteps
     public async Task ThenTheMetadataShouldHaveBeenLoadedTimes(int count)
     {
         await _storageManager.Received(count).GetFileMetadataAsync(ContainerName, FileName);
+    }
+
+    [Then("the metadata edit button should be {word}")]
+    public void ThenTheMetadataEditButtonShouldBe(string state)
+    {
+        var blockEditButton = typeof(FileMetadataEditor)
+            .GetField("BlockEditButton", BindingFlags.Instance | BindingFlags.NonPublic)!
+            .GetValue(_component!.Instance);
+        blockEditButton.Should().Be(state == "disabled");
     }
 
     private AngleSharp.Dom.IElement FindButton(string text)

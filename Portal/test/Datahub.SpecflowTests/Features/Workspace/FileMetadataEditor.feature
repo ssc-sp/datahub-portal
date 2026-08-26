@@ -80,3 +80,33 @@ The file metadata editor lets workspace collaborators view and maintain custom f
         Given metadata operations are unsupported
         When the file metadata editor is rendered for editing
         Then the metadata editor should display "This storage container does not support metadata operations."
+
+    Scenario: Archive storage prevents metadata editing
+        Given the file has the following metadata
+          | Key   | Value |
+          | custom | value |
+        And the file storage tier is "Archive"
+        When the file metadata editor is rendered for viewing
+        Then the metadata edit button should be disabled
+
+    Scenario Outline: Online storage permits metadata editing
+        Given the file has the following metadata
+          | Key   | Value |
+          | custom | value |
+        And the file storage tier is "<Tier>"
+        When the file metadata editor is rendered for viewing
+        Then the metadata edit button should be enabled
+
+        Examples:
+          | Tier |
+          | Hot  |
+          | Cool |
+          | Cold |
+
+    Scenario: Unsupported tier lookup does not prevent metadata editing
+        Given the file has the following metadata
+          | Key   | Value |
+          | custom | value |
+        And storage tier operations are unsupported
+        When the file metadata editor is rendered for viewing
+        Then the metadata edit button should be enabled
