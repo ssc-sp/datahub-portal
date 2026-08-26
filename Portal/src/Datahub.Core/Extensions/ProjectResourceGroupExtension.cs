@@ -44,7 +44,7 @@ namespace Datahub.Core.Extensions
 
         public static string GetResourceGroupNameFromBlob(this Datahub_Project project)
         {
-            var blobStorageTemplateType = TerraformTemplate.GetTerraformServiceType(TerraformTemplate.AzureStorageBlob);
+            var blobStorageTemplateType = TerraformTemplate.GetTerraformServiceType(TerraformTemplate.NewProjectTemplate);
             var blobStorageResource = project.Resources?.FirstOrDefault(r => r.ResourceType == blobStorageTemplateType);
             if (blobStorageResource is not null && blobStorageResource.CreatedAt.HasValue)
             {
