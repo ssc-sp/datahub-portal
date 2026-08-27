@@ -312,75 +312,12 @@ namespace Datahub.Infrastructure.Services.Helpers
         /// </summary>
         /// <param name="request"></param>
         /// <returns>An IntermediateHealthCheckResult indicating the result of the check.</returns>
-        public async Task<IntermediateHealthCheckResult> CheckAzureStorageAccount(InfrastructureHealthCheckMessage request)
+        public async Task<IntermediateHealthCheckResult?> CheckAzureStorageAccount(InfrastructureHealthCheckMessage request)
         {
-            var errors = new List<string>();
-            var status = InfrastructureHealthStatus.Healthy;
-
-            // Get the projects that match the request.Name
-            try
-            {
-                await using var ctx = await dbContextFactory.CreateDbContextAsync();
-
-                var project = await ctx.Projects
-                    .AsNoTracking()
-                    .Include(p => p.Resources)
-                    .FirstOrDefaultAsync(p => p.Project_Acronym_CD == request.Name);
-
-                if (project == null)
-                {
-                    status = InfrastructureHealthStatus.Unhealthy;
-                    errors.Add("Unable to retrieve project.");
-                }
-                else
-                {
-                    string accountName = projectStorageConfigurationService.GetProjectStorageAccountName(request.Name);
-                    var accountKey = await projectStorageConfigurationService.GetProjectStorageAccountKey(request.Name);
-
-                    if (accountKey is null)
-                    {
-                        status = InfrastructureHealthStatus.Undefined;
-                        errors.Add("System cannot access storage account (expected in Protected B)");
-                    }
-                    else
-                    {
-                        var projectStorageManager = new AzureCloudStorageManager(accountName, accountKey);
-
-                        if (projectStorageManager is null)
-                        {
-                            status = InfrastructureHealthStatus.Unhealthy;
-                            errors.Add("Unable to find the data container.");
-                        }
-                        else
-                        {
-                            var containers = await projectStorageManager.GetContainersAsync();
-                            if (containers is null || containers.Count < 1)
-                            {
-                                errors.Add("Storage account appears to have no containers.");
-                                status = InfrastructureHealthStatus.Degraded;
-                            }
-                            else
-                            {
-                                var metadata = await projectStorageManager.GetStorageMetadataAsync(containers[0]);
-                                if (metadata is null)
-                                {
-                                    errors.Add("Unable to get container metadata. There may be something wrong with the container.");
-                                    status = InfrastructureHealthStatus.Degraded;
-                                }
-                            }
-                        }
-                    }
-                }
-            }
-            catch (Exception ex)
-            {
-                status = InfrastructureHealthStatus.Unhealthy;
-                errors.Add("Error while verifying project storage. " + ex.GetType().ToString());
-                errors.Add($"Details: {ex.Message}");
-            }
-
-            return new(status, errors);
+            return await TriggerWorkspaceRBACSync(request);
         }
+
+
 
         public async Task<IntermediateHealthCheckResult?> TriggerWorkspaceRBACSync(InfrastructureHealthCheckMessage request)
         {
