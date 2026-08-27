@@ -66,7 +66,7 @@ namespace Datahub.Infrastructure.Services.Helpers
         IWorkspaceWebAppManagementService workspaceWebAppManagementService,
         IConfiguration configuration,
         IHttpClientFactory httpClientFactory,
-        ILoggerFactory loggerFactory,
+        ILogger<HealthCheckHelper> logger,
         AzAccessTokenManager tokenManager,
         ISendEndpointProvider sendEndpointProvider,
         IResourceMessagingService resourceMessagingService,
@@ -75,7 +75,6 @@ namespace Datahub.Infrastructure.Services.Helpers
         IHttpContextAccessor? httpContextAccessor = null,   // MADE OPTIONAL & NULLABLE
         IGCNotifyService? gcNotifyService = null)
     {
-        private readonly ILogger<HealthCheckHelper> logger = loggerFactory.CreateLogger<HealthCheckHelper>();
         private readonly IHttpContextAccessor? _httpContextAccessor = httpContextAccessor; // nullable now
         private readonly IGCNotifyService? gcNotifyService = gcNotifyService;
 

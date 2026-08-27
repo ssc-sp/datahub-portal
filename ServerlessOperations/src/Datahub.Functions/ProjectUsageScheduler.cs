@@ -3,6 +3,7 @@ using System.Net;
 using System.Runtime.CompilerServices;
 using System.Text.Json;
 using System.Text.Json.Serialization;
+using Azure;
 using Azure.Storage.Blobs;
 using Datahub.Infrastructure.Queues.Messages;
 using Microsoft.Azure.Functions.Worker;
@@ -25,7 +26,7 @@ using Datahub.Functions.Domain.Exceptions;
 namespace Datahub.Functions;
 
 public class ProjectUsageScheduler(
-    ILoggerFactory loggerFactory,
+    ILogger<ProjectUsageScheduler> logger,
     IDbContextFactory<DatahubProjectDBContext> dbContextFactory,
     ISendEndpointProvider sendEndpointProvider,
     IWorkspaceCostManagementService workspaceCostMgmtService,
@@ -34,10 +35,12 @@ public class ProjectUsageScheduler(
     IConfiguration config)
 {
     public bool Mock { get; set; } = false;
-    private readonly ILogger<ProjectUsageScheduler> _logger = loggerFactory.CreateLogger<ProjectUsageScheduler>();
     private readonly AzureConfig _azConfig = new(config);
     private bool _forceUpdate = false;
     private const int WORKSPACE_UPDATE_LIMIT = 100;
+    private static readonly TimeSpan CostQueryDelay = TimeSpan.FromHours(1);
+    private static readonly object CostQueryThrottleLock = new();
+    private static DateTime _nextCostQueryAllowedAt = DateTime.MinValue;
 
     [Function("ProjectUsageScheduler")]
     public async Task Run([TimerTrigger("%ProjectUsageCRON%")] TimerInfo timerInfo)
@@ -57,22 +60,22 @@ public class ProjectUsageScheduler(
         [HttpTrigger(AuthorizationLevel.Function, "get", "post", Route = null)]
         HttpRequestData req)
     {
-        _logger.LogInformation("Processing manual project usage request");
+        logger.LogInformation("Processing manual project usage request");
         var body = await req.ReadAsStringAsync();
         if (string.IsNullOrEmpty(body))
         {
-            _logger.LogError("Request body is empty");
+            logger.LogError("Request body is empty");
             var response = req.CreateResponse(HttpStatusCode.BadRequest);
             response.Headers.Add("Content-Type", "text/plain; charset=utf-8");
             await response.WriteStringAsync("Request body is empty");
             return response;
         }
 
-        _logger.LogInformation("Request body: {Body}", body);
+        logger.LogInformation("Request body: {Body}", body);
         var schedulerRequest = ParseRequestBody(body);
         _forceUpdate = schedulerRequest.Acronyms.Count != 0; // If acronyms are given, we force update for those projects
-        _logger.LogInformation("Manual rollover is set to: {ManualRollover}", schedulerRequest.ManualRollover);
-        _logger.LogInformation("Acronyms: {Acronyms}", schedulerRequest.Acronyms);
+        logger.LogInformation("Manual rollover is set to: {ManualRollover}", schedulerRequest.ManualRollover);
+        logger.LogInformation("Acronyms: {Acronyms}", schedulerRequest.Acronyms);
         await RunScheduler(schedulerRequest.Acronyms, schedulerRequest.ManualRollover);
         var responseOk = req.CreateResponse(HttpStatusCode.OK);
         responseOk.Headers.Add("Content-Type", "text/plain; charset=utf-8");
@@ -85,43 +88,43 @@ public class ProjectUsageScheduler(
     internal async Task<(int, int)> RunScheduler(List<string>? acronyms = default, bool manualRollover = false)
     {
         // Arrange
-        _logger.LogInformation("Running project usage scheduler");
+        logger.LogInformation("Running project usage scheduler");
         acronyms ??= new List<string>();
 
-        _logger.LogInformation("Grabbing top {Count} projects to update", WORKSPACE_UPDATE_LIMIT);
+        logger.LogInformation("Grabbing top {Count} projects to update", WORKSPACE_UPDATE_LIMIT);
         var projects = await GetProjects(acronyms, WORKSPACE_UPDATE_LIMIT);
         if (!projects.Any())
         {
-            _logger.LogInformation("No projects to update");
+            logger.LogInformation("No projects to update");
             return (0, 0);
         }
 
-        _logger.LogInformation("Found {Count} projects to update", projects.Count);
+        logger.LogInformation("Found {Count} projects to update", projects.Count);
 
         var subIds = projects.Select(p => "/subscriptions/" + p.DatahubAzureSubscription.SubscriptionId)
             .Distinct()
             .ToList();
 
         // Query and aggregate costs
-        _logger.LogInformation("Querying and aggregating costs for {Count} subscriptions", subIds.Count);
+        logger.LogInformation("Querying and aggregating costs for {Count} subscriptions", subIds.Count);
         var aggregateTime = Stopwatch.StartNew();
         var (allCosts, allTotals) = await AggregateCosts(subIds);
         aggregateTime.Stop();
-        _logger.LogInformation("Aggregated costs for {Count} subscriptions in {Time}ms", subIds.Count,
+        logger.LogInformation("Aggregated costs for {Count} subscriptions in {Time}ms", subIds.Count,
             aggregateTime.ElapsedMilliseconds);
-        _logger.LogInformation("Obtained {Count} costs and {TotalCount} totals", allCosts.Count, allTotals.Count);
+        logger.LogInformation("Obtained {Count} costs and {TotalCount} totals", allCosts.Count, allTotals.Count);
 
         // Upload costs and totals to blob storage
-        _logger.LogInformation("Uploading costs and totals to blob storage");
+        logger.LogInformation("Uploading costs and totals to blob storage");
         var uploadTimer = Stopwatch.StartNew();
         var (costBlobName, totalBlobName) = await PostToBlob(allCosts, allTotals);
         uploadTimer.Stop();
-        _logger.LogInformation("Uploaded costs and totals to blob storage in {Time}ms",
+        logger.LogInformation("Uploaded costs and totals to blob storage in {Time}ms",
             uploadTimer.ElapsedMilliseconds);
-        _logger.LogInformation("Costs: {CostBlob}, Totals: {TotalBlob}", costBlobName, totalBlobName);
+        logger.LogInformation("Costs: {CostBlob}, Totals: {TotalBlob}", costBlobName, totalBlobName);
 
         // Send messages to update usage and capacity
-        _logger.LogInformation("Sending messages to update usage and capacity for {Count} projects", projects.Count);
+        logger.LogInformation("Sending messages to update usage and capacity for {Count} projects", projects.Count);
         var costMessages = 0;
         var storageMessages = 0;
         var ctx = await dbContextFactory.CreateDbContextAsync();
@@ -136,7 +139,7 @@ public class ProjectUsageScheduler(
             await Task.Delay(500);
         }
 
-        _logger.LogInformation("Sent {CostMessages} cost update messages and {StorageMessages} storage update messages",
+        logger.LogInformation("Sent {CostMessages} cost update messages and {StorageMessages} storage update messages",
             costMessages, storageMessages);
         return (costMessages, storageMessages);
     }
@@ -168,7 +171,7 @@ public class ProjectUsageScheduler(
         }
         catch (Exception e)
         {
-            _logger.LogError(e, "Error while sending messages");
+            logger.LogError(e, "Error while sending messages");
             throw new MessageSchedulingException($"Error while sending messages: {e.Message}");
         }
     }
@@ -201,7 +204,7 @@ public class ProjectUsageScheduler(
         }
         catch (Exception e)
         {
-            _logger.LogError(e, "Error while getting projects");
+            logger.LogError(e, "Error while getting projects");
             throw new ProjectFilteringException($"Error while getting projects: {e.Message}");
         }
     }
@@ -209,7 +212,7 @@ public class ProjectUsageScheduler(
     internal virtual async Task<(string, string)> PostToBlob(List<DailyServiceCost> costs, List<DailyServiceCost> totals)
     {
         var guid = Guid.NewGuid();
-        var date = DateTime.UtcNow.ToString("yyyy-MM-dd-HH-mm-ss");
+        var date = DateTime.UtcNow.ToString("yyyy-MM-dd-hh-mm-ss");
         try
         {
             var costBlob = await UploadToBlob("costs", date, guid, costs);
@@ -218,7 +221,7 @@ public class ProjectUsageScheduler(
         }
         catch (Exception e)
         {
-            _logger.LogError(e, "Error while uploading costs to blob");
+            logger.LogError(e, "Error while uploading costs to blob");
             throw new BlobUploadException($"Error while uploading costs to blob: {e.Message}");
         }
     }
@@ -234,25 +237,60 @@ public class ProjectUsageScheduler(
 
             foreach (var subId in subIds)
             {
-                var rgNames = await rgMgmtService.GetAllSubscriptionResourceGroupsAsync(subId);
+                if (ShouldBypassCostQueries())
+                {
+                    logger.LogWarning(
+                        "Skipping cost query for all subscriptions until {NextCostQueryAllowedAt:O} because a previous Azure cost query hit a 429.",
+                        _nextCostQueryAllowedAt);
+                    break;
+                }
 
-                var costs = await workspaceCostMgmtService.QuerySubscriptionCostsAsync(subId,
-                    DateTime.UtcNow.Date.AddDays(-7),
-                    DateTime.UtcNow.Date, QueryGranularity.Daily, rgNames);
 
-                var totals = await workspaceCostMgmtService.QuerySubscriptionCostsAsync(subId, startFiscalYear,
-                    DateTime.UtcNow.Date, QueryGranularity.Total, rgNames);
+                try
+                {
+                    var rgNames = await rgMgmtService.GetAllSubscriptionResourceGroupsAsync(subId);
+                    var costs = await workspaceCostMgmtService.QuerySubscriptionCostsAsync(subId,
+                        DateTime.UtcNow.Date.AddDays(-7),
+                        DateTime.UtcNow.Date, QueryGranularity.Daily, rgNames);
 
-                allCosts.AddRange(costs);
-                allTotals.AddRange(totals);
+                    var totals = await workspaceCostMgmtService.QuerySubscriptionCostsAsync(subId, startFiscalYear,
+                        DateTime.UtcNow.Date, QueryGranularity.Total, rgNames);
+
+                    allCosts.AddRange(costs);
+                    allTotals.AddRange(totals);
+                }
+                catch (RequestFailedException ex) when (ex.Status == (int)HttpStatusCode.TooManyRequests)
+                {
+                    ApplyCostQueryThrottle();
+                    logger.LogWarning(ex,
+                        "Azure cost query hit 429 for subscription {SubscriptionId}. Skipping all future cost queries for {Delay}.",
+                        subId, CostQueryDelay);
+                    throw;
+                }
             }
 
             return (allCosts, allTotals);
         }
         catch (Exception e)
         {
-            _logger.LogError(e, "Error while aggregating costs");
+            logger.LogError(e, "Error while aggregating costs");
             throw new CostQueryException($"Error while aggregating costs: {e.Message}");
+        }
+    }
+
+    private static bool ShouldBypassCostQueries()
+    {
+        lock (CostQueryThrottleLock)
+        {
+            return DateTime.UtcNow < _nextCostQueryAllowedAt;
+        }
+    }
+
+    private static void ApplyCostQueryThrottle()
+    {
+        lock (CostQueryThrottleLock)
+        {
+            _nextCostQueryAllowedAt = DateTime.UtcNow.Add(CostQueryDelay);
         }
     }
 
