@@ -10,6 +10,8 @@ import bug_report_message as brm
 import healthcheck_message as hcm
 from lib.queue_utils import MassTransitMessage
 
+logger = logging.getLogger(__name__)
+
 #from lib.databricks_utils import get_workspace_client, remove_deleted_users_in_workspace, synchronize_workspace_users
 #from azure.servicebus import ServiceBusClient, ServiceBusMessage
 
@@ -19,12 +21,22 @@ PYTHON_WORKSPACE_SYNC_ERROR_CODE = 7023
 app = func.FunctionApp()
 
 def get_config():
+    """Retrieve the Azure Service Bus configuration values from the environment.
+
+    Returns:
+        tuple: The Service Bus connection string, bug queue name, and health check results queue name.
+    """
     asb_connection_str = os.getenv('DatahubServiceBus')
     queue_name = os.getenv('AzureServiceBusQueueName4Bugs') or "bug-report"
     check_results_queue_name = os.getenv('AzureServiceBusQueueName4Results') or "infrastructure-health-check-results"
     return asb_connection_str, queue_name, check_results_queue_name
 
 def get_sync_func_mappings():
+    """Build the mapping of workspace template names to their synchronization handlers.
+
+    Returns:
+        dict: A dictionary mapping template names to their display label and sync handler.
+    """
     mappings = {
         "new-project-template": ("keyvault users", sync_keyvault_workspace_users_function),
         "azure-storage-blob": ("storage account policies", sync_storage_workspace_users_function),
@@ -71,10 +83,17 @@ def queue_sync_workspace_users_function(msg: func.ServiceBusMessage):
     workspace_definition = message_envelope['message']
     workspace_definition = keys_upper(workspace_definition)
     new_sync_workspace(workspace_definition)
-    return None
 
 def send_exception_to_service_bus(exception_message):
-    asb_connection_str, queue_name, check_results_queue_name = get_config()
+    """Send a workspace synchronization error report to the Service Bus bug queue.
+
+    Args:
+        exception_message (str): The error message to include in the report.
+
+    Returns:
+        None
+    """
+    asb_connection_str, queue_name, _ = get_config()
     bug_report = brm.BugReportMessage(
         UserName="Datahub Portal",
         UserEmail="",
@@ -91,26 +110,25 @@ def send_exception_to_service_bus(exception_message):
         BugReportType=PYTHON_WORKSPACE_SYNC_ERROR_CODE,
         Description=exception_message
     )
-    with servicebus.ServiceBusClient.from_connection_string(asb_connection_str, transport_type=servicebus.TransportType.AmqpOverWebsocket) as client:
-        with client.get_queue_sender(queue_name) as sender:
-            mass_transit_msg = MassTransitMessage(bug_report, client.fully_qualified_namespace, queue_name, MassTransitMessage.TYPE_BUG_REPORT)
-            mtm_json = mass_transit_msg.to_json()
-            q_message = servicebus.ServiceBusMessage(mtm_json)
-            sender.send_messages(q_message)
-            print(f"Sent message to queue: {queue_name}")
+    with servicebus.ServiceBusClient.from_connection_string(asb_connection_str, transport_type=servicebus.TransportType.AmqpOverWebsocket) as client, client.get_queue_sender(queue_name) as sender:
+        mass_transit_msg = MassTransitMessage(bug_report, client.fully_qualified_namespace, queue_name, MassTransitMessage.TYPE_BUG_REPORT)
+        mtm_json = mass_transit_msg.to_json()
+        q_message = servicebus.ServiceBusMessage(mtm_json)
+        sender.send_messages(q_message)
+        print(f"Sent message to queue: {queue_name}")
 
 def send_healthcheck_to_service_bus(message):
+    """Send a health check result message to Service Bus."""
     try:
-        asb_connection_str, queue_name, check_results_queue_name = get_config()
-        with servicebus.ServiceBusClient.from_connection_string(asb_connection_str, transport_type=servicebus.TransportType.AmqpOverWebsocket) as client:
-            with client.get_queue_sender(check_results_queue_name) as sender:
-                mass_transit_msg = MassTransitMessage(message, client.fully_qualified_namespace, check_results_queue_name, MassTransitMessage.TYPE_HEALTH_CHECK_RESULT)
-                mtm_json = mass_transit_msg.to_json()
-                q_message = servicebus.ServiceBusMessage(mtm_json, message_id=mass_transit_msg.messageId)
-                sender.send_messages(q_message)
-                print(f"Sent message to queue: {check_results_queue_name}")
+        asb_connection_str, _, check_results_queue_name = get_config()
+        with servicebus.ServiceBusClient.from_connection_string(asb_connection_str, transport_type=servicebus.TransportType.AmqpOverWebsocket) as client, client.get_queue_sender(check_results_queue_name) as sender:
+            mass_transit_msg = MassTransitMessage(message, client.fully_qualified_namespace, check_results_queue_name, MassTransitMessage.TYPE_HEALTH_CHECK_RESULT)
+            mtm_json = mass_transit_msg.to_json()
+            q_message = servicebus.ServiceBusMessage(mtm_json, message_id=mass_transit_msg.messageId)
+            sender.send_messages(q_message)
+            print(f"Sent message to queue: {check_results_queue_name}")
     except Exception:
-        logging.exception(f"An error occurred while sending health check to service bus")
+        logger.exception(f"An error occurred while sending health check to service bus")
 
 def keys_upper(dictionary):
     """
@@ -141,37 +159,48 @@ def keys_upper(dictionary):
     return res
    
 def new_sync_workspace(workspace_definition):
+    """Synchronize workspace users for the provided workspace definition.
+
+    Args:
+        workspace_definition (dict): The workspace definition payload containing templates and app data.
+
+    Returns:
+        None
+
+    Raises:
+        RuntimeError: If one or more template synchronizations fail.
+    """
     sync_mappings = get_sync_func_mappings()
-    logging.info("Got template mappings")
+    logger.info("Got template mappings")
 
     errors = []
 
     workspace_name = workspace_definition["Workspace"]["Acronym"]
-    logging.info(f"Synchronizing workspace users for {workspace_name}")
+    logger.info(f"Synchronizing workspace users for {workspace_name}")
 
     workspace_templates = workspace_definition["Templates"]
     if not workspace_templates:
         error_msg = f"Workspace {workspace_name} has no templates"
-        logging.error(error_msg)
+        logger.error(error_msg)
         errors.append(error_msg)
     else:
         template_names = [t["Name"] for t in workspace_templates]
-        logging.info(f"Got template names: {template_names}")
+        logger.info(f"Got template names: {template_names}")
 
         for t in template_names:
             if t not in sync_mappings:
-                logging.info(f"Skipping template {t}")
+                logger.info(f"Skipping template {t}")
                 continue
 
             name, sync_fn = sync_mappings[t]
-            logging.debug(f"name: {name}, func: {sync_fn.__name__}")
+            logger.debug(f"name: {name}, func: {sync_fn.__name__}")
 
             try:
-                logging.info(f"Synchronizing {name} for {workspace_name}.")
+                logger.info(f"Synchronizing {name} for {workspace_name}.")
                 sync_fn(workspace_definition)
             except Exception as e:
                 error_msg = f"Error synchronizing {name} for {workspace_name}"
-                logging.exception(e)
+                logger.exception(e)
                 errors.append(error_msg)
                 send_exception_to_service_bus(error_msg)
     
@@ -180,10 +209,10 @@ def new_sync_workspace(workspace_definition):
     health_msg = hcm.HealthcheckMessage(hcm.HealthcheckMessage.TYPE_WORKSPACE_SYNC, "workspaces", workspace_name, errors_joined, health_status)
     send_healthcheck_to_service_bus(health_msg)
     if (health_status == hcm.HealthcheckMessage.STATUS_HEALTHY):
-        logging.info(f"Successfully synced workspace {workspace_name}")
+        logger.info(f"Successfully synced workspace {workspace_name}")
     else:
         overall_sync_error = f"Workspace {workspace_name} had problems while synchronizing: {errors_joined}"
-        logging.error(overall_sync_error)
+        logger.error(overall_sync_error)
         raise RuntimeError(overall_sync_error)
 
 def sync_databricks_workspace_users_function(workspace_definition):
