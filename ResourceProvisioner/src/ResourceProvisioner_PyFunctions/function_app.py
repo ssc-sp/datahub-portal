@@ -12,6 +12,19 @@ from lib.queue_utils import MassTransitMessage
 
 logger = logging.getLogger(__name__)
 
+# Silence noisy Azure SDK HTTP logging so request/response headers are not emitted to the app logs.
+for logger_name in (
+    "azure",
+    "azure.core",
+    "azure.core.pipeline",
+    "azure.core.pipeline.policies.http_logging_policy",
+    "azure.identity",
+    "msal",
+    "msal_extensions",
+    "urllib3",
+):
+    logging.getLogger(logger_name).setLevel(logging.WARNING)
+
 #from lib.databricks_utils import get_workspace_client, remove_deleted_users_in_workspace, synchronize_workspace_users
 #from azure.servicebus import ServiceBusClient, ServiceBusMessage
 
@@ -37,8 +50,12 @@ def get_sync_func_mappings():
     Returns:
         dict: A dictionary mapping template names to their display label and sync handler.
     """
+    def sync_new_project_template(workspace_definition):
+        sync_keyvault_workspace_users_function(workspace_definition)
+        sync_storage_workspace_users_function(workspace_definition)
+
     mappings = {
-        "new-project-template": ("keyvault users", sync_keyvault_workspace_users_function),
+        "new-project-template": ("keyvault users and storage policies", sync_new_project_template),
         "azure-storage-blob": ("storage account policies", sync_storage_workspace_users_function),
         "azure-databricks": ("databricks users", sync_databricks_workspace_users_function)
     }
