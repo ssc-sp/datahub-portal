@@ -19,8 +19,8 @@ namespace Datahub.Core.Extensions
                     throw new Exception("Resource group name not found");
                 }
                 var jsonContent = JsonSerializer.Deserialize<JsonObject>(newProjectResource.JsonContent);
-                string rgName = jsonContent?["resource_group_name"]?.ToString() ?? throw new Exception("Resource group name not found");
-                if (rgName == "Missing") throw new Exception("Resource group name not found");
+                string? rgName = jsonContent?["resource_group_name"]?.ToString();
+                if (rgName is null || rgName == "Missing") throw new Exception($"Resource group name not found for {project.Project_Acronym_CD}");
                 return rgName;
             }
             return null;
@@ -52,9 +52,17 @@ namespace Datahub.Core.Extensions
                 {
                     throw new Exception("Resource group name not found");
                 }
-                var jsonContent = JsonSerializer.Deserialize<JsonObject>(blobStorageResource.JsonContent)!;
-                var rgName = jsonContent["resource_group_name"]!.ToString();
-                if (rgName == "Missing") throw new Exception("Resource group name not found");
+
+                var jsonContent = JsonSerializer.Deserialize<JsonObject>(blobStorageResource.JsonContent);
+                if (jsonContent is null ||
+                    !jsonContent.TryGetPropertyValue("resource_group_name", out var resourceGroupNameNode) ||
+                    resourceGroupNameNode is null)
+                {
+                    throw new Exception("Resource group name not found");
+                }
+
+                var rgName = resourceGroupNameNode.ToString();
+                if (string.IsNullOrWhiteSpace(rgName) || rgName == "Missing") throw new Exception("Resource group name not found");
                 return rgName;
             }
 

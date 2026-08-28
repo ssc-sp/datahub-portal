@@ -1,10 +1,10 @@
-using System.Net;
 using Datahub.Application.Configuration;
 using Datahub.Application.Services.Cost;
 using Datahub.Application.Services.ResourceGroups;
 using Datahub.Application.Services.Storage;
 using Datahub.Core.Model.Context;
 using Datahub.Infrastructure.Queues.Messages;
+using Datahub.Infrastructure.Services.Helpers;
 using FluentAssertions;
 using MassTransit;
 using Microsoft.EntityFrameworkCore;
@@ -12,6 +12,7 @@ using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.Logging;
 using Moq;
 using NSubstitute;
+using System.Net;
 
 namespace Datahub.Functions.UnitTests
 {
@@ -65,7 +66,7 @@ namespace Datahub.Functions.UnitTests
             await TestHelper.SeedDatabase(_dbContextFactory);
 
             _scheduler = new ProjectUsageScheduler(
-                _loggerFactory,
+                _logger,
                 _dbContextFactory,
                 _sendEndpointProviderMock.Object,
                 _workspaceCostMgmtServiceMock.Object,
@@ -84,7 +85,7 @@ namespace Datahub.Functions.UnitTests
             loggerFactoryTest.CreateLogger<ProjectUsageScheduler>().Returns(loggerTest.Object);
 
             var mockedScheduler = new ProjectUsageScheduler(
-                loggerFactoryTest,
+                _logger,
                 _dbContextFactory,
                 _sendEndpointProviderMock.Object,
                 _workspaceCostMgmtServiceMock.Object,

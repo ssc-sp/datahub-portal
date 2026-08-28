@@ -47,10 +47,17 @@ public class AzureDevOpsClient(IAzureConfiguration config, AzAccessTokenManager 
 
     private async Task<VssConnection> VssConnectionAsync()
     {
-        var aadCredentials = await Credentials();
-        var vssConnection = new VssConnection(new Uri(config.OrganizationUrl), aadCredentials);
-        vssConnection.ConnectAsync().SyncResult();
-        return vssConnection;
+        try
+        {
+            var aadCredentials = await Credentials();
+            var vssConnection = new VssConnection(new Uri(config.OrganizationUrl), aadCredentials);
+            await vssConnection.ConnectAsync();
+            return vssConnection;
+        }
+        catch (VssUnauthorizedException ex)
+        {
+            throw new InvalidOperationException($"Failed to authenticate to Azure DevOps organization '{config.OrganizationUrl}'. Ensure the managed identity or service principal has access to the organization and token acquisition is valid.", ex);
+        }
     }
 
     private async Task<VssCredentials> Credentials()
