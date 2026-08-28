@@ -144,20 +144,20 @@
     <DialogActions>
         <MudGrid>
             <MudItem xs="6" class="d-flex justify-start">
-                <DHButton Color="Color.Error" OnClick="Cancel" Variant="Variant.Filled">@Localizer["Cancel"]</DHButton>
+                <DHButton HtmlTag="button" Color="Color.Error" OnClick="Cancel" Variant="Variant.Filled">@Localizer["Cancel"]</DHButton>
             </MudItem>
             <MudItem xs="6" class="d-flex justify-end">
               @if (_page > 1)
               {
-                  <DHButton Color="Color.Default" OnClick="BackPage" Variant="Variant.Filled">@Localizer["Back"]</DHButton>
+                  <DHButton HtmlTag="button" Color="Color.Default" OnClick="BackPage" Variant="Variant.Filled">@Localizer["Back"]</DHButton>
               }
               @if (_page < 4)
               {
-                  <DHButton Color="Color.Primary" OnClick="NextPage" Variant="Variant.Filled" Disabled="@(!(_successes[_page - 1]))">@Localizer["Next"]</DHButton>
+                  <DHButton HtmlTag="button" Color="Color.Primary" OnClick="NextPage" Variant="Variant.Filled" Disabled="@(!(_successes[_page - 1]))">@Localizer["Next"]</DHButton>
               }
               @if (_page == 4)
               {
-                  <DHButton Color="Color.Primary" OnClick="AddExternalUser" Variant="Variant.Filled">@Localizer["Send user invite"]</DHButton>
+                  <DHButton HtmlTag="button" Color="Color.Primary" OnClick="AddExternalUser" Variant="Variant.Filled">@Localizer["Send user invite"]</DHButton>
               }
             </MudItem>
         </MudGrid>
