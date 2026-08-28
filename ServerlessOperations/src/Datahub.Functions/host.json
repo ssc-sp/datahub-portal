@@ -13,21 +13,22 @@
         "isEnabled": false,
         "excludedTypes": "Request"
       },
+
       "dependencyTrackingOptions": {
         "enableSqlCommandTextInstrumentation": true
       },
       "enableLiveMetrics": true,
       "enableDependencyTracking": true,
       "enablePerformanceCountersCollection": true
-    },
-    "extensions": {
-      "serviceBus": {
-        "prefetchCount": 32,
-        "autoCompleteMessages": true,
-        "maxConcurrentCalls": 32,
-        "maxAutoLockRenewalDuration": "00:30:00",
-        "transportType": "amqpWebSockets"
-      }
+    }
+  },
+  "extensions": {
+    "serviceBus": {
+      "prefetchCount": 32,
+      "autoCompleteMessages": true,
+      "maxConcurrentCalls": 32,
+      "maxAutoLockRenewalDuration": "00:30:00",
+      "transportType": "amqpWebSockets"
     }
   }
 }

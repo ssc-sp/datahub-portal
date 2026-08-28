@@ -4,6 +4,7 @@
         <TargetFramework>net10.0</TargetFramework>
         <Nullable>enable</Nullable>
         <ImplicitUsings>enable</ImplicitUsings>
+        <InterceptorsNamespaces>$(InterceptorsNamespaces);Bunit</InterceptorsNamespaces>
         <RootNamespace>Datahub.SpecflowTests</RootNamespace>
 		<IsTestProject>true</IsTestProject>
       <UserSecretsId>0e5da883-04b1-4ef6-87a0-33f222cc5391</UserSecretsId>
