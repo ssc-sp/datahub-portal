@@ -18,6 +18,13 @@ export function promptForNewFolderName(message) {
     return window.prompt(message)
 }
 
+export function confirmStorageTierChange(message) {
+    return window.confirm(message)
+}
+
+export function confirmDownloadCoolOrCold(message) {
+  return window.confirm(message)
+}
 
 let count = 0;
 
