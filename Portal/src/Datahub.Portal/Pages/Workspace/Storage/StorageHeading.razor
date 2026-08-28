@@ -1,6 +1,7 @@
 @using Datahub.Application.Services.Publishing
 @using Datahub.Core.Model.Projects
 @using Datahub.Core.Model.Users
+@using Datahub.Core.Storage;
 @using Datahub.Metadata.Model;
 @using Datahub.Application.Services
 @using Datahub.Application.Services.Metadata
@@ -32,10 +33,29 @@
                 || (action is ButtonAction.DeleteFolder && !ShowDeleteFolder)
                 || (action is ButtonAction.Publish && !ShowPublish))
             { continue; }
-
-            <DHButton @onclick="() => GetButtonActionHandler(action)" StartIcon="@GetButtonActionIcon(action)" Disabled="@IsActionDisabled(action)">
-                @Localizer[ButtonActionToString(action)]
-            </DHButton>
+            else if (action is ButtonAction.TierChange)
+            {
+                <MudSelect T="string"
+                           Variant="Variant.Outlined"
+                           Value="@SelectedStorageTier"
+                           ValueChanged="@(async (string v) => await HandleTierChange(v))"
+                           Label="@Localizer["Storage Tier"]"
+                           Disabled="@GetDisabled(action)"
+                           FitContent="true"
+                           Margin="Margin.Dense"
+                           aria-label="Storage tier">
+                    @foreach (string s in _storageTiers)
+                    {
+                        <MudSelectItem T="string" Value="@s">@s</MudSelectItem>
+                    }
+                </MudSelect>
+            }
+            else
+            {
+                <DHButton @onclick="() => GetButtonActionHandler(action)" StartIcon="@GetButtonActionIcon(action)" Disabled="@GetDisabled(action)">
+                    @Localizer[ButtonActionToString(action)]
+                </DHButton>
+            }
         }
     </div>
 
@@ -112,6 +132,12 @@
 
     [Parameter]
     public EventCallback OnBackToContainers { get; set; }
+    
+    [Parameter]
+    public ICloudStorageManager StorageManager { get; set; }
+
+    [Parameter]
+    public string ContainerName { get; set; } = "datahub";
 
     private IJSObjectReference _module = null!;
 
@@ -136,8 +162,25 @@
         ButtonAction.Delete,
         ButtonAction.NewFolder,
         ButtonAction.DeleteFolder,
+        ButtonAction.TierChange,
         ButtonAction.Publish
     };
+
+    // private string _storageTier;
+    private List<string> _storageTiers = new List<string> { "Hot", "Cool", "Cold", "Archive" };
+
+    [Parameter]
+    public string SelectedStorageTier { get; set; } = "Hot";
+
+    [Parameter]
+    public EventCallback<string> OnStorageTierChanged { get; set; }
+
+    private Dictionary<ButtonAction, bool> _actionDisabled = new();
+
+    private bool GetDisabled(ButtonAction action)
+    {
+        return _actionDisabled.TryGetValue(action, out var v) ? v : true;
+    }
 
     protected override async Task OnInitializedAsync()
     {
@@ -147,6 +190,7 @@
         
         // Check if publishing is blocked for this workspace
         _isPublishingBlockedForWorkspace = await _openDataPublishingService.IsPublishingBlockedForWorkspaceAsync(ProjectAcronym);
+        _storageTiers = StorageManager.GetFileStorageTiersList();
     }
 
     protected override async Task OnAfterRenderAsync(bool firstRender)
@@ -161,10 +205,12 @@
         }
     }
 
-    protected override async void OnParametersSet()
+    protected override async Task OnParametersSetAsync()
     {
+        await base.OnParametersSetAsync();
+
         _selectedFiles = Files?
-            .Where(f => SelectedItems.Contains(f.name))
+            .Where(f => SelectedItems != null && SelectedItems.Contains(f.name))
             .ToList();
 
         // TODO: This is a hack until SSC properly sets the owner of a file
@@ -187,8 +233,23 @@
             {
                 _isUnclassifiedSingleFile = false;
             }
-            await InvokeAsync(StateHasChanged);
         }
+
+        // Precompute disabled state for actions using the async IsActionDisabled
+        _actionDisabled.Clear();
+        foreach (var action in _buttonActions)
+        {
+            try
+            {
+                _actionDisabled[action] = await IsActionDisabled(action);
+            }
+            catch
+            {
+                _actionDisabled[action] = true;
+            }
+        }
+
+        await InvokeAsync(StateHasChanged);
     }
 
     private async Task<bool> IsCurrentUserMemberOfProject()

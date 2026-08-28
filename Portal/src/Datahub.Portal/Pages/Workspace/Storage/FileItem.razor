@@ -1,4 +1,5 @@
 @using ByteSizeLib
+@using Datahub.Core.Storage;
 @implements IAsyncDisposable
 @inject IJSRuntime _jsRuntime
 
@@ -35,11 +36,11 @@
         </span>
         @Name
     </MudText>
-    <MudText class="file-item-size">@(ByteSize ?? "")</MudText>
+    <MudText class="file-item-size">@(ByteSize ?? "") @(!Folder ? $"({StorageTier})" : "")</MudText>
     <MudText class="file-item-modified">@(Modified?.ToString("r") ?? "")</MudText>
 </div>
 
-    @code {
+@code {
 
     [CascadingParameter(Name = "FilterValue")]
     public string FilterValue { get; set; }
@@ -70,6 +71,9 @@
 
     [Parameter]
     public EventCallback<MouseEventArgs> OnDblClick { get; set; }
+
+    [Parameter]
+    public string StorageTier { get; set; } = "Hot";
 
     private string ByteSize
     {

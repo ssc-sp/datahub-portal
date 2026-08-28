@@ -565,4 +565,29 @@ public class AzureCloudStorageManager : ICloudStorageManager
 
         return false;
     }
+
+    public async Task<string> GetFileStorageTierAsync(string container, string file)
+    {
+        var blobClient = (await GetBlobContainerClient(container)).GetBlobClient(file);
+        var properties = await blobClient.GetPropertiesAsync();
+        return properties.Value.AccessTier?.ToString() ?? "Unknown";
+    }
+
+    public async Task<bool> SetFileStorageTierAsync(string container, string file, string newTier)
+    {
+        var blobClient = (await GetBlobContainerClient(container)).GetBlobClient(file);
+        await blobClient.SetAccessTierAsync(newTier);
+        return true;
+    }
+
+    public List<string> GetFileStorageTiersList()
+    {
+        return new List<string>
+        {
+            AccessTier.Hot.ToString(),
+            AccessTier.Cool.ToString(),
+            AccessTier.Cold.ToString(),
+            AccessTier.Archive.ToString()
+        };
+    }
 }

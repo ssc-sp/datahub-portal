@@ -1,9 +1,11 @@
 @*FileProperties.razor*@
+@using Azure.Storage.Blobs.Models;
 @using Datahub.Core.Components.Code
 @using Datahub.Core.Model.Projects
 @using Datahub.Core.Services.Api;
 @using Datahub.Metadata.Model
 @using Datahub.Application.Services
+@using Datahub.Core.Storage;
 @using Datahub.Infrastructure.Services.Api
 @using Datahub.Infrastructure.Services.Storage
 @using Datahub.Portal.Components.User
@@ -21,6 +23,15 @@
             </MudText>
         </div>
 
+        @if (StorageTier == AccessTier.Archive.ToString())
+        {
+            <DHAlert Severity="Severity.Info">
+                <MudText Typo="Typo.h5">@Localizer["Archived Storage"]</MudText>
+                <MudText Class="my-3">@Localizer["This file is currently in an archive storage tier for long-term storage."]</MudText>
+                <MudText>@Localizer["To download this file, you must first change the storage tier. This can take several hours to process."]</MudText>
+            </DHAlert>
+        }
+
         <div class="access-container">
             <MudText Typo="Typo.h4">@Localizer["Who has access"]</MudText>
             <span class="circle-item">
@@ -31,6 +42,8 @@
 
         <div class="properties">
             <MudText class="properties-title" Typo="Typo.h4">@Localizer["Storage Properties"]</MudText>
+            <MudText class="label">@Localizer["Storage Tier"]</MudText>
+            <MudText class="text">@StorageTier</MudText>
             @foreach (var (key, value) in _properties)
             {
                 if (!string.IsNullOrEmpty(value) && value != "[]")
@@ -91,6 +104,8 @@
     private string _databricksPasteText;
     private ClassificationType _classification;
 
+    [Parameter]
+    public string StorageTier { get; set; } = "Hot";
 
     protected override async Task OnParametersSetAsync()
     {
