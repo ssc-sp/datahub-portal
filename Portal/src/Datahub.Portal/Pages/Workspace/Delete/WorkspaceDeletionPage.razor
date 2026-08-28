@@ -1,0 +1,187 @@
+@namespace Datahub.Portal.Pages.Workspace.Delete
+
+@using Datahub.Application.Services
+@using Datahub.Core.Extensions;
+@using Datahub.Core.Model.Projects
+@using Datahub.Portal.Pages.Account
+@using Datahub.Shared
+@using Datahub.Shared.Entities
+@inject IDbContextFactory<DatahubProjectDBContext> _dbContextFactory
+@inject IUserInformationService _userInformationService
+@inject IResourceMessagingService _resourceMessagingService
+@inject IJSRuntime _jSRuntime
+@inject ISnackbar _snackbar
+@inject IProjectDeletionService _projectDeletionService
+
+@inject NavigationManager _navigationManager
+
+<DatahubAuthView AuthLevel="DatahubAuthView.AuthLevels.WorkspaceLead" ProjectAcronym="@WorkspaceAcronym" ElevatedWorkspaceAccessEnabled="true">
+    <Authorized>
+        <MudStack Class="px-4">
+            <MudGrid>
+                <MudItem xs="12">
+                    <MudStack>
+                        <MudText Typo="Typo.h4">
+                            @Localizer["Are you sure you want to delete the following workspace: {0}?", WorkspaceAcronym]
+                        </MudText>
+                        <MudText Typo="Typo.body1">
+                            @Localizer["This action is permanent. Upon deletion, the workspace and all its resources will be deleted"]
+                        </MudText>
+                        <MudCheckBox T="bool" Value="@_questionnaire.IsWorkspaceNotRequired" ValueChanged="@(e => HandleValueChanged(1))" Label="@Localizer["The workspace is no longer required."]"></MudCheckBox>
+                        <MudCheckBox T="bool" Value="@_questionnaire.IsDataMigrated" ValueChanged="@(e => HandleValueChanged(2))" Label="@Localizer["All data or information of business value in the workspace has been migrated to the departmental repositories."]"></MudCheckBox>
+                        <MudCheckBox T="bool" Value="@_questionnaire.IsDataNotSubjectToLitigation" ValueChanged="@(e => HandleValueChanged(3))" Label="@Localizer["Data or information in the workspace is not subject to a litigation hold."]"></MudCheckBox>
+                        <MudCheckBox T="bool" Value="@_questionnaire.DoesDataNotHaveArchivalValue" ValueChanged="@(e => HandleValueChanged(4))" Label="@Localizer["Data or information in the workspace does not have archival value according to the Disposition Authorization issued by Library and Archives Canada."]"></MudCheckBox>
+                        <MudCheckBox T="bool" Value="@_questionnaire.IsDeletionConfirmed" ValueChanged="@(e => HandleValueChanged(5))" Label="@Localizer["I confirm the data, information, applications, notebooks, storage, etc. can be removed from the workspace, and the workspace can be deleted. Once deleted, the data cannot be recovered."]"></MudCheckBox>
+                        <MudText Typo="Typo.h5">
+                            @Localizer["Please type {0} to confirm the deletion.", WorkspaceAcronym]
+                        </MudText>
+                        <MudGrid>
+                            <MudItem xs="5">
+                                <MudTextField @bind-Value="_deleteConfirmation" Variant="Variant.Text"></MudTextField>
+                            </MudItem>
+                        </MudGrid>
+                    </MudStack>
+
+                    @if (_error.Equals("_emptyConfirmation"))
+                    {
+                        <MudAlert Severity="Severity.Error">
+                            <MudText Typo="Typo.body2">@Localizer["Please enter a workspace acronym."]</MudText>
+                        </MudAlert>
+                    }
+                    else if (_error.Equals("_badConfirmation"))
+                    {
+                        <MudAlert Severity="Severity.Error">
+                            <MudText Typo="Typo.body2">@Localizer["Incorrect workspace acronym."]</MudText>
+                        </MudAlert>
+                    }
+                </MudItem>
+                <MudItem xs="3">
+                    <DHButton Variant="@Variant.Filled" Color="@Color.Default" Href="@_settingsPage">
+                        @Localizer["Cancel"]
+                    </DHButton>
+                </MudItem>
+                <MudItem xs="3">
+                    <DHButton Disabled="@_disableDeleteButton" Variant="@Variant.Filled" Color="@Color.Error" OnClick="@ConfirmDeletion">
+                        @_deleteButtonText
+                        <DHIcon Icon="@SidebarIcons.Delete" Class="ml-2" Style="font-size: 0.8rem;" />
+                    </DHButton>
+                </MudItem>
+            </MudGrid>
+        </MudStack>
+    </Authorized>
+    <NotAuthorized>
+        <MudAlert Severity="Severity.Warning" Variant="Variant.Outlined" Style="color: #000;" Class="mb-6">
+            @Localizer["Access Denied"]
+        </MudAlert>
+    </NotAuthorized>
+</DatahubAuthView>
+@code
+{
+    [Parameter]
+    public string WorkspaceAcronym { get; set; }
+    [Parameter]
+    public bool ElevatedWorkspaceAccessEnabled { get; set; } = true;
+
+    private string _deleteConfirmation;
+    private string _error = "";
+    private string _settingsPage => $"{PageRoutes.WorkspacePrefix}/{WorkspaceAcronym}/{WorkspaceSidebar.SectionViews.Settings}";
+    private bool _deleteRequested;
+    private bool _disableDeleteButton;
+    private string _deleteButtonText = "Delete Workspace";
+    private Project_Delete_Questionnaire _questionnaire = new Project_Delete_Questionnaire();
+
+
+    protected override async Task OnInitializedAsync()
+    {
+        var newProjectTemplateType = TerraformTemplate.GetTerraformServiceType(TerraformTemplate.NewProjectTemplate);
+        await using var ctx = await _dbContextFactory.CreateDbContextAsync();
+        var newTemplateResource = await ctx.Project_Resources2.Where(
+                    r => r.Project.Project_Acronym_CD == WorkspaceAcronym &&
+                    r.ResourceType == newProjectTemplateType)
+                    .FirstOrDefaultAsync();
+
+        if (newTemplateResource != null)
+        {
+            _deleteRequested = newTemplateResource.Status == TerraformStatus.DeleteRequested || newTemplateResource.Status == TerraformStatus.Deleted;
+        }
+
+        _deleteButtonText = _deleteRequested ? Localizer["Deleted"] : Localizer["Delete Workspace"];
+        _disableDeleteButton = _deleteRequested || !IsQuestionnaireComplete();
+
+        if (WorkspaceAcronym == null)
+        {
+            _snackbar.Add(Localizer["Invalid parameters, redirecting"], Severity.Error);
+            _navigationManager.NavigateTo(_settingsPage);
+            return;
+        }
+    }
+
+    private bool IsQuestionnaireComplete()
+    {
+        return _questionnaire.IsWorkspaceNotRequired &&
+                _questionnaire.IsDataMigrated &&
+                _questionnaire.IsDataNotSubjectToLitigation &&
+                _questionnaire.DoesDataNotHaveArchivalValue &&
+                _questionnaire.IsDeletionConfirmed;
+    }
+
+    private void HandleValueChanged(int questionNumber)
+    {
+        switch (questionNumber)
+        {
+            case 1:
+                _questionnaire.IsWorkspaceNotRequired = !_questionnaire.IsWorkspaceNotRequired;
+                break;
+            case 2:
+                _questionnaire.IsDataMigrated = !_questionnaire.IsDataMigrated;
+                break;
+            case 3:
+                _questionnaire.IsDataNotSubjectToLitigation = !_questionnaire.IsDataNotSubjectToLitigation;
+                break;
+            case 4:
+                _questionnaire.DoesDataNotHaveArchivalValue = !_questionnaire.DoesDataNotHaveArchivalValue;
+                break;
+            case 5:
+                _questionnaire.IsDeletionConfirmed = !_questionnaire.IsDeletionConfirmed;
+                break;
+            default:
+                throw new InvalidOperationException($"Question {questionNumber} not found");
+                break;
+        }
+
+        _disableDeleteButton = _deleteRequested || !IsQuestionnaireComplete();
+    }
+
+    private async void ConfirmDeletion()
+    {
+        if (string.IsNullOrEmpty(_deleteConfirmation))
+        {
+            _snackbar.Add(Localizer["Please enter a workspace acronym."], Severity.Error);
+            _error = "_emptyConfirmation";
+        }
+        else if (!_deleteConfirmation.Equals(WorkspaceAcronym))
+        {
+            _snackbar.Add(Localizer["Incorrect workspace acronym."], Severity.Error);
+            _error = "_badConfirmation";
+        }
+        else
+        {
+            var message = string.Format(Localizer["Are you sure you want to delete the workspace {0}?"], WorkspaceAcronym);
+            if (!await _jSRuntime.InvokeAsync<bool>("confirm", message))
+                return;
+
+            var isRecentLinksCleaned = await _projectDeletionService.CleanWorkspaceFromRecentLinks(WorkspaceAcronym);
+            _deleteRequested = await _projectDeletionService.DeleteWorkspace(WorkspaceAcronym, _questionnaire);
+
+            if (_deleteRequested)
+            {
+                _navigationManager.NavigateTo(Localizer[PageRoutes.Home]);
+            }
+            else
+            {
+                _snackbar.Add(Localizer["An error occured when deleting this workspace. Please contact support."], Severity.Error);
+            }
+
+        }
+    }
+}
