@@ -32,18 +32,18 @@
     IMudDialogInstance MudDialog { get; set; } = null!;
 
     [Parameter]
-    public UserRoleLinks SelectedUser { get; set; } = null!;
+    public ExternalUser SelectedUser { get; set; } = null!;
 
     private DateTime? _newExpiryDate;
 
     protected override void OnInitialized()
     {
-        if (SelectedUser.PortalUser.ExternalUser is null)
+        if (SelectedUser is null)
         {
             throw new InvalidOperationException("Selected user does not have an external user record.");
         }
 
-        _newExpiryDate = SelectedUser.PortalUser.ExternalUser.UserExpiryDate.UtcDateTime.Date;
+        _newExpiryDate = SelectedUser.UserExpiryDate.UtcDateTime.Date;
     }
 
     private void Cancel() => MudDialog.Cancel();
@@ -58,13 +58,7 @@
 
         await using var context = await _dbFactory.CreateDbContextAsync();
 
-        var externalUser = SelectedUser.PortalUser.ExternalUser;
-
-        if (externalUser is null)
-        {
-            _snackbar.Add(Localizer["External user not found"], Severity.Error);
-            return;
-        }
+        var externalUser = SelectedUser;
 
         externalUser.UserExpiryDate = new DateTimeOffset(
             DateTime.SpecifyKind(_newExpiryDate.Value.Date, DateTimeKind.Utc));
@@ -74,6 +68,6 @@
 
         await context.SaveChangesAsync();
 
-        MudDialog.Close(DialogResult.Ok(SelectedUser));
+        MudDialog.Close(DialogResult.Ok(externalUser));
     }
 }

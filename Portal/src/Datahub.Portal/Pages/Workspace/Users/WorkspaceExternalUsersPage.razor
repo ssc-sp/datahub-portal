@@ -159,26 +159,26 @@ else if (_gccfEnabled)
                                 <DHButton Variant="Variant.Filled" OnClick="() => OpenManageUserDialog(rowContext.UserRoleLink!)">
                                     @Localizer["View/Edit"]
                                 </DHButton>
-                                @if (CanExtendUser(rowContext))
-                                {
-                                    <DHButton Variant="Variant.Filled" OnClick="() => OpenExtendUserDialog(rowContext.UserRoleLink!)">
-                                        @Localizer["Extend"]
-                                    </DHButton>
-                                }
                                 @if (CanDeactivateUser(rowContext))
                                 {
                                     <DHButton Variant="Variant.Filled" OnClick="() => OpenDeactivateUserDialog(rowContext.UserRoleLink!)">
                                         @Localizer["Deactivate user"]
                                     </DHButton>
                                 }
-                                @if (CanCancelInvitation(rowContext))
-                                {
-                                    <DHButton Variant="Variant.Filled" OnClick="() => CancelInvitationAsync(rowContext)">@Localizer["Cancel invitation"]</DHButton>
-                                }
-                                @if (CanResendInvitation(rowContext) || IsInviteExpired(rowContext))
-                                {
-                                    <DHButton Variant="Variant.Filled" OnClick="() => ResendInvitationAsync(rowContext)">@Localizer["Resend invitation"]</DHButton>
-                                }
+                            }
+                            @if (CanExtendUser(rowContext))
+                            {
+                                <DHButton Variant="Variant.Filled" OnClick="() => OpenExtendUserDialog(rowContext)">
+                                    @Localizer["Extend"]
+                                </DHButton>
+                            }
+                            @if (CanCancelInvitation(rowContext))
+                            {
+                                <DHButton Variant="Variant.Filled" OnClick="() => CancelInvitationAsync(rowContext)">@Localizer["Cancel invitation"]</DHButton>
+                            }
+                            @if (CanResendInvitation(rowContext) || IsInviteExpired(rowContext))
+                            {
+                                <DHButton Variant="Variant.Filled" OnClick="() => ResendInvitationAsync(rowContext)">@Localizer["Resend invitation"]</DHButton>
                             }
                         </MudStack>
                     </MudTd>
@@ -493,12 +493,12 @@ else
         await InvokeAsync(StateHasChanged);
     }
 
-    private async Task OpenExtendUserDialog(UserRoleLinks selectedUser)
+    private async Task OpenExtendUserDialog(ExternalWorkspaceUserRow selectedUser)
     {
         var dialogOptions = new DialogOptions { MaxWidth = MaxWidth.ExtraLarge };
         var dialogParameters = new DialogParameters
         {
-            { nameof(ExtendExternalUserDialog.SelectedUser), selectedUser }
+            { nameof(ExtendExternalUserDialog.SelectedUser), selectedUser.ExternalUser }
         };
 
         var dialog = await _dialogService.ShowAsync<ExtendExternalUserDialog>(Localizer["Extend user"], dialogParameters, dialogOptions);
@@ -506,7 +506,7 @@ else
 
         if (!result.Canceled)
         {
-            if (result.Data is not UserRoleLinks)
+            if (result.Data is not ExternalUser)
             {
                 _snackbar.Add(Localizer["Error extending user"], Severity.Error);
             }
@@ -551,7 +551,6 @@ else
     private bool CanCancelInvitation(ExternalWorkspaceUserRow projectUser)
     {
         return projectUser.ExternalUser.UserDeactivatedAt is null
-            && projectUser.ExternalUser.FirstLoginDateTime is null
             && projectUser.LatestInvitation is not null
             && projectUser.LatestInvitation.InvitationTokenAccepted is null
             && projectUser.LatestInvitation.InvitationExpiry >= DateTimeOffset.UtcNow;
@@ -560,7 +559,6 @@ else
     private bool CanResendInvitation(ExternalWorkspaceUserRow projectUser)
     {
         return projectUser.ExternalUser.UserDeactivatedAt is null
-            && projectUser.ExternalUser.FirstLoginDateTime is null
             && projectUser.LatestInvitation is not null;
     }
 
