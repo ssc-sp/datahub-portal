@@ -189,7 +189,7 @@ public partial class RepositoryService(
             pullRequestMessage.Events
                 .Where(x => x.StatusCode == MessageStatusCode.Error)
                 .ToList()
-                .ForEach(x => logger.LogError(x.Message, x));
+                .ForEach(x => logger.LogError($"Error in resource run: {x.Message}", x));
             throw new Exception("Error while handling resource run request");
         }
         finally

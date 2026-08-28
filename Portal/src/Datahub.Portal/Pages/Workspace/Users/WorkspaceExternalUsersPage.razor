@@ -497,8 +497,8 @@ else
     {
         var dialogOptions = new DialogOptions { MaxWidth = MaxWidth.ExtraLarge };
         var dialogParameters = new DialogParameters
-      {
-            { "SelectedUser", selectedUser }
+        {
+            { nameof(ExtendExternalUserDialog.SelectedUser), selectedUser }
         };
 
         var dialog = await _dialogService.ShowAsync<ExtendExternalUserDialog>(Localizer["Extend user"], dialogParameters, dialogOptions);
@@ -538,15 +538,13 @@ else
 
     private bool CanDeactivateUser(ExternalWorkspaceUserRow projectUser)
     {
-        return projectUser.UserRoleLink is not null
-            && projectUser.ExternalUser.UserDeactivatedAt is null
+        return projectUser.ExternalUser.UserDeactivatedAt is null
             && projectUser.ExternalUser.FirstLoginDateTime is not null;
     }
 
     private bool CanExtendUser(ExternalWorkspaceUserRow projectUser)
     {
-        return projectUser.UserRoleLink is not null
-            && projectUser.ExternalUser.UserDeactivatedAt is null
+        return projectUser.ExternalUser.UserDeactivatedAt is null
             && projectUser.ExternalUser.UserExpiryDate < DateTimeOffset.UtcNow;
     }
 
