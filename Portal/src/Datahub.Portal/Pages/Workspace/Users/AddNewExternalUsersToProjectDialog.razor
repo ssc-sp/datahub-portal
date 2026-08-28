@@ -55,8 +55,7 @@
                                   Required="true"
                                   RequiredError="@Localizer["Name is required"]"
                                   Immediate="true"
-                                  Disabled="@(_existingExternalPortalUser is not null)"
-                                  Variant="Variant.Outlined" />
+                                  Disabled="@(_existingExternalPortalUser is not null)" />
                 </MudTooltip>
                 <MudTextField Class="form-control"
                               @bind-Value="ProjectUserAddExternalUserCommand.LastName"
@@ -65,8 +64,7 @@
                               Required="true"
                               RequiredError="@Localizer["Name is required"]"
                               Immediate="true"
-                              Disabled="@(_existingExternalPortalUser is not null)"
-                              Variant="Variant.Outlined" />
+                              Disabled="@(_existingExternalPortalUser is not null)" />
                 <MudTextField Class="form-control"
                               InputId="Email"
                               @bind-Value="ProjectUserAddExternalUserCommand.Email"
@@ -75,8 +73,7 @@
                               Disabled="true"
                               Required="true"
                               RequiredError="@Localizer["Email is required"]"
-                              Immediate="true"
-                              Variant="Variant.Outlined" />
+                              Immediate="true" />
                 <MudTextField Class="form-control"
                               @bind-Value="ProjectUserAddExternalUserCommand.Organization"
                               For="@(() => ProjectUserAddExternalUserCommand.Organization)"
@@ -84,8 +81,7 @@
                               Required="true"
                               RequiredError="@Localizer["Organization name is required"]"
                               Immediate="true"
-                              Disabled="@(_existingExternalPortalUser is not null)"
-                              Variant="Variant.Outlined" />
+                              Disabled="@(_existingExternalPortalUser is not null)" />
                 @if (_externalRoles is not null)
                 {
                     <MudSelect @bind-Value="ProjectUserAddExternalUserCommand.Role"
@@ -120,7 +116,6 @@
                           Required="true"
                           RequiredError="@Localizer["Objectives are required"]"
                               Immediate="true"
-                          Variant="Variant.Outlined"
                           Lines="5" />
             </MudForm>
         }
