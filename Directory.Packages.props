@@ -197,7 +197,6 @@
     <PackageVersion Include="System.Text.Json" Version="10.0.10" />
     <PackageVersion Include="Tewr.Blazor.FileReader" Version="3.4.0.24340" />
     <PackageVersion Include="Toolbelt.Blazor.LocalTimeText.Server" Version="1.0.1" />
-    <PackageVersion Include="xunit" Version="2.9.3" />
     <PackageVersion Include="Xunit.DependencyInjection" Version="11.3.0" />
     <PackageVersion Include="xunit.runner.visualstudio" Version="3.1.5" />
     <PackageVersion Include="xunit.v3" Version="3.2.2" />
