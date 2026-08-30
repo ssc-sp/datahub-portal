@@ -4,10 +4,10 @@
   </PropertyGroup>
   <ItemGroup>
     <PackageVersion Include="Ae.MudBlazor.Forms" Version="1.0.0" />
-    <PackageVersion Include="AspNetCore.Localizer.Json" Version="1.0.3" />
+    <PackageVersion Include="AspNetCore.Localizer.Json" Version="1.0.4" />
     <PackageVersion Include="AutoFixture" Version="4.18.1" />
     <PackageVersion Include="AwesomeAssertions" Version="9.4.0" />
-    <PackageVersion Include="AWSSDK.S3" Version="4.0.102" />
+    <PackageVersion Include="AWSSDK.S3" Version="4.0.102.1" />
     <PackageVersion Include="Azure.Core" Version="1.61.0" />
     <PackageVersion Include="Azure.Data.Tables" Version="12.11.0" />
     <PackageVersion Include="Azure.Identity" Version="1.21.0" />
@@ -50,23 +50,23 @@
     <PackageVersion Include="coverlet.collector" Version="10.0.1" />
     <PackageVersion Include="coverlet.msbuild" Version="6.0.4" />
     <PackageVersion Include="CsvHelper" Version="33.1.0" />
-    <PackageVersion Include="DeepL.net" Version="1.21.0" />
-    <PackageVersion Include="Deque.AxeCore.Commons" Version="4.12.0" />
+    <PackageVersion Include="DeepL.net" Version="1.22.0" />
+    <PackageVersion Include="Deque.AxeCore.Commons" Version="4.13.0" />
     <PackageVersion Include="DocumentFormat.OpenXml" Version="3.5.1" />
     <PackageVersion Include="FluentAssertions" Version="8.10.0" />
     <PackageVersion Include="FluentValidation" Version="12.1.1" />
     <PackageVersion Include="FluentValidation.DependencyInjectionExtensions" Version="12.1.1" />
     <PackageVersion Include="Foundatio.AzureStorage" Version="13.0.2" />
     <PackageVersion Include="FuzzySharp" Version="2.0.2" />
-    <PackageVersion Include="Google.Cloud.Storage.V1" Version="4.14.0" />
-    <PackageVersion Include="itext" Version="9.6.0" />
+    <PackageVersion Include="Google.Cloud.Storage.V1" Version="4.15.0" />
+    <PackageVersion Include="itext" Version="9.7.0" />
     <PackageVersion Include="JunitXml.TestLogger" Version="8.0.0" />
     <PackageVersion Include="LibGit2SharpFork" Version="1.8.0" />
     <PackageVersion Include="Localization.AspNetCore.TagHelpers" Version="0.6.0" />
     <PackageVersion Include="LoxSmoke.DocXml" Version="3.9.0" />
-    <PackageVersion Include="Lucene.Net.QueryParser" Version="4.8.0-beta00017" />
+    <PackageVersion Include="Lucene.Net.QueryParser" Version="4.8.0-beta00018" />
     <PackageVersion Include="MailKit" Version="4.17.0" />
-    <PackageVersion Include="Markdig" Version="1.2.0" />
+    <PackageVersion Include="Markdig" Version="1.3.2" />
     <PackageVersion Include="MassTransit" Version="8.5.10" />
     <PackageVersion Include="MassTransit.Azure.ServiceBus.Core" Version="8.5.10" />
     <PackageVersion Include="MassTransit.WebJobs.ServiceBus" Version="8.5.10" />
@@ -88,7 +88,7 @@
     <PackageVersion Include="Microsoft.AspNetCore.Razor.Language" Version="6.0.36" />
     <PackageVersion Include="Microsoft.AspNetCore.SignalR.Core" Version="1.2.11" />
     <PackageVersion Include="Microsoft.AspNetCore.WebUtilities" Version="10.0.10" />
-    <PackageVersion Include="Microsoft.Authentication.WebAssembly.Msal" Version="10.0.10" />
+    <PackageVersion Include="Microsoft.Authentication.WebAssembly.Msal" Version="10.0.11" />
     <PackageVersion Include="Microsoft.Azure.Databricks.Client" Version="2.9.3" />
     <PackageVersion Include="Microsoft.Azure.Functions.Worker" Version="2.52.0" />
     <PackageVersion Include="Microsoft.Azure.Functions.Worker.ApplicationInsights" Version="2.51.0" />
@@ -110,8 +110,8 @@
     <PackageVersion Include="Microsoft.CodeAnalysis.ResxSourceGenerator" Version="3.11.0-beta1.26226.5" />
     <PackageVersion Include="Microsoft.CodeAnalysis.Workspaces.MSBuild" Version="5.3.0" />
     <PackageVersion Include="Microsoft.Data.SqlClient" Version="7.0.2" />
-    <PackageVersion Include="Microsoft.Data.Sqlite.Core" Version="10.0.9" />
-    <PackageVersion Include="Microsoft.EntityFrameworkCore" Version="10.0.9" />
+    <PackageVersion Include="Microsoft.Data.Sqlite.Core" Version="10.0.11" />
+    <PackageVersion Include="Microsoft.EntityFrameworkCore" Version="10.0.11" />
     <PackageVersion Include="Microsoft.EntityFrameworkCore.Analyzers" Version="10.0.9" />
     <PackageVersion Include="Microsoft.EntityFrameworkCore.Design" Version="10.0.10" />
     <PackageVersion Include="Microsoft.EntityFrameworkCore.InMemory" Version="10.0.10" />
@@ -136,8 +136,8 @@
     <PackageVersion Include="Microsoft.Extensions.Logging.Console" Version="10.0.10" />
     <PackageVersion Include="Microsoft.Extensions.Logging.Debug" Version="10.0.10" />
     <PackageVersion Include="Microsoft.Extensions.TimeProvider.Testing" Version="10.7.0" />
-    <PackageVersion Include="Microsoft.FeatureManagement" Version="4.5.0" />
-    <PackageVersion Include="Microsoft.FeatureManagement.AspNetCore" Version="4.5.0" />
+    <PackageVersion Include="Microsoft.FeatureManagement" Version="4.6.0" />
+    <PackageVersion Include="Microsoft.FeatureManagement.AspNetCore" Version="4.6.0" />
     <PackageVersion Include="Microsoft.Graph" Version="6.5.0" />
     <!-- this one should be a transitive dependency but the current version has a high severity issue so it is here explicitly -->
     <PackageVersion Include="Microsoft.Kiota.Abstractions" Version="2.0.0" />
@@ -150,7 +150,7 @@
     <PackageVersion Include="Microsoft.Maui.Controls.Compatibility" Version="8.0.100" />
     <PackageVersion Include="Microsoft.NET.Sdk.Functions" Version="4.6.0" />
     <PackageVersion Include="Microsoft.NET.Test.Sdk" Version="18.8.1" />
-    <PackageVersion Include="Microsoft.OpenApi" Version="3.9.0" />
+    <PackageVersion Include="Microsoft.OpenApi" Version="3.10.0" />
     <PackageVersion Include="Microsoft.Playwright.NUnit" Version="1.61.0" />
     <PackageVersion Include="Microsoft.PowerBI.JavaScript" Version="2.23.9" />
     <PackageVersion Include="Microsoft.TeamFoundationServer.Client" Version="20.256.2" />
@@ -167,7 +167,7 @@
     <PackageVersion Include="Neovolve.Logging.Xunit" Version="6.3.0" />
     <PackageVersion Include="NetEscapades.EnumGenerators.Generators" Version="1.0.0-beta21" />
     <PackageVersion Include="Newtonsoft.Json" Version="13.0.4" />
-    <PackageVersion Include="NSubstitute" Version="6.1.0" />
+    <PackageVersion Include="NSubstitute" Version="6.2.0" />
     <PackageVersion Include="NSubstitute.Analyzers.CSharp" Version="1.0.17" />
     <PackageVersion Include="nunit" Version="4.6.1" />
     <PackageVersion Include="NUnit.Analyzers" Version="4.14.0" />
