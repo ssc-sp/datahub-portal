@@ -3,6 +3,21 @@
 <!-- markdownlint-disable MD024 -->
 # Changelog
 
+## [10.2.0](https://github.com/ssc-sp/datahub-portal/compare/v10.1.0...v10.2.0) (2026-08-28)
+
+
+### Features
+
+* Storage metadata editing in Storage Explorer ([#2102](https://github.com/ssc-sp/datahub-portal/issues/2102)) ([3d1ba8d](https://github.com/ssc-sp/datahub-portal/commit/3d1ba8d6a6c10483881da925e296ab6af528cb02))
+* Storage tiers in the storage explorer ([#2098](https://github.com/ssc-sp/datahub-portal/issues/2098)) ([e890b25](https://github.com/ssc-sp/datahub-portal/commit/e890b256467c2cded6af3f4398d4fb6e26e8e19f))
+
+
+### Bug Fixes
+
+* Admin settings icon colour fix ([#2109](https://github.com/ssc-sp/datahub-portal/issues/2109)) ([39c0266](https://github.com/ssc-sp/datahub-portal/commit/39c02662bef1920905c1ce0cfc08a6eaf2e1625c))
+* Fix for synchronization for `new-project-template` and sync container permissions ([#2111](https://github.com/ssc-sp/datahub-portal/issues/2111)) ([41ec889](https://github.com/ssc-sp/datahub-portal/commit/41ec889f7453997e054817296ced70b7c43be661))
+* Removing an extra fieldset tag causing a11y issues ([#2107](https://github.com/ssc-sp/datahub-portal/issues/2107)) ([dbc28c1](https://github.com/ssc-sp/datahub-portal/commit/dbc28c1aa6c3b22dae8c06a0b22482ad40d14fa8))
+
 ## [10.1.0](https://github.com/ssc-sp/datahub-portal/compare/v10.0.0...v10.1.0) (2026-08-21)
 
 
