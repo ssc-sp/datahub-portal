@@ -35,6 +35,9 @@ $env:AzureTenantId = "8c1a4d93-d828-4d0e-9303-fd3bd611c822"
 $env:AzureSubscriptionId = (Read-VaultSecret "fsdh-key-dev" "datahub-portal-subscription-id")
 $env:DatahubServiceBus = (Read-VaultSecret "fsdh-key-dev" "service-bus-connection-string")
 $env:DataHub_ENVNAME = "dev"
+$env:AzureWebJobsStorage = (Read-VaultSecret "fsdh-key-dev" "datahub-storage-queue-conn-str")
+$env:AzureWebJobsDashboard = $env:AzureWebJobsStorage
+$env:AzureWebJobsAzureStorageQueueConnectionString = $env:AzureWebJobsStorage
 
 $dockerCommand = "docker run -p 8080:80 " +
     "-e AzureClientId=$env:AzureClientId " +
@@ -47,4 +50,28 @@ $dockerCommand = "docker run -p 8080:80 " +
 
 Write-Output "Running the Docker container with the following command:"
 Write-Output $dockerCommand
-Invoke-Expression $dockerCommand
+
+$dockerArgs = @(
+    'run',
+    '--name', 'fsdh-pyfunction',
+    '--rm',
+    '-it',
+    '-p', '8080:80',
+    '-e', "AzureClientId=$env:AzureClientId",
+    '-e', "AzureClientSecret=$env:AzureClientSecret",
+    '-e', "AzureTenantId=$env:AzureTenantId",
+    '-e', "AzureSubscriptionId=$env:AzureSubscriptionId",
+    '-e', "DatahubServiceBus=$env:DatahubServiceBus",
+    '-e', "DataHub_ENVNAME=$env:DataHub_ENVNAME",    '-e', "AzureWebJobsStorage=$env:AzureWebJobsStorage",
+    '-e', "AzureWebJobsDashboard=$env:AzureWebJobsDashboard",
+    '-e', "AzureWebJobsAzureStorageQueueConnectionString=$env:AzureWebJobsAzureStorageQueueConnectionString",    'fsdh-pyfunction:latest'
+)
+
+try {
+    & docker @dockerArgs
+    exit $LASTEXITCODE
+}
+catch {
+    Write-Error $_
+    exit 1
+}
