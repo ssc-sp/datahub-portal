@@ -43,17 +43,53 @@ function Connect-FSDHAzure
     
     #import module for keyvault
     Import-Module Az.KeyVault -Force -NoClobber
-    #check if user is signed in on azure
+    #check if user is signed in on azure to the required tenant/domain and subscription
+    $domain = "163Ent.onmicrosoft.com"
+    $subscriptionName = "G2Dc-CTO-ENT-FSDH-Core"
     $context = Get-AzContext
-    $domain = "163oxygen.onmicrosoft.com"
 
-    if ($null -eq $context) {
-        Write-Output "Opening Azure session"
-        Connect-AzAccount -Domain $domain
-    } else {
-        Write-Output "User $($context.Account.Id) is signed in."
+    try {
+        if ($null -eq $context) {
+            Write-Output "Opening Azure session for subscription $subscriptionName"
+            Connect-AzAccount -Domain $domain -Subscription $subscriptionName -ErrorAction Stop
+        } else {
+            $tenant = Get-AzTenant -Domain $domain -ErrorAction SilentlyContinue | Select-Object -First 1
+            $subscription = Get-AzSubscription -SubscriptionName $subscriptionName -ErrorAction SilentlyContinue | Select-Object -First 1
+
+            if ($null -eq $tenant) {
+                Write-Warning "No tenant found for domain $domain. Signing in to the expected Azure domain."
+                Connect-AzAccount -Domain $domain -Subscription $subscriptionName -ErrorAction Stop
+            }
+            elseif ($context.Tenant.Id -ne $tenant.TenantId -or $context.Subscription.Name -ne $subscriptionName) {
+                $matchingContext = Get-AzContext -ListAvailable | Where-Object {
+                    ($null -ne $_.Tenant -and $_.Tenant.Id -eq $tenant.TenantId) -and
+                    ($null -ne $_.Subscription -and $_.Subscription.Name -eq $subscriptionName)
+                } | Select-Object -First 1
+
+                if ($null -ne $matchingContext) {
+                    Write-Output "Switching Azure session to subscription $subscriptionName in domain $domain."
+                    Set-AzContext -Context $matchingContext -ErrorAction Stop
+                } else {
+                    Write-Output "Signing in to Azure with the correct subscription: $subscriptionName"
+                    Connect-AzAccount -Domain $domain -Subscription $subscriptionName -ErrorAction Stop
+                }
+            }
+        }
     }
-    
+    catch {
+        throw "Azure login failed for subscription $subscriptionName in domain $domain. $($_.Exception.Message)"
+    }
+
+    $context = Get-AzContext
+    if ($null -eq $context) {
+        throw "No Azure session is available for subscription $subscriptionName."
+    }
+
+    if ($context.Subscription.Name -ne $subscriptionName) {
+        throw "The active Azure subscription is not $subscriptionName. Please sign in to the correct subscription."
+    }
+
+    Write-Output "User $($context.Account.Id) is signed in to subscription $($context.Subscription.Name)."
     return $true
 }
 
@@ -102,19 +138,9 @@ function Export-Settings(
     Write-Output "Fetching secrets from keyvault"
 
     $resourcePrefix = "fsdh"
-    $resourcePrefixAlphanumeric = $resourcePrefix -replace "[^a-zA-Z0-9]", ""
-    $azureDevOpsOrganization = "DataSolutionsDonnees"
-    $azureDevOpsProject = "FSDH%20SSC"
-    $vaultName = "fsdh-static-test-akv"
-    $azureDevopsRepository = "datahub-project-infrastructure-$Environment"
 
-    $tenantId = Read-VaultSecret $vaultName "datahub-portal-tenant-id"
-    $subscriptionId = Read-VaultSecret $vaultName "datahub-portal-subscription-id"
-    $repositoryId = Read-VaultSecret $vaultName "datahub-infrastructure-repo-id"
-
-    $datahubMssqlAdmin = Read-VaultSecret "fsdh-key-dev" "datahub-mssql-admin"
-    $datahubMssqlPassword = Read-VaultSecret "fsdh-key-dev" "datahub-mssql-password"
-    $sqlCreds = "User ID=$datahubMssqlAdmin;Password=$datahubMssqlPassword"
+    $datahubMssqlAdmin = Read-VaultSecret "g2dc-cto-fsdh-dev-kv" "datahub-mssql-admin"
+    $datahubMssqlPassword = Read-VaultSecret "g2dc-cto-fsdh-dev-kv" "datahub-mssql-password"
     $infraRepo = $null
     if ($Target -eq "Terraform")
     {
@@ -198,23 +224,19 @@ function Export-Settings(
                 try {
                     $secretValue = Read-AllSecrets $entry.Value
                     if ($null -eq $secretValue -or $secretValue -eq "") {
-                        Write-Warning "Secret value for $key is null or empty, skipping..."
-                        continue
+                        throw "Secret value for $key is null or empty."
                     }
                     $result = dotnet user-secrets set $key $secretValue 2>&1
                     if ($LASTEXITCODE -ne 0) {
-                        Write-Warning "Failed to set user secret for $key. dotnet user-secrets returned exit code $LASTEXITCODE"
-                        Write-Host "Output: $result" -ForegroundColor Yellow
+                        throw "Failed to set user secret for $key. dotnet user-secrets returned exit code $LASTEXITCODE. Output: $result"
                     }
                 } catch {
-                    Write-Warning "Error processing secret $key`: $($_.Exception.Message)"
+                    throw "Error processing secret $key`: $($_.Exception.Message)"
                 }
             }
 
         } catch {
-            Write-Error "Error setting user secrets: $($_.Exception.Message)"
-            Write-Host "Current directory: $(Get-Location)" -ForegroundColor Yellow
-            Write-Host "Project folder: $ProjectFolder" -ForegroundColor Yellow
+            throw "Error setting user secrets: $($_.Exception.Message)"
         } finally {
             Pop-Location
         }
@@ -251,23 +273,19 @@ function Export-Settings(
                 try {
                     $secretValue = Read-AllSecrets $entry.Value
                     if ($null -eq $secretValue -or $secretValue -eq "") {
-                        Write-Warning "Secret value for $key is null or empty, skipping..."
-                        continue
+                        throw "Secret value for $key is null or empty."
                     }
                     $result = dotnet user-secrets set $key $secretValue 2>&1
                     if ($LASTEXITCODE -ne 0) {
-                        Write-Warning "Failed to set user secret for $key. dotnet user-secrets returned exit code $LASTEXITCODE"
-                        Write-Host "Output: $result" -ForegroundColor Yellow
+                        throw "Failed to set user secret for $key. dotnet user-secrets returned exit code $LASTEXITCODE. Output: $result"
                     }
                 } catch {
-                    Write-Warning "Error processing secret $key`: $($_.Exception.Message)"
+                    throw "Error processing secret $key`: $($_.Exception.Message)"
                 }
             }
 
         } catch {
-            Write-Error "Error setting user secrets: $($_.Exception.Message)"
-            Write-Host "Current directory: $(Get-Location)" -ForegroundColor Yellow
-            Write-Host "Project folder: $ProjectFolder" -ForegroundColor Yellow
+            throw "Error setting user secrets: $($_.Exception.Message)"
         } finally {
             Pop-Location
         }
@@ -423,7 +441,7 @@ function Read-VaultSecret {
     )
 
     try {
-        $secret = Get-AzKeyVaultSecret -VaultName $vault -Name $secretId
+        $secret = Get-AzKeyVaultSecret -VaultName $vault -Name $secretId -ErrorAction Stop
 
         if (-not $secret.SecretValue) {
             throw "The secret value retrieved from the vault is null or empty."
@@ -432,7 +450,7 @@ function Read-VaultSecret {
         return Read-SecureString($secret.SecretValue)
     }
     catch {
-        Write-Error "Error reading secret $secretId from vault $vault - $_"
+        throw "Error reading secret $secretId from vault $vault - $($_.Exception.Message)"
     }
 }
 
