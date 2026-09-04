@@ -3,6 +3,13 @@
 <!-- markdownlint-disable MD024 -->
 # Changelog
 
+## [10.2.1](https://github.com/ssc-sp/datahub-portal/compare/v10.2.0...v10.2.1) (2026-09-04)
+
+
+### Bug Fixes
+
+* fixed logic for external user changes ([#2113](https://github.com/ssc-sp/datahub-portal/issues/2113)) ([22d88c4](https://github.com/ssc-sp/datahub-portal/commit/22d88c49d3b58631140841386b4590744056645c))
+
 ## [10.2.0](https://github.com/ssc-sp/datahub-portal/compare/v10.1.0...v10.2.0) (2026-08-28)
 
 
