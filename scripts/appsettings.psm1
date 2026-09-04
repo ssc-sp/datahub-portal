@@ -438,6 +438,23 @@ function Read-SecureString {
 
 
 
+function Get-FSDHKeyVaultName {
+    param(
+        [string]$Environment
+    )
+
+    if ([string]::IsNullOrWhiteSpace($Environment)) {
+        $Environment = if ($env:DataHub_ENVNAME) { $env:DataHub_ENVNAME } else { 'dev' }
+    }
+
+    $Environment = $Environment.Trim()
+    if ([string]::IsNullOrWhiteSpace($Environment)) {
+        $Environment = 'dev'
+    }
+
+    return "g2dc-cto-fsdh-$Environment-kv"
+}
+
 function Read-VaultSecret {
     param (
         [Parameter(Mandatory = $true)]
@@ -626,4 +643,4 @@ function Install-RequiredModules
     }
 }
 
-Export-ModuleMember -Function Export-Settings, ConvertFrom-HashTable, Find-InfraRepo, Read-SecureString, Read-VaultSecret, Install-RequiredModules, Connect-FSDHAzure
+Export-ModuleMember -Function Export-Settings, ConvertFrom-HashTable, Find-InfraRepo, Read-SecureString, Read-VaultSecret, Install-RequiredModules, Connect-FSDHAzure, Get-FSDHKeyVaultName

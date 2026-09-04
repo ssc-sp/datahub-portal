@@ -30,6 +30,18 @@ Describe 'appsettings module' {
 
 }
 
+    Describe 'Get-FSDHKeyVaultName Function Tests' {
+        It 'Uses dev as the default environment' {
+            $env:DataHub_ENVNAME = $null
+            $vaultName = Get-FSDHKeyVaultName
+            $vaultName | Should -Be 'g2dc-cto-fsdh-dev-kv'
+        }
+
+        It 'Uses a provided environment when passed in' {
+            $vaultName = Get-FSDHKeyVaultName -Environment 'int'
+            $vaultName | Should -Be 'g2dc-cto-fsdh-int-kv'
+        }
+    }
 
     Describe "Read-SecureString Function Tests" {
         It "Should convert a SecureString to a plain text string" {
