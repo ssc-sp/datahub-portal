@@ -6,7 +6,10 @@ using Azure.ResourceManager.Monitor.Models;
 using Azure.ResourceManager.Storage;
 using Azure.Storage.Blobs;
 using Azure.Storage.Blobs.Models;
+using Azure.Storage.Sas;
+using Datahub.Application.Services;
 using Datahub.Application.Services.ResourceGroups;
+using Datahub.Application.Services.Security;
 using Datahub.Application.Services.Storage;
 using Datahub.Core.Model.Context;
 using Datahub.Core.Model.Projects;
@@ -22,7 +25,9 @@ namespace Datahub.Infrastructure.Services.Storage
         ILogger<WorkspaceStorageManagementService> logger,
         IMemoryCache cache,
         IDbContextFactory<DatahubProjectDBContext> dbContextFactory,
-        IWorkspaceResourceGroupsManagementService rgMgmtService)
+        IWorkspaceResourceGroupsManagementService rgMgmtService,
+        ISystemTokenCredentialService systemTokenCredentialService,
+        IProjectStorageConfigurationService projectStorageConfigurationService)
         : IWorkspaceStorageManagementService
     {
         #region Implementations
@@ -134,7 +139,42 @@ namespace Datahub.Infrastructure.Services.Storage
             return false;
         }
 
-        /// <inheritdoc />
+        public async Task<string> UploadVirusScanEvidenceAsync(string workspaceAcronym, string containerName, string blobName, Stream fileStream, CancellationToken cancellationToken = default)
+        {
+            if (string.IsNullOrWhiteSpace(workspaceAcronym))
+            {
+                throw new ArgumentException("Workspace acronym is required.", nameof(workspaceAcronym));
+            }
+
+            if (string.IsNullOrWhiteSpace(containerName))
+            {
+                throw new ArgumentException("Container name is required.", nameof(containerName));
+            }
+
+            if (string.IsNullOrWhiteSpace(blobName))
+            {
+                throw new ArgumentException("Blob name is required.", nameof(blobName));
+            }
+
+            if (fileStream is null)
+            {
+                throw new ArgumentNullException(nameof(fileStream));
+            }
+
+            var storageAccountName = projectStorageConfigurationService.GetProjectStorageAccountName(workspaceAcronym);
+            var containerClient = await GetBlobContainerClientAsync(storageAccountName, containerName, cancellationToken);
+            await containerClient.CreateIfNotExistsAsync(cancellationToken: cancellationToken);
+
+            var blobClient = containerClient.GetBlobClient(blobName);
+            await using (var uploadStream = fileStream)
+            {
+                await blobClient.UploadAsync(uploadStream, overwrite: true, cancellationToken: cancellationToken);
+            }
+
+            var sasUri = blobClient.GenerateSasUri(BlobSasPermissions.Read, DateTimeOffset.UtcNow.AddDays(7));
+            return sasUri.ToString();
+        }
+
         public async Task<string?> MoveBlobToUsersContainerAsync(string scannedFileUri, TokenCredential credential)
         {
             if (string.IsNullOrWhiteSpace(scannedFileUri))
@@ -207,6 +247,14 @@ namespace Datahub.Infrastructure.Services.Storage
         #endregion
 
         #region Internal Methods
+
+        private async Task<BlobContainerClient> GetBlobContainerClientAsync(string storageAccountName, string containerName, CancellationToken cancellationToken = default)
+        {
+            var accountUri = new Uri($"https://{storageAccountName}.blob.core.windows.net");
+            var credential = systemTokenCredentialService.GetTokenCredential();
+            var blobServiceClient = new BlobServiceClient(accountUri, credential);
+            return blobServiceClient.GetBlobContainerClient(containerName);
+        }
 
         /// <summary>
         /// Gets the storage account resource ids for a workspace

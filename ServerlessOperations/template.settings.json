@@ -1,35 +1,34 @@
 {
-  "APPLICATIONINSIGHTS_CONNECTION_STRING": "@Microsoft.KeyVault(VaultName=fsdh-key-$Environment;SecretName=appinsights-connection)",
   "ApplicationInsightsAgent_EXTENSION_VERSION": "~3",
-  "AzureWebJobsDashboard": "@Microsoft.KeyVault(VaultName=fsdh-key-$Environment;SecretName=datahub-storage-queue-conn-str)",
-  "AzureWebJobsStorage": "@Microsoft.KeyVault(VaultName=fsdh-key-$Environment;SecretName=datahub-storage-queue-conn-str)",
+  "AzureWebJobsDashboard": "@Microsoft.KeyVault(VaultName=g2dc-cto-fsdh-$Environment-kv;SecretName=datahub-storage-queue-conn-str)",
+  "AzureWebJobsStorage": "@Microsoft.KeyVault(VaultName=g2dc-cto-fsdh-$Environment-kv;SecretName=datahub-storage-queue-conn-str)",
   "DataHub_ENVNAME": "dev",
-  "datahub_mssql_project": "Server=tcp:@Microsoft.KeyVault(VaultName=fsdh-key-$Environment;SecretName=datahub-mssql-server),1433;Initial Catalog=@Microsoft.KeyVault(VaultName=fsdh-key-$Environment;SecretName=datahub-mssql-projectdb);Persist Security Info=False;$sqlCreds;MultipleActiveResultSets=False;Encrypt=True;TrustServerCertificate=False;Connection Timeout=30;",
-  "SQLDB_PROJECT": "Server=tcp:@Microsoft.KeyVault(VaultName=fsdh-key-$Environment;SecretName=datahub-mssql-server),1433;Initial Catalog=@Microsoft.KeyVault(VaultName=fsdh-key-$Environment;SecretName=datahub-mssql-projectdb);Persist Security Info=False;$sqlCreds;MultipleActiveResultSets=False;Encrypt=True;TrustServerCertificate=False;Connection Timeout=30;",
+  "datahub_mssql_project": "Server=tcp:@Microsoft.KeyVault(VaultName=g2dc-cto-fsdh-$Environment-kv;SecretName=datahub-mssql-server),1433;Initial Catalog=@Microsoft.KeyVault(VaultName=g2dc-cto-fsdh-$Environment-kv;SecretName=datahub-mssql-projectdb);Persist Security Info=False;Authentication=Active Directory Interactive;MultipleActiveResultSets=False;Encrypt=True;TrustServerCertificate=False;Connection Timeout=30;",
+  "SQLDB_PROJECT": "Server=tcp:@Microsoft.KeyVault(VaultName=g2dc-cto-fsdh-$Environment-kv;SecretName=datahub-mssql-server),1433;Initial Catalog=@Microsoft.KeyVault(VaultName=g2dc-cto-fsdh-$Environment-kv;SecretName=datahub-mssql-projectdb);Persist Security Info=False;Authentication=Active Directory Interactive;MultipleActiveResultSets=False;Encrypt=True;TrustServerCertificate=False;Connection Timeout=30;",
 
-  "DatahubStorageConnectionString": "@Microsoft.KeyVault(VaultName=fsdh-key-$Environment;SecretName=datahub-storage-queue-conn-str)",
+  "DatahubStorageConnectionString": "@Microsoft.KeyVault(VaultName=g2dc-cto-fsdh-$Environment-kv;SecretName=datahub-storage-queue-conn-str)",
   "DocumentationRankUpdateCRON": "0 0 * * * *",
   "AzureDevOpsConfiguration": {
-    "ClientId": "@Microsoft.KeyVault(VaultName=fsdh-key-$Environment;SecretName=devops-client-id)",
-    "ClientSecret": "@Microsoft.KeyVault(VaultName=fsdh-key-$Environment;SecretName=devops-client-secret)",
+    "ClientId": "@Microsoft.KeyVault(VaultName=g2dc-cto-fsdh-$Environment-kv;SecretName=devops-client-id)",
+    "ClientSecret": "@Microsoft.KeyVault(VaultName=g2dc-cto-fsdh-$Environment-kv;SecretName=devops-client-secret)",
     "TenantId": "$tenantId"
   },
   "EmailNotification": {
     "SenderAddress": "ssc.datahub.donotreply-nepasrepondre.datahub.spc@ssc-spc.gc.ca",
     "SenderName": "FSDH $Environment",
     "SmtpHost": "email-smtp.ca-central-1.amazonaws.com",
-    "SmtpPassword": "@Microsoft.KeyVault(VaultName=fsdh-key-$Environment;SecretName=datahub-smtp-password)",
+    "SmtpPassword": "@Microsoft.KeyVault(VaultName=g2dc-cto-fsdh-$Environment-kv;SecretName=datahub-smtp-password)",
     "SmtpPort": "587",
-    "SmtpUsername": "@Microsoft.KeyVault(VaultName=fsdh-key-$Environment;SecretName=datahub-smtp-username)"
+    "SmtpUsername": "@Microsoft.KeyVault(VaultName=g2dc-cto-fsdh-$Environment-kv;SecretName=datahub-smtp-username)"
   },
   "DatahubServiceBus": {
-    "ConnectionString": "@Microsoft.KeyVault(VaultName=fsdh-key-$Environment;SecretName=service-bus-connection-string)"
+    "ConnectionString": "@Microsoft.KeyVault(VaultName=g2dc-cto-fsdh-$Environment-kv;SecretName=service-bus-connection-string)"
   },
   "Media": {
-    "StorageConnectionString": "@Microsoft.KeyVault(VaultName=fsdh-key-$Environment;SecretName=datahub-media-storage-connection-string)"
+    "StorageConnectionString": "@Microsoft.KeyVault(VaultName=g2dc-cto-fsdh-$Environment-kv;SecretName=datahub-media-storage-connection-string)"
   },
-  "FUNC_SP_CLIENT_ID": "@Microsoft.KeyVault(VaultName=fsdh-key-$Environment;SecretName=datahubportal-client-id)",
-  "FUNC_SP_CLIENT_SECRET": "@Microsoft.KeyVault(VaultName=fsdh-key-$Environment;SecretName=datahubportal-client-secret)",
+  "FUNC_SP_CLIENT_ID": "@Microsoft.KeyVault(VaultName=g2dc-cto-fsdh-$Environment-kv;SecretName=datahubportal-client-id)",
+  "FUNC_SP_CLIENT_SECRET": "@Microsoft.KeyVault(VaultName=g2dc-cto-fsdh-$Environment-kv;SecretName=datahubportal-client-secret)",
   "FUNCTIONS_EXTENSION_VERSION": "~4",
   "FUNCTIONS_WORKER_RUNTIME": "dotnet-isolated",
   "InactivityCRON": "0 0 0 * * *",
