@@ -71,6 +71,44 @@ Describe 'appsettings module' {
 
             { Export-Settings -SourceFile $templatePath -Target AppSettings -Environment dev -ProjectFolder $projectFolder } | Should -Throw
         }
+
+        It 'Replaces Azure placeholders from the active context' {
+            $tempRoot = Join-Path $TestDrive 'export-settings-placeholders'
+            $projectFolder = Join-Path $tempRoot 'project'
+            $templatePath = Join-Path $tempRoot 'appsettings.template.json'
+            $targetPath = Join-Path $projectFolder 'appsettings.json'
+
+            New-Item -ItemType Directory -Path $projectFolder -Force | Out-Null
+            [System.IO.File]::WriteAllText($templatePath, '{"AzureAd":{"Domain":"$domain","TenantId":"$tenantId","SubscriptionId":"$subscriptionId"}}')
+
+            Mock Get-Module {
+                [pscustomobject]@{ Name = 'Az.KeyVault' }
+            } -ParameterFilter { $Name -eq 'Az.KeyVault' }
+            Mock Import-Module {}
+            Mock Get-AzContext {
+                [pscustomobject]@{
+                    Tenant = [pscustomobject]@{ Id = 'tenant-guid' }
+                    Subscription = [pscustomobject]@{ Name = 'sub-name'; Id = 'subscription-guid' }
+                    Account = [pscustomobject]@{ Id = 'user@example.com' }
+                }
+            }
+            Mock Get-AzTenant {
+                @([pscustomobject]@{ TenantId = 'tenant-guid' })
+            }
+            Mock Get-AzSubscription {
+                @([pscustomobject]@{ Name = 'sub-name'; Id = 'subscription-guid' })
+            }
+            Mock Connect-AzAccount {}
+            Mock Set-AzContext {}
+            Mock dotnet {}
+
+            Export-Settings -SourceFile $templatePath -Target AppSettings -Environment dev -ProjectFolder $projectFolder
+
+            $output = Get-Content -Path $targetPath -Raw
+            $output | Should -Match '"Domain": "163Ent.onmicrosoft.com"'
+            $output | Should -Match '"TenantId": "tenant-guid"'
+            $output | Should -Match '"SubscriptionId": "subscription-guid"'
+        }
     }
 }
 

@@ -1,11 +1,10 @@
 {
-  "APPLICATIONINSIGHTS_CONNECTION_STRING": "@Microsoft.KeyVault(VaultName=g2dc-cto-fsdh-$Environment-kv;SecretName=appinsights-connection)",
   "ApplicationInsightsAgent_EXTENSION_VERSION": "~3",
   "AzureWebJobsDashboard": "@Microsoft.KeyVault(VaultName=g2dc-cto-fsdh-$Environment-kv;SecretName=datahub-storage-queue-conn-str)",
   "AzureWebJobsStorage": "@Microsoft.KeyVault(VaultName=g2dc-cto-fsdh-$Environment-kv;SecretName=datahub-storage-queue-conn-str)",
   "DataHub_ENVNAME": "dev",
-  "datahub_mssql_project": "Server=tcp:@Microsoft.KeyVault(VaultName=g2dc-cto-fsdh-$Environment-kv;SecretName=datahub-mssql-server),1433;Initial Catalog=@Microsoft.KeyVault(VaultName=g2dc-cto-fsdh-$Environment-kv;SecretName=datahub-mssql-projectdb);Persist Security Info=False;$sqlCreds;MultipleActiveResultSets=False;Encrypt=True;TrustServerCertificate=False;Connection Timeout=30;",
-  "SQLDB_PROJECT": "Server=tcp:@Microsoft.KeyVault(VaultName=g2dc-cto-fsdh-$Environment-kv;SecretName=datahub-mssql-server),1433;Initial Catalog=@Microsoft.KeyVault(VaultName=g2dc-cto-fsdh-$Environment-kv;SecretName=datahub-mssql-projectdb);Persist Security Info=False;$sqlCreds;MultipleActiveResultSets=False;Encrypt=True;TrustServerCertificate=False;Connection Timeout=30;",
+  "datahub_mssql_project": "Server=tcp:@Microsoft.KeyVault(VaultName=g2dc-cto-fsdh-$Environment-kv;SecretName=datahub-mssql-server),1433;Initial Catalog=@Microsoft.KeyVault(VaultName=g2dc-cto-fsdh-$Environment-kv;SecretName=datahub-mssql-projectdb);Persist Security Info=False;Authentication=Active Directory Interactive;MultipleActiveResultSets=False;Encrypt=True;TrustServerCertificate=False;Connection Timeout=30;",
+  "SQLDB_PROJECT": "Server=tcp:@Microsoft.KeyVault(VaultName=g2dc-cto-fsdh-$Environment-kv;SecretName=datahub-mssql-server),1433;Initial Catalog=@Microsoft.KeyVault(VaultName=g2dc-cto-fsdh-$Environment-kv;SecretName=datahub-mssql-projectdb);Persist Security Info=False;Authentication=Active Directory Interactive;MultipleActiveResultSets=False;Encrypt=True;TrustServerCertificate=False;Connection Timeout=30;",
 
   "DatahubStorageConnectionString": "@Microsoft.KeyVault(VaultName=g2dc-cto-fsdh-$Environment-kv;SecretName=datahub-storage-queue-conn-str)",
   "DocumentationRankUpdateCRON": "0 0 * * * *",

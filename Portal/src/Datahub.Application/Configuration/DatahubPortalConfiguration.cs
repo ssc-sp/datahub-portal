@@ -113,22 +113,6 @@ public class CultureSettings
     public string[] AdditionalResourcePaths { get; set; } = ["../Datahub.Portal/i18n/ssc"];
 }
 
-public class DataProjects
-{
-    public bool PowerBI { get; set; } = false;
-    public bool PublicSharing { get; set; } = false;
-    public bool WebForms { get; set; } = false;
-    public bool Databricks { get; set; } = true;
-    public bool SQLServer { get; set; } = false;
-    public bool PostgreSQL { get; set; } = false;
-    public bool Costing { get; set; } = false;
-    public bool Storage { get; set; } = true;
-}
-
-public class ApplicationInsights
-{
-    public string InstrumentationKey { get; set; } = null!;
-}
 
 /// <summary>
 /// This class contains the credentials for Azure services

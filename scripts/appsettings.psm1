@@ -47,7 +47,7 @@ function Connect-FSDHAzure
     $domain = "163Ent.onmicrosoft.com"
     $subscriptionName = "G2Dc-CTO-ENT-FSDH-Core"
     $context = Get-AzContext
-
+    $tenantId = $null
     try {
         if ($null -eq $context) {
             Write-Output "Opening Azure session for subscription $subscriptionName"
@@ -65,7 +65,7 @@ function Connect-FSDHAzure
                     ($null -ne $_.Tenant -and $_.Tenant.Id -eq $tenant.TenantId) -and
                     ($null -ne $_.Subscription -and $_.Subscription.Name -eq $subscriptionName)
                 } | Select-Object -First 1
-
+                $tenantId = $tenant.TenantId
                 if ($null -ne $matchingContext) {
                     Write-Output "Switching Azure session to subscription $subscriptionName in domain $domain."
                     Set-AzContext -Context $matchingContext -ErrorAction Stop
@@ -88,6 +88,10 @@ function Connect-FSDHAzure
     if ($context.Subscription.Name -ne $subscriptionName) {
         throw "The active Azure subscription is not $subscriptionName. Please sign in to the correct subscription."
     }
+
+    $script:AzureDomain = $domain
+    $script:AzureTenantId = $context.Tenant.Id
+    $script:AzureSubscriptionId = $context.Subscription.Id
 
     Write-Output "User $($context.Account.Id) is signed in to subscription $($context.Subscription.Name)."
     return $true
@@ -144,7 +148,6 @@ function Export-Settings(
     $infraRepo = $null
     if ($Target -eq "Terraform")
     {
-        $sqlCreds = "Authentication=Active Directory Managed Identity"
         $infraRepo = Find-InfraRepo
         if ($null -eq $infraRepo)
         {
@@ -178,6 +181,10 @@ function Export-Settings(
     $template = Get-Content $SourceFile
     # remove template from filename
     $tgtFile = $SourceFile.replace("template.", "") 
+
+    $domain = if ($script:AzureDomain) { $script:AzureDomain } else { $null }
+    $tenantId = if ($script:AzureTenantId) { $script:AzureTenantId } else { $null }
+    $subscriptionId = if ($script:AzureSubscriptionId) { $script:AzureSubscriptionId } else { $null }
 
     $jsonObject = $ExecutionContext.InvokeCommand.ExpandString($template)
 
