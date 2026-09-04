@@ -141,7 +141,12 @@ function Export-Settings(
     # login user to azure
     Write-Output "Fetching secrets from keyvault"
 
-    $resourcePrefix = "fsdh"
+    $resourcePrefix = "g2dc-cto-fsdh"
+    $resourcePrefixAlphanumeric = $resourcePrefix -replace "[^a-zA-Z0-9]", ""
+    $azureDevOpsOrganization = "SSC-FSDH"
+    $azureDevOpsProject = "FSDH"
+    $vaultName = "g2dc-cto-fsdh-dev-kv"
+    $azureDevopsRepository = "fsdh-project-infra-$Environment"
 
     $datahubMssqlAdmin = Read-VaultSecret "g2dc-cto-fsdh-dev-kv" "datahub-mssql-admin"
     $datahubMssqlPassword = Read-VaultSecret "g2dc-cto-fsdh-dev-kv" "datahub-mssql-password"
