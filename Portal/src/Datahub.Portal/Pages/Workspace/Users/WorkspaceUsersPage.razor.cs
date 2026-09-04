@@ -45,6 +45,7 @@ namespace Datahub.Portal.Pages.Workspace.Users
         {
             var allProjectUsers = await _projectUserManagementService.GetProjectUsersAsync(WorkspaceAcronym);
             _projectUsers = allProjectUsers.Where(x => x.PortalUser.ExternalUserId is null).ToList();
+            _projectUsers = _projectUsers.Where(x => x.RoleId != (int)Project_Role.RoleNames.Removed && x.Role?.Id != (int)Project_Role.RoleNames.DisabledUser).ToList();
 
             _originalUserInfo = _projectUsers.Select(u => new WorkspaceUserInfo(u.PortalUserId, u.RoleId, u.IsDataSteward)).ToList();
             ProjectMemberRoleFilter(_currentRoleFilter);
