@@ -1,4 +1,3 @@
-using System.Text.Json;
 using Azure;
 using Azure.Core;
 using Azure.Identity;
@@ -14,8 +13,10 @@ using Azure.ResourceManager.Storage;
 using Azure.ResourceManager.Storage.Mocking;
 using Azure.ResourceManager.Storage.Models;
 using Datahub.Application.Configuration;
+using Datahub.Application.Services;
 using Datahub.Application.Services.Cost;
 using Datahub.Application.Services.ResourceGroups;
+using Datahub.Application.Services.Security;
 using Datahub.Application.Services.Storage;
 using Datahub.Core.Model.Context;
 using Datahub.Core.Model.Projects;
@@ -23,6 +24,7 @@ using Datahub.Core.Model.Subscriptions;
 using Datahub.Infrastructure.Services.Storage;
 using Datahub.Shared.Entities;
 using Microsoft.EntityFrameworkCore;
+using Microsoft.EntityFrameworkCore.Internal;
 using Microsoft.Extensions.Caching.Memory;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.Logging;
@@ -30,6 +32,7 @@ using NSubstitute;
 using NSubstitute.Extensions;
 using Reqnroll;
 using Reqnroll.BoDi;
+using System.Text.Json;
 
 namespace Datahub.SpecflowTests.Hooks
 {
@@ -65,8 +68,9 @@ namespace Datahub.SpecflowTests.Hooks
             var dbContextFactory = new SpecFlowDbContextFactory(options);
             var armClient = Substitute.For<ArmClient>();
             var logger = Substitute.For<ILogger<WorkspaceStorageManagementService>>();
-
-            MockServiceCalls(armClient, logger, dbContextFactory, datahubPortalConfiguration, objectContainer);
+            var systemTokenProvider = Substitute.For<ISystemTokenCredentialService>();
+            var projectStorage = Substitute.For<IProjectStorageConfigurationService>();
+            MockServiceCalls(armClient, logger, dbContextFactory, systemTokenProvider, projectStorage, datahubPortalConfiguration, objectContainer);
             await MockArmMethods(armClient);
             SeedDb(dbContextFactory);
         }
@@ -238,14 +242,14 @@ namespace Datahub.SpecflowTests.Hooks
         }
 
         public void MockServiceCalls(ArmClient armClient, ILogger<WorkspaceStorageManagementService> logger,
-            IDbContextFactory<DatahubProjectDBContext> dbContextFactory,
-            DatahubPortalConfiguration datahubPortalConfiguration, IObjectContainer objectContainer)
+            IDbContextFactory<DatahubProjectDBContext> dbContextFactory, ISystemTokenCredentialService systemTokenProvider,
+            IProjectStorageConfigurationService projectStorage, DatahubPortalConfiguration datahubPortalConfiguration, IObjectContainer objectContainer)
         {
             var workspaceRgManagementService = Substitute.For<IWorkspaceResourceGroupsManagementService>();
             _memoryCache?.Dispose();
             _memoryCache = new MemoryCache(new MemoryCacheOptions());
             var workspaceStorageManagementService = new WorkspaceStorageManagementService(armClient, logger,
-                _memoryCache, dbContextFactory, workspaceRgManagementService);
+                _memoryCache, dbContextFactory, workspaceRgManagementService, systemTokenProvider, projectStorage);
 
 
             workspaceRgManagementService
