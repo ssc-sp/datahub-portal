@@ -147,7 +147,7 @@ function Export-Settings(
     $azureDevOpsProject = "FSDH"
     $vaultName = "g2dc-cto-fsdh-dev-kv"
     $azureDevopsRepository = "fsdh-project-infra-$Environment"
-
+    $repositoryId = Read-VaultSecret $vaultName "datahub-infrastructure-repo-id"
     $datahubMssqlAdmin = Read-VaultSecret "g2dc-cto-fsdh-dev-kv" "datahub-mssql-admin"
     $datahubMssqlPassword = Read-VaultSecret "g2dc-cto-fsdh-dev-kv" "datahub-mssql-password"
     $infraRepo = $null
