@@ -45,7 +45,7 @@ function Connect-FSDHAzure
     Import-Module Az.KeyVault -Force -NoClobber
     #check if user is signed in on azure
     $context = Get-AzContext
-    $domain = "163oxygen.onmicrosoft.com"
+    $domain = "163ent.onmicrosoft.com"
 
     if ($null -eq $context) {
         Write-Output "Opening Azure session"
@@ -103,17 +103,17 @@ function Export-Settings(
 
     $resourcePrefix = "fsdh"
     $resourcePrefixAlphanumeric = $resourcePrefix -replace "[^a-zA-Z0-9]", ""
-    $azureDevOpsOrganization = "DataSolutionsDonnees"
-    $azureDevOpsProject = "FSDH%20SSC"
-    $vaultName = "fsdh-static-test-akv"
-    $azureDevopsRepository = "datahub-project-infrastructure-$Environment"
+    $azureDevOpsOrganization = "SSC-FSDH"
+    $azureDevOpsProject = "FSDH"
+    $vaultName = "g2dc-cto-fsdh-dev-kv"
+    $azureDevopsRepository = "fsdh-project-infra-$Environment"
 
     $tenantId = Read-VaultSecret $vaultName "datahub-portal-tenant-id"
     $subscriptionId = Read-VaultSecret $vaultName "datahub-portal-subscription-id"
     $repositoryId = Read-VaultSecret $vaultName "datahub-infrastructure-repo-id"
 
-    $datahubMssqlAdmin = Read-VaultSecret "fsdh-key-dev" "datahub-mssql-admin"
-    $datahubMssqlPassword = Read-VaultSecret "fsdh-key-dev" "datahub-mssql-password"
+    $datahubMssqlAdmin = Read-VaultSecret $vaultName "datahub-mssql-admin"
+    $datahubMssqlPassword = Read-VaultSecret $vaultName "datahub-mssql-password"
     $sqlCreds = "User ID=$datahubMssqlAdmin;Password=$datahubMssqlPassword"
     $infraRepo = $null
     if ($Target -eq "Terraform")
