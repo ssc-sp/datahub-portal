@@ -33,7 +33,7 @@
     <PackageVersion Include="Azure.Storage.Queues" Version="12.27.1" />
     <PackageVersion Include="BenchmarkDotNet" Version="0.15.8" />
     <PackageVersion Include="Blazor-Analytics" Version="4.0.0" />
-    <PackageVersion Include="Blazor-ApexCharts" Version="6.1.0" />
+    <PackageVersion Include="Blazor-ApexCharts" Version="7.0.0" />
     <PackageVersion Include="BlazorDownloadFile" Version="2.4.0.2" />
     <PackageVersion Include="Blazored.LocalStorage" Version="4.5.0" />
     <PackageVersion Include="Blazored.SessionStorage" Version="2.4.0" />
