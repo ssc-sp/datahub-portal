@@ -1,13 +1,13 @@
 @using Datahub.Application.Services
+@using Datahub.Application.Services.Storage
 @using Datahub.Core.Model.Users
-@using Azure.Storage.Blobs
-@using Azure.Storage.Sas
 @using Microsoft.AspNetCore.Components.Forms
 @using MudBlazor
 
 @inject IConfiguration _configuration
 @inject IUserInformationService _userInformationService
 @inject ILockedUserManagementService _lockedUserManagementService
+@inject IWorkspaceStorageManagementService _workspaceStorageManagementService
 @inject ISnackbar _snackbar
 
 <MudDialog>
@@ -88,7 +88,7 @@
 
     private async Task Upload()
     {
-        if (_selectedFile == null || User == null)
+        if (_selectedFile == null || User == null || string.IsNullOrWhiteSpace(WorkspaceAcronym))
         {
             return;
         }
@@ -99,38 +99,20 @@
 
         try
         {
-            var connectionString = _configuration.GetConnectionString("VirusScanEvidence");
-            if (string.IsNullOrWhiteSpace(connectionString))
-            {
-                _snackbar.Add(Localizer["Evidence storage connection string is not configured."], Severity.Error);
-                return;
-            }
-
-            var blobServiceClient = new BlobServiceClient(connectionString);
             var safeFileName = System.IO.Path.GetFileName(_selectedFile.Name);
-            string containerName;
-            string blobName;
-            if (_isExternalUser)
-            {
-                containerName = "external-uploads";
-                var folderName = GetSafeExternalFolderName(User.Email);
-                blobName = $"{folderName}/{Guid.NewGuid()}-{safeFileName}";
-            }
-            else
-            {
-                containerName = "virus-scan-evidence";
-                blobName = $"{User.Id}/{Guid.NewGuid()}-{safeFileName}";
-            }
+            var containerName = _isExternalUser
+                ? IWorkspaceStorageManagementService.AzureExternalUploadContainerName
+                : IWorkspaceStorageManagementService.AzureVirusScanEvidenceContainerName;
 
-            var containerClient = blobServiceClient.GetBlobContainerClient(containerName);
-            await containerClient.CreateIfNotExistsAsync();
+            var blobName = _isExternalUser
+                ? $"{GetSafeExternalFolderName(User.Email)}/{Guid.NewGuid()}-{safeFileName}"
+                : $"{User.Id}/{Guid.NewGuid()}-{safeFileName}";
 
-            var blobClient = containerClient.GetBlobClient(blobName);
-            await blobClient.UploadAsync(_selectedFile.OpenReadStream(_selectedFile.Size));
-
-            var evidenceUrl = blobClient.CanGenerateSasUri
-                ? blobClient.GenerateSasUri(BlobSasPermissions.Read, DateTimeOffset.UtcNow.AddDays(7)).ToString()
-                : blobClient.Uri.ToString();
+            var evidenceUrl = await _workspaceStorageManagementService.UploadVirusScanEvidenceAsync(
+                WorkspaceAcronym,
+                containerName,
+                blobName,
+                _selectedFile.OpenReadStream(_selectedFile.Size));
 
             var currentUser = await _userInformationService.GetCurrentPortalUserAsync();
             if (currentUser == null)
@@ -147,7 +129,7 @@
             _snackbar.Add(Localizer["Virus scan evidence uploaded successfully."], Severity.Success);
             MudDialog.Close(DialogResult.Ok(true));
         }
-        catch (Exception ex)
+        catch (Exception)
         {
             _snackbar.Add(Localizer["Failed to upload evidence while processing the file."], Severity.Error);
         }
@@ -162,6 +144,7 @@
     {
         MudDialog.Cancel();
     }
+
     private string FormatFileSize(long bytes)
     {
         string[] sizes = { "B", "KB", "MB", "GB" };
