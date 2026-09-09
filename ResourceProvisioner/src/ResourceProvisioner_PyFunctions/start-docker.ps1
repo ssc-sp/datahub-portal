@@ -1,22 +1,29 @@
 #!/usr/bin/env pwsh
+param(
+    [string]$Environment = $null
+)
+
 Write-Output "Setting environment variables from Azure Key Vault"
 
-# Check if the Az.KeyVault module is installed
-if (-not (Get-Module -ListAvailable -Name Az.KeyVault)) {
-    Write-Output "Az.KeyVault module not found. Installing..."
-    Install-Module -Name Az.KeyVault -Force -Scope CurrentUser
-} else {
-    Write-Output "Az.KeyVault module is already installed."
+if ([string]::IsNullOrWhiteSpace($Environment)) {
+    $Environment = if ($env:DataHub_ENVNAME) { $env:DataHub_ENVNAME } else { 'dev' }
+}
+$env:DataHub_ENVNAME = $Environment
+
+$projectDir = Split-Path -Parent $MyInvocation.MyCommand.Path
+$repoRoot = (Resolve-Path (Join-Path $projectDir "../../..")).Path
+$modulePath = Join-Path $repoRoot "scripts/appsettings.psm1"
+
+Set-Location $projectDir
+
+if (-not (Test-Path $modulePath)) {
+    Write-Error "Unable to locate appsettings module at $modulePath."
+    exit 1
 }
 
-#check if user is signed in on azure
-Import-Module Az.KeyVault -Force -NoClobber
-$domain = "163oxygen.onmicrosoft.com"
-$context = Get-AzContext
-if ($null -eq $context) {
-    connect-azaccount -Domain $domain -DeviceCode
-} else {
-    Write-Output "User $($context.Account.Id) is signed in."
+Import-Module $modulePath -Force
+if (-not (Connect-FSDHAzure)) {
+    exit 1
 }
 
 function Read-VaultSecret($vault, $secretId)
@@ -29,13 +36,13 @@ function Read-VaultSecret($vault, $secretId)
     }
 }
 
-$env:AzureClientId = (Read-VaultSecret "fsdh-key-dev" "devops-client-id")
-$env:AzureClientSecret = (Read-VaultSecret "fsdh-key-dev" "devops-client-secret")
+$vaultName = Get-FSDHKeyVaultName -Environment $Environment
+$env:AzureClientId = (Read-VaultSecret $vaultName "devops-client-id")
+$env:AzureClientSecret = (Read-VaultSecret $vaultName "devops-client-secret")
 $env:AzureTenantId = "8c1a4d93-d828-4d0e-9303-fd3bd611c822"
-$env:AzureSubscriptionId = (Read-VaultSecret "fsdh-key-dev" "datahub-portal-subscription-id")
-$env:DatahubServiceBus = (Read-VaultSecret "fsdh-key-dev" "service-bus-connection-string")
-$env:DataHub_ENVNAME = "dev"
-$env:AzureWebJobsStorage = (Read-VaultSecret "fsdh-key-dev" "datahub-storage-queue-conn-str")
+$env:AzureSubscriptionId = (Read-VaultSecret $vaultName "datahub-portal-subscription-id")
+$env:DatahubServiceBus = (Read-VaultSecret $vaultName "service-bus-connection-string")
+$env:AzureWebJobsStorage = (Read-VaultSecret $vaultName "datahub-storage-queue-conn-str")
 $env:AzureWebJobsDashboard = $env:AzureWebJobsStorage
 $env:AzureWebJobsAzureStorageQueueConnectionString = $env:AzureWebJobsStorage
 

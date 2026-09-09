@@ -80,12 +80,10 @@ namespace Datahub.Functions.UnitTests
         public async Task RunScheduler_ShouldLogInformation_WhenNoProjectsToUpdate()
         {
             // Arrange
-            var loggerFactoryTest = Substitute.For<ILoggerFactory>();
             var loggerTest = new Mock<ILogger<ProjectUsageScheduler>>();
-            loggerFactoryTest.CreateLogger<ProjectUsageScheduler>().Returns(loggerTest.Object);
 
             var mockedScheduler = new ProjectUsageScheduler(
-                _logger,
+                loggerTest.Object,
                 _dbContextFactory,
                 _sendEndpointProviderMock.Object,
                 _workspaceCostMgmtServiceMock.Object,
@@ -99,12 +97,12 @@ namespace Datahub.Functions.UnitTests
 
             // Assert
             result.Should().Be((0, 0));
-            loggerTest.Verify(l => l.Log(
+            loggerTest.Verify(static l => l.Log(
                 It.Is<LogLevel>(logLevel => logLevel == LogLevel.Information),
                 It.IsAny<EventId>(),
-                It.Is<It.IsAnyType>((v, t) => v.ToString().Contains("No projects to update")),
+                It.Is<It.IsAnyType>((v, t) => v.ToString()!.Contains("No projects to update")),
                 It.IsAny<Exception>(),
-                It.Is<Func<It.IsAnyType, Exception, string>>((v, t) => true)), Times.Once);
+                It.Is<Func<It.IsAnyType, Exception?, string>>((v, t) => true)), Times.Once);
         }
 
         [Test]
@@ -124,7 +122,7 @@ namespace Datahub.Functions.UnitTests
             _workspaceStorageMgmtServiceMock.Setup(s => s.CheckUpdateNeeded(It.IsAny<string>(), It.IsAny<DatahubProjectDBContext>())).Returns(true);
             _scheduler.Mock = true;
             var mockedScheduler = new Mock<ProjectUsageScheduler>(
-                loggerFactoryTest,
+                loggerTest.Object,
                 _dbContextFactory,
                 _sendEndpointProviderMock.Object,
                 _workspaceCostMgmtServiceMock.Object,
