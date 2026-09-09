@@ -12,6 +12,8 @@
 @using Datahub.Shared.Entities
 
 @inject CommonAzureServices _commonAzureServices;
+@inject MudBlazor.IDialogService DialogService;
+@inject Microsoft.FeatureManagement.IFeatureManagerSnapshot FeatureManager;
 
 @if (File != null)
 {
@@ -28,21 +30,27 @@
             <DHAlert Severity="Severity.Info">
                 <MudText Typo="Typo.h5">@Localizer["Archived Storage"]</MudText>
                 <MudText Class="my-3">@Localizer["This file is currently in an archive storage tier for long-term storage."]</MudText>
-                <MudText>@Localizer["To download this file, you must first change the storage tier. This can take several hours to process."]</MudText>
+                <MudText>@Localizer["To download or edit this file, you must first change the storage tier. This can take several hours to process."]</MudText>
             </DHAlert>
         }
 
-        <div class="access-container">
-            <MudText Typo="Typo.h4">@Localizer["Who has access"]</MudText>
-            <span class="circle-item">
-                <ProfileCircle FullName="@ProjectAcronym"/>
-                <MudText>@ProjectAcronym</MudText>
-            </span>
-        </div>
+        @if (_workspaceStorageMetadataEnabled)
+        {
+            <FileMetadataEditor
+                EditMode=false
+                ContainerName=@ContainerName
+                FileName=@_fullFileName
+                StorageManager=@StorageManager
+                ProjectAcronym=@ProjectAcronym
+            />
+        }
 
         <div class="properties">
             <MudText class="properties-title" Typo="Typo.h4">@Localizer["Storage Properties"]</MudText>
-            <MudText class="label">@Localizer["Storage Tier"]</MudText>
+            <MudText class="label">
+                @Localizer["Storage Tier"]
+                <MudIconButton Icon="@Icons.Material.Filled.Help" Size="Size.Small" Class="ml-1" Href="@Localizer["http://documentation.sds.canada.ca/en/storage/Storage-Tiers.html"]" Target="_blank" />
+            </MudText>
             <MudText class="text">@StorageTier</MudText>
             @foreach (var (key, value) in _properties)
             {
@@ -93,19 +101,27 @@
     public string FolderName { get; set; }
 
     [Parameter]
-    public bool Readonly { get; set; }
+    public EventCallback OnMetadataChanged { get; set; }
 
     [Parameter]
-    public EventCallback OnMetadataChanged { get; set; }
+    public ICloudStorageManager StorageManager { get; set; }
 
     private List<(string, string)> _properties;
     private string _powerBiPasteText;
     private string _fileLinkUrl;
     private string _databricksPasteText;
+    private string _fullFileName;
     private ClassificationType _classification;
+    private bool _workspaceStorageMetadataEnabled;
 
     [Parameter]
     public string StorageTier { get; set; } = "Hot";
+
+    protected override async Task OnInitializedAsync()
+    {
+        await base.OnInitializedAsync();
+        _workspaceStorageMetadataEnabled = await FeatureManager.IsEnabledAsync(Features.Workspace_Storage_Metadata_Feature);
+    }
 
     protected override async Task OnParametersSetAsync()
     {
@@ -134,6 +150,7 @@
             _databricksPasteText = $"/mnt/fsdh-dbk-main-mount/{fullFilePath}";
         }
         _classification = Project.Data_Sensitivity;
+        _fullFileName = $"{File.folderpath}/{File.filename}";
     }
 
     private string GenerateEffectiveFolderPath()

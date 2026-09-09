@@ -333,4 +333,14 @@ public class AWSCloudStorageManager : ICloudStorageManager
     {
         return new List<string> { "STANDARD", "REDUCED_REDUNDANCY", "STANDARD_IA", "ONEZONE_IA", "INTELLIGENT_TIERING", "GLACIER", "DEEP_ARCHIVE" };
     }
+
+    public async Task<IDictionary<string, string>> GetFileMetadataAsync(string container, string file)
+    {
+        throw new NotImplementedException();
+    }
+
+    public async Task SetFileMetadataAsync(string container, string file, Dictionary<string, string> metadata)
+    {
+        throw new NotImplementedException();
+    }
 }

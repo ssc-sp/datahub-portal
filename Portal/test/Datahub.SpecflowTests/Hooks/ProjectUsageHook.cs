@@ -84,6 +84,7 @@ namespace Datahub.SpecflowTests.Hooks
             configuration.Bind(datahubPortalConfiguration);
 
             var loggerFactory = new LoggerFactory();
+            var logger = loggerFactory.CreateLogger<ProjectUsageScheduler>();
 
             var workspaceCostsManagementService = Substitute.For<IWorkspaceCostManagementService>();
             var workspaceBudgetManagementService = Substitute.For<IWorkspaceBudgetManagementService>();
@@ -154,7 +155,7 @@ namespace Datahub.SpecflowTests.Hooks
                 GetWorkspaceResourceGroupsIdentifiersAsync(Arg.Any<string>())
                 .Returns(new List<ResourceIdentifier> ());
 
-            var projectUsageScheduler = new ProjectUsageScheduler(loggerFactory, dbContextFactory, sendEndpointProvider,
+            var projectUsageScheduler = new ProjectUsageScheduler(logger, dbContextFactory, sendEndpointProvider,
                 workspaceCostsManagementService, workspaceStorageManagementService, workspaceRgManagementService,
                 configuration);
             projectUsageScheduler.Mock = true;

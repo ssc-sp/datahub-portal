@@ -37,6 +37,10 @@ public interface ICloudStorageManager
 
     List<string> GetFileStorageTiersList();
 
+    Task<IDictionary<string, string>> GetFileMetadataAsync(string container, string file);
+
+    Task SetFileMetadataAsync(string container, string file, Dictionary<string, string> metadata);
+
     bool AzCopyEnabled { get; }
     bool DatabrickEnabled { get; }
     CloudStorageProviderType ProviderType { get; }
