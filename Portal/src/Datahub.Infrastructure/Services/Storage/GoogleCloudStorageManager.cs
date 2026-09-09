@@ -13,7 +13,7 @@ using GObject = Google.Apis.Storage.v1.Data.Object;
 
 namespace Datahub.Infrastructure.Services.Storage
 {
-	public class GoogleCloudStorageManager : ICloudStorageManager
+    public class GoogleCloudStorageManager : ICloudStorageManager
     {
         private const int PAGE_SIZE = 100;
         private const string EMPTY_FOLDER_CONTENT_TYPE = "text/plain";
@@ -312,6 +312,55 @@ namespace Datahub.Infrastructure.Services.Storage
             (ResourceSubstitutions.GCPAccountKey, KeyVaultUserService.GetSecretNameForStorage(container.Id.Value, CloudStorageHelpers.GCP_Json)),
             (ResourceSubstitutions.ContainerName, container.Name)
         };
+        }
+
+        public async Task<string> GetFileStorageTierAsync(string container, string file)
+        {
+            using var client = await CreateStorageClientAsync();
+            var options = new GetObjectOptions();
+            try
+            {
+                var obj = await client.GetObjectAsync(container, file, options);
+                return await Task.FromResult(obj.StorageClass);
+            }
+            catch (GoogleApiException ex)
+            {
+                if (ex.HttpStatusCode == System.Net.HttpStatusCode.NotFound)
+                {
+                    return await Task.FromResult(string.Empty);
+                }
+                else
+                {
+                    _logger.LogError(ex, ex.Message);
+                    throw;
+                }
+            }
+        }
+
+        public async Task<bool> SetFileStorageTierAsync(string container, string file, string newTier)
+        {
+            return false; // Not implemented yet for GCP
+        }
+
+        public List<string> GetFileStorageTiersList()
+        {
+            return new List<string>
+            {
+                "STANDARD",
+                "NEARLINE",
+                "COLDLINE",
+                "ARCHIVE"
+            };
+        }
+
+        public async Task<IDictionary<string, string>> GetFileMetadataAsync(string container, string file)
+        {
+            throw new NotImplementedException();
+        }
+
+        public async Task SetFileMetadataAsync(string container, string file, Dictionary<string, string> metadata)
+        {
+            throw new NotImplementedException();
         }
     }
 }

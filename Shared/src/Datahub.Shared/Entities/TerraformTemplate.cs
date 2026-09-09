@@ -119,6 +119,8 @@ public class TerraformTemplate
             AzureDatabricks => AzureDatabricks,
             AzureAppService => AzureAppService,
             AzurePostgres => AzurePostgres,
+            //legacy - pre 7.1.0
+            "azure-storage-blob" => "azure-storage-blob",
             _ => throw new ArgumentException($"Unknown template name: {name}")
         };
     }

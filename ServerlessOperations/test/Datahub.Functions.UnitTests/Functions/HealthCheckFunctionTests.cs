@@ -21,6 +21,7 @@ namespace Datahub.Functions.UnitTests.Functions
     public class HealthCheckFunctionTests
     {
         private readonly ILoggerFactory _loggerFactory = Substitute.For<ILoggerFactory>();
+        private readonly ILogger<HealthCheckHelper> _hclogger = Substitute.For<ILogger<HealthCheckHelper>>();
         private readonly IHttpClientFactory _httpClientFactory = Substitute.For<IHttpClientFactory>();
 
         private CheckInfrastructureStatus _checkInfrastructureStatusFunction;
@@ -58,7 +59,7 @@ namespace Datahub.Functions.UnitTests.Functions
             var tokenManager = Substitute.For<AzAccessTokenManager>(tokenCredentialService, tokenCredentialService);
 
             var healthCheckHelper = new HealthCheckHelper(dbContextFactory, projectStorageConfigurationService, webAppService,
-                Testing._configuration, _httpClientFactory, _loggerFactory, tokenManager, sendProvider, resourceMessagingService, _datahubConfig, tokenCredentialService, httpContextAccessor, null);
+                Testing._configuration, _httpClientFactory, _hclogger, tokenManager, sendProvider, resourceMessagingService, _datahubConfig, tokenCredentialService, httpContextAccessor, null);
 
             _checkInfrastructureStatusFunction = new CheckInfrastructureStatus(_loggerFactory, healthCheckHelper);
         }

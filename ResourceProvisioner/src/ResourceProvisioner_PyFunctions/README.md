@@ -2,11 +2,51 @@
 
 ## Prerequisites
 
-Before running the functions locally, you need to install the Azure Functions Core Tools. You can use `winget` to install it:
+Before running the functions locally, you need to install the Azure Functions Core Tools and Poetry.
+
+On Windows, you can use `winget`:
+
+```powershell
+winget install Python.Python.3.12
+winget install Python.Poetry
+winget install Microsoft.Azure.FunctionsCoreTools
+```
+
+On Linux, install the prerequisites and Azure Functions Core Tools with the package manager:
+
+```bash
+curl https://packages.microsoft.com/keys/microsoft.asc | gpg --dearmor > microsoft.gpg
+sudo install -o root -g root -m 644 microsoft.gpg /etc/apt/trusted.gpg.d/
+sudo sh -c 'echo "deb [arch=amd64] https://packages.microsoft.com/repos/azure-cli/ $(lsb_release -cs) main" > /etc/apt/sources.list.d/azure-cli.list'
+sudo apt-get update
+sudo apt-get install -y azure-functions-core-tools-4
+```
+
+If `poetry` is not already installed on Linux, install it with:
+
+```bash
+curl -sSL https://install.python-poetry.org | python3 -
+```
+
+Install the project dependencies with Poetry:
+
+```powershell
+poetry install
+```
+
+Install Azure Functions Core Tools separately if the `func` command is not available:
 
 ```powershell
 winget install Microsoft.Azure.FunctionsCoreTools
 ```
+
+To run the function app locally, start the host from the project directory:
+
+```powershell
+func start --python
+```
+
+> Note: `poetry run` is only for Python packages in the Poetry environment. The `func` command comes from Azure Functions Core Tools and must be installed independently.
 
 ## Overview
 

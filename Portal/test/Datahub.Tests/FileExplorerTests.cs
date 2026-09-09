@@ -11,6 +11,7 @@ using Microsoft.JSInterop;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Logging;
 using MudBlazor;
+using MudBlazor.Services;
 using System.Diagnostics;
 using System.Linq;
 
@@ -32,10 +33,11 @@ using Datahub.Core.Model.Context;
 using Datahub.Core.Components.FileUpload;
 using Datahub.Core.Model.Users;
 using Datahub.Shared.Entities;
+using Microsoft.Extensions.Localization;
 
 namespace Datahub.Tests
 {
-    public class FileExplorerTests : IDisposable
+    public class FileExplorerTests : IAsyncLifetime
     {
         private readonly Bunit.BunitContext _ctx;
         private const string TestUserId = "user-id";
@@ -45,6 +47,7 @@ namespace Datahub.Tests
         public FileExplorerTests()
         {
             _ctx = new Bunit.BunitContext();
+            _ctx.Services.AddMudServices();
 
             // Mock minimal services used by the component
             var mockUserInfo = new Mock<IUserInformationService>();
@@ -81,6 +84,7 @@ namespace Datahub.Tests
             mockJs.Setup(js => js.InvokeAsync<IJSObjectReference>(It.Is<string>(s => s == "import"), It.IsAny<object[]>() ))
                 .Returns(new ValueTask<IJSObjectReference>(Mock.Of<IJSObjectReference>()));
             _ctx.Services.AddSingleton<IJSRuntime>(mockJs.Object);
+            _ctx.Services.AddSingleton(TimeProvider.System);
 
             _ctx.Services.AddSingleton<IPortalUserTelemetryService>(new Mock<IPortalUserTelemetryService>().Object);
             _ctx.Services.AddSingleton<IDialogService>(new Mock<IDialogService>().Object);
@@ -123,10 +127,9 @@ namespace Datahub.Tests
             
         }
 
-        public void Dispose()
-        {
-            _ctx.Dispose();
-        }
+        public ValueTask InitializeAsync() => ValueTask.CompletedTask;
+
+        public ValueTask DisposeAsync() => _ctx.DisposeAsync();
 
         private class FakeBrowserFile(string name, long size, Stream stream) : IBrowserFile
         {
@@ -180,6 +183,9 @@ namespace Datahub.Tests
 
             mockStorageManager.Setup(m => m.ListFoldersAsync(It.IsAny<string>(), It.IsAny<string>()))
                 .ReturnsAsync(new System.Collections.Generic.Dictionary<string, int>());
+
+            mockStorageManager.Setup(m => m.GetFileStorageTiersList())
+                .Returns(["Hot", "Cool", "Cold", "Archive"]);
 
             // by default, wire UploadFileAsync to add to localUploadedFiles when called
             mockStorageManager.Setup(m => m.UploadFileAsync(It.IsAny<string>(), It.IsAny<PortalFileMetadata>(), It.IsAny<Action<long>>()))

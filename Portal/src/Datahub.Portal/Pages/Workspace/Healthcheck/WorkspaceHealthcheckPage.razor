@@ -97,16 +97,16 @@
     private List<InfrastructureHealthResourceType> _workspaceChecks = HealthCheckHelper.WorkspaceHealthChecks;
 
     private List<InfrastructureHealthCheck> _statusList = new List<InfrastructureHealthCheck>();
-    private DatahubProjectDBContext _projectDbContext;
-    private List<InfrastructureHealthCheck> _infrastructureHealthChecks;
+    private DatahubProjectDBContext _projectDbContext = null!;
+    private List<InfrastructureHealthCheck>? _infrastructureHealthChecks;
 
     private const string cacheKey = "InfrastructureHealthChecks";
-    private Timer _timer;
-    private Timer _reloadTimer;
-    public string _userToken;
-    public string _userID;
+    private Timer? _timer;
+    private Timer? _reloadTimer;
+    public string? _userToken;
+    public string? _userID;
 
-    [Parameter] public string WorkspaceAcronym { get; set; }
+    [Parameter] public string WorkspaceAcronym { get; set; } = null!;
     [Parameter] public bool ElevatedWorkspaceAccessEnabled { get; set; } = false;
 
     protected override async Task OnInitializedAsync()
@@ -163,7 +163,9 @@
     {
         try
         {
-            var env = _portalConfiguration?.Hosting?.EnvironmentName;
+            if (_portalConfiguration is null)
+                return false;
+            var env = _portalConfiguration.Hosting.EnvironmentName;
             if (string.IsNullOrEmpty(env) || env == "local")
             {
                 env = "dev";
@@ -223,6 +225,8 @@
     private bool LoadDataForTables()
     {
         _infrastructureHealthChecks = Cache.Get<List<InfrastructureHealthCheck>>(cacheKey);
+        if (_infrastructureHealthChecks is null)
+            return false;
         var project = _projectDbContext.Projects.AsNoTracking().Include(p => p.Resources).Where(p => p.Project_Acronym_CD == WorkspaceAcronym);
 
         var res = _infrastructureHealthChecks
@@ -234,7 +238,7 @@
             .ToList();
 
         _statusList.Clear();
-        foreach (var output in res)
+        foreach (var output in res.OrderBy(r => r.ResourceType))
         {
             _statusList.Add(output);
         }

@@ -83,7 +83,7 @@
                                 <MudText Typo="@Typo.body1" Class="py-3">@Localizer["Please provide additional information that we can use to investigate this issue."]*</MudText>
                             }
                             <MudTextField T="string" @bind-Value="@_ticketDescription" Required
-                                          RequiredError="@Localizer["Please provide a description."]" Variant="Variant.Outlined"
+                                          RequiredError="@Localizer["Please provide a description."]"
                                           Lines="5" Class="no-margin-textarea" @ref="_descriptionFieldRef" />
 
                             <MudText Typo="@Typo.body1" Class="py-3">@Localizer["Please indicate which workspaces you have this issue in. (Please select all that apply)"]</MudText>

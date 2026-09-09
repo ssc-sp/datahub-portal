@@ -1,21 +1,27 @@
 from azure.identity import ClientSecretCredential
 from azure.mgmt.authorization import AuthorizationManagementClient
 from azure.mgmt.authorization.models import RoleAssignmentCreateParameters
+import logging
 import os
 import uuid
 import lib.constants as constants
+
+logger = logging.getLogger(__name__)
 
 CONTRIBUTOR="ba92f5b4-2d11-453d-a403-e96b0029c9fe"
 READER="acdd72a7-3385-48ef-bd42-f606fba81ae7"
 
 def _role_definition_guid(role_definition_id):
+    """Return the GUID portion of a role definition resource identifier."""
     return role_definition_id.split("/")[-1].lower()
 
 def _is_managed_blob_role(role_definition_id):
+    """Return whether the supplied role definition is one of the managed blob roles."""
     role_id = _role_definition_guid(role_definition_id)
     return role_id == READER or role_id == CONTRIBUTOR
 
-def assign_blob_reader_role(auth_client, subscription_id, scope, user_object_id, read_only):
+def assign_blob_role(auth_client, subscription_id, scope, user_object_id, read_only):
+    """Assign the appropriate blob reader/contributor role to a user for the supplied scope."""
     if (read_only):
         roleId = READER
     else:
@@ -35,28 +41,28 @@ def assign_blob_reader_role(auth_client, subscription_id, scope, user_object_id,
     )
 
 def remove_existing_role(client:AuthorizationManagementClient, scope, user_object_id):
+    """Remove any managed blob role assignments for the specified user at the given scope."""
     role_assignments = client.role_assignments.list_for_scope(scope)
     for role in role_assignments:
         if role.principal_id == user_object_id and _is_managed_blob_role(role.role_definition_id):
             client.role_assignments.delete_at_scope(scope, role.name)
 
 def get_storage_reference(environment_name, definition_json):
+    """Build the resource group and storage account names for the workspace environment."""
     rg_name = f"{constants.RESOURCE_PREFIX}_proj_{definition_json['Workspace']['Acronym']}_{environment_name}_rg"
     sg_name = f"{constants.RESOURCE_PREFIX}proj{definition_json['Workspace']['Acronym']}{environment_name}"
     return rg_name,sg_name
 
 def get_scope(subscription_id, resource_group_name, storage_account_name):
-    return "/subscriptions/{subscriptionId}/resourceGroups/{resourceGroupName}/providers/Microsoft.Storage/storageAccounts/{storageAccountName}".format(subscriptionId=subscription_id, resourceGroupName=resource_group_name, storageAccountName=storage_account_name)
+    """Build the Azure resource scope for a storage account."""
+    return f"/subscriptions/{subscription_id}/resourceGroups/{resource_group_name}/providers/Microsoft.Storage/storageAccounts/{storage_account_name}"
 
 def get_blob_container_scope(subscription_id, resource_group_name, storage_account_name, container_name):
-    return "/subscriptions/{subscriptionId}/resourceGroups/{resourceGroupName}/providers/Microsoft.Storage/storageAccounts/{storageAccountName}/blobServices/default/containers/{containerName}".format(
-        subscriptionId=subscription_id,
-        resourceGroupName=resource_group_name,
-        storageAccountName=storage_account_name,
-        containerName=container_name
-    )
+    """Build the Azure resource scope for a blob container."""
+    return f"/subscriptions/{subscription_id}/resourceGroups/{resource_group_name}/providers/Microsoft.Storage/storageAccounts/{storage_account_name}/blobServices/default/containers/{container_name}"
 
 def get_blob_container_names(definition_json):
+    """Extract blob container names from the workspace definition payload."""
     names = set()
     templates = definition_json.get('Templates') or []
     for template in templates:
@@ -75,6 +81,7 @@ def get_blob_container_names(definition_json):
     return sorted(names)
 
 def _collect_container_names(source, names, include_name_field=False):
+    """Recursively collect container names from nested definition data structures."""
     if source is None:
         return
     if isinstance(source, str):
@@ -108,6 +115,7 @@ def _collect_container_names(source, names, include_name_field=False):
                 names.add(value)
 
 def get_blob_container_scopes(subscription_id, resource_group_name, storage_account_name, blob_containers):
+    """Build the Azure scopes for each blob container to synchronize."""
     if not blob_containers:
         raise ValueError("No blob containers found in workspace definition for storage role synchronization")
 
@@ -117,11 +125,12 @@ def get_blob_container_scopes(subscription_id, resource_group_name, storage_acco
     ]
 
 def check_blob_reader_role(client:AuthorizationManagementClient, scope, user_object_id):
-     role_assignments = client.role_assignments.list_for_scope(scope)
-     for role in role_assignments:
-          if role.principal_id == user_object_id:
-             return _role_definition_guid(role.role_definition_id) == READER
-     return None
+    """Return whether the user has the managed blob reader role for the supplied scope."""
+    role_assignments = client.role_assignments.list_for_scope(scope)
+    for role in role_assignments:
+        if role.principal_id == user_object_id:
+            return _role_definition_guid(role.role_definition_id) == READER
+    return None
 
 def get_authorization_client(subscription_id, tenant_id) -> AuthorizationManagementClient:
     """
@@ -149,41 +158,42 @@ def get_authorization_client(subscription_id, tenant_id) -> AuthorizationManagem
     return auth_client    
 
 def synchronize_access_policies(client:AuthorizationManagementClient, subscription_id, environment_name, definition_json, blob_containers):
+    """Synchronize blob access policies for workspace users based on their role assignments."""
     (rg_name,sg_account) = get_storage_reference(environment_name, definition_json)
     scopes = get_blob_container_scopes(subscription_id, rg_name, sg_account, blob_containers)
     # iterate through definition_json['Workspace']['Acronym']
     for user in (user for user in definition_json['Workspace']['Users'] if user['Role'] != 'Removed'):
         user_id = user['ObjectId']
-        print(f"processing user {user_id} access policies")
+        logger.info("Processing user %s access policies", user_id)
         try:
             for scope in scopes:
                 reader_role = check_blob_reader_role(client, scope, user_id)
                 if user['Role'] == 'Guest':
                     if reader_role is None:
-                        print(f"assigning user {user_id} to access policies - read-only")
-                        assign_blob_reader_role(client, subscription_id, scope, user_id, True)
+                        logger.info("Assigning user %s to access policies - read-only", user_id)
+                        assign_blob_role(client, subscription_id, scope, user_id, True)
                     elif not reader_role:
-                        print(f"assigning user {user_id} to access policies - read-only")
+                        logger.info("Assigning user %s to access policies - read-only", user_id)
                         remove_existing_role(client, scope, user_id)
-                        assign_blob_reader_role(client, subscription_id, scope, user_id, True)
+                        assign_blob_role(client, subscription_id, scope, user_id, True)
                     else:
-                        print(f"user {user_id} already has read-only access policies")
+                        logger.info("User %s already has read-only access policies", user_id)
                 else:
                     if reader_role is None:
-                        print(f"assigning user {user_id} to access policies - read-write")
-                        assign_blob_reader_role(client, subscription_id, scope, user_id, False)
+                        logger.info("Assigning user %s to access policies - read-write", user_id)
+                        assign_blob_role(client, subscription_id, scope, user_id, False)
                     elif reader_role:
-                        print(f"assigning user {user_id} to access policies - read-write")
+                        logger.info("Assigning user %s to access policies - read-write", user_id)
                         remove_existing_role(client, scope, user_id)
-                        assign_blob_reader_role(client, subscription_id, scope, user_id, False)
+                        assign_blob_role(client, subscription_id, scope, user_id, False)
                     else:
-                        print(f"user {user_id} already has read-write access policies")
-        except Exception as e:
-            print(f"error processing user {user_id} access policies: {e}")
+                        logger.info("User %s already has read-write access policies", user_id)
+        except Exception:
+            logger.exception("Error processing user %s access policies", user_id)
     for user in (user for user in definition_json['Workspace']['Users'] if user['Role'] == 'Removed'):
         try:
-            print(f"removing user {user['ObjectId']} from access policies")
+            logger.info("Removing user %s from access policies", user['ObjectId'])
             for scope in scopes:
                 remove_existing_role(client, scope, user['ObjectId'])
-        except Exception as e:
-            print(f"error processing user {user['ObjectId']} access policies: {e}")
+        except Exception:
+            logger.exception("Error processing user %s access policies", user['ObjectId'])
