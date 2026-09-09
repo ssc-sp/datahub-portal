@@ -82,7 +82,7 @@
                                         Href="@GetSectionViewUrl(Localizer[PageRoutes.ToolPrefix], Localizer[sectionView])"
                                         Match="NavLinkMatch.All">
                                         <MudStack Row AlignItems="AlignItems.Center">
-                                            <DHIcon Icon="@GetIcon(sectionView)" Size="Size.Small" Color="Color.Dark"
+                                            <DHIcon Icon="@GetIcon(sectionView)" Size="Size.Small" Color="Color.Default"
                                                     Class="mr-2 ml-n2" Style="font-size:1rem;"/>
                                             <MudText Style="@_workspaceLinkStyle">
                                                 @GetLabel(sectionView)
@@ -94,7 +94,7 @@
                             <li>
                                 <MudNavLink Href="@PageRoutes.CreateWorkspace" Match="NavLinkMatch.All">
                                     <MudStack Row AlignItems="AlignItems.Center">
-                                        <DHIcon Icon="@SidebarIcons.CreateNew" Size="Size.Small" Color="Color.Dark" Class="mr-2 ml-n2" Style="font-size:1rem;" />
+                                        <DHIcon Icon="@SidebarIcons.CreateNew" Size="Size.Small" Color="Color.Default" Class="mr-2 ml-n2" Style="font-size:1rem;" />
                                         <MudText Style="@_workspaceLinkStyle">
                                             @Localizer["Create Workspace"]
                                         </MudText>

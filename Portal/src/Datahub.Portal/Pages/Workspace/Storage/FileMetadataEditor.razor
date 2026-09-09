@@ -1,0 +1,209 @@
+@using Azure.Storage.Blobs.Models;
+@using Datahub.Core.Storage
+@using MudBlazor
+@inject ILogger<FileMetadataEditor> Logger
+@inject ISnackbar snackbar
+
+<div>
+    <div style="display:flex; align-items:center; justify-content:space-between; gap: 0.5rem;">
+        <MudText Typo="Typo.h4" Class="mb-0">@Localizer["Storage Metadata"]</MudText>
+
+        @if (!EditMode)
+        {
+            <DatahubAuthView AuthLevel="DatahubAuthView.AuthLevels.WorkspaceCollaborator" ProjectAcronym="@ProjectAcronym">
+                <DHButton Variant="Variant.Outlined"
+                        StartIcon="@Icons.Material.Filled.Edit"
+                        OnClick="EditModeToggle"
+                        Disabled="@BlockEditButton"
+                        Title=@Localizer["Edit Metadata"]>
+                    @Localizer["Edit Metadata"]
+                </DHButton>
+            </DatahubAuthView>
+        }
+    </div>
+
+    @if (!string.IsNullOrEmpty(_error))
+    {
+        <DHAlert Severity="Severity.Error">
+            <MudText Typo="Typo.h5">@Localizer["Error"]</MudText>
+            <MudText Class="my-1">@_error</MudText>
+        </DHAlert>
+    }
+
+    @if (CountCustomMetadataFields() == 0)
+    {
+        <MudText Typo="Typo.body2">@Localizer["No custom metadata fields"]</MudText>
+    }
+
+    @if (EditMode)
+    {
+        <div class="metadata-entries">
+            @for (var i = 0; i < _metadata.Count; i++)
+            {
+                var entry = _metadata[i];
+                @if (_fsdhMandatoryKeys.Contains(entry.Key))
+                {
+                    continue;
+                }
+                <div class="d-flex align-items-center">
+                    <MudTextField @bind-Value="entry.Key" Placeholder="Key" Class="me-2" Immediate="false" />
+                    <MudTextField @bind-Value="entry.Value" Placeholder="Value" Class="me-2" Immediate="false" />
+                    <MudIconButton Icon="@Icons.Material.Filled.Delete" Color="Color.Error" OnClick="(() => RemoveEntry(entry))" />
+                </div>
+            }
+        </div>
+
+        <DHButton Class="mr-2" Variant="Variant.Text" StartIcon="@Icons.Material.Filled.Add" OnClick="AddEntry">@Localizer["Add key"]</DHButton>
+        <DHButton Variant="Variant.Filled" Color="Color.Primary" OnClick="Save" FullWidth="false">@Localizer["Save"]</DHButton>
+        <DHButton Variant="Variant.Outlined" Color="Color.Primary" OnClick="EditModeToggle" FullWidth="false">@Localizer["Cancel"]</DHButton>
+    }
+    else
+    {
+        <div class="properties">
+            @foreach (var entry in _metadata)
+            {
+                @if (_fsdhMandatoryKeys.Contains(entry.Key))
+                {
+                    continue;
+                }
+                <MudText Class="label">@entry.Key</MudText>
+                <MudText Class="text">@entry.Value</MudText>
+            }
+        </div>
+    }
+</div>
+
+@code {
+    [Parameter] public bool EditMode { get; set; } = false;
+    [Parameter] public string ContainerName { get; set; } = "datahub";
+    [Parameter] public string FileName { get; set; } = string.Empty;
+    [Parameter] public string ProjectAcronym { get; set; } = "";
+    [Parameter] public ICloudStorageManager StorageManager { get; set; } = null!;
+
+    private List<string> _fsdhMandatoryKeys = new List<string>
+    {
+        "createdby", "fileid", "uploadBatchId"
+    };
+    private List<MetadataEntry> _metadata { get; set; } = new List<MetadataEntry>();
+    private string _error = "";
+
+    private bool BlockEditButton = false;
+
+    private class MetadataEntry
+    {
+        public string Key { get; set; } = string.Empty;
+        public string Value { get; set; } = string.Empty;
+    }
+
+    protected override async Task OnInitializedAsync()
+    {
+        await base.OnInitializedAsync();
+        if (StorageManager is not null)
+        {
+            try
+            {
+                var dict = await StorageManager.GetFileMetadataAsync(ContainerName, FileName);
+                _metadata = dict.Select(kv => new MetadataEntry { Key = kv.Key, Value = kv.Value }).ToList();
+            }
+            catch (NotImplementedException)
+            {
+                _error = Localizer["This storage container does not support metadata operations."];
+                BlockEditButton = true;
+            }
+        }
+
+        try
+        {
+            BlockEditButton = await StorageHeading.CheckIfAnyFilesInTiers(
+                new List<string> { FileName },
+                new List<string> { AccessTier.Archive.ToString() },
+                StorageManager,
+                ContainerName
+            );
+        }
+        catch (NotImplementedException)
+        {
+            // If the storage manager does not support tier checking, we can ignore this error.
+            BlockEditButton = false;
+        }
+    }
+
+    private int CountCustomMetadataFields()
+    {
+        int counter = 0;
+        foreach (var entry in _metadata)
+        {
+            if (_fsdhMandatoryKeys.Contains(entry.Key))
+            {
+                continue;
+            }
+            counter += 1;
+        }
+        return counter;
+    }
+
+    private void AddEntry()
+    {
+        _metadata.Add(new MetadataEntry());
+    }
+
+    private void RemoveEntry(MetadataEntry entry)
+    {
+        if (entry is not null)
+            _metadata.Remove(entry);
+    }
+
+    private async Task EditModeToggle()
+    {
+        if (BlockEditButton)
+        {
+            EditMode = false;
+            return;
+        }
+
+        EditMode = !EditMode;
+        // If cancelling edits, reload metadata to discard changes
+        if (!EditMode && StorageManager is not null)
+        {
+            var dict = await StorageManager.GetFileMetadataAsync(ContainerName, FileName);
+            _metadata = dict.Select(kv => new MetadataEntry { Key = kv.Key, Value = kv.Value }).ToList();
+            StateHasChanged();
+        }
+    }
+
+    private async Task Save()
+    {
+        _error = null;
+
+        // Validate keys
+        var dict = new Dictionary<string, string>(StringComparer.OrdinalIgnoreCase);
+        foreach (var entry in _metadata.Where(e => !string.IsNullOrWhiteSpace(e.Key)))
+        {
+            if (dict.ContainsKey(entry.Key))
+            {
+                _error = Localizer["Duplicate keys are not allowed."];
+                return;
+            }
+            dict[entry.Key] = entry.Value ?? string.Empty;
+        }
+
+        try
+        {
+            if (StorageManager is null)
+            {
+                _error = Localizer["Storage manager unavailable."];
+                return;
+            }
+
+            await StorageManager.SetFileMetadataAsync(ContainerName, FileName, dict);
+
+            EditMode = false;
+            snackbar.Add(Localizer["Successfully updated file metadata"], Severity.Success);
+        }
+        catch (Exception ex)
+        {
+            Logger.LogError(ex, "Failed to save metadata");
+            _error = ex.Message;
+        }
+    }
+}

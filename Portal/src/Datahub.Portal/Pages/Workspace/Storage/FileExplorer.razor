@@ -44,7 +44,8 @@
                             StorageManager="@StorageManager"
                             ContainerName="@ContainerName"
                             SelectedStorageTier="@_selectedStorageTier"
-                            OnStorageTierChanged="HandleStorageTierChanged" />
+                            OnStorageTierChanged="HandleStorageTierChanged"
+                            IsStorageTierDisabled="@_isStorageTierDisabled"/>
 
             <div class="file-list">
                 <div class="file-list-header">
@@ -112,7 +113,7 @@
                                 <FileItem Name="@GetFileName(file.name)"
                                           Modified="@file.Modified"
                                           Size="@file.filesize"
-                                          @onclick="@(() => _selectedItems = new HashSet<string> { file.name })"
+                                          @onclick="@(() => HandleClickingFileItem(file.name))"
                                           OnSelectionClick="() => HandleFileSelectionClick(file.name)"
                                           Highlighted="_selectedItems.Contains(file.name)"
                                           StorageTier="@GetStorageTierFor(file.name)">
@@ -138,9 +139,10 @@
                             <FileProperties @key=@_selectedItem
                                             ProjectId=@ProjectId
                                             File=@file
-                                            Readonly="!OwnsFile(file)"
                                             OnMetadataChanged=@HandleMetadataChanged
-                                            StorageTier="@(file is null ? _selectedStorageTier : GetStorageTierFor(file.name))" />
+                                            StorageTier="@(file is null ? _selectedStorageTier : GetStorageTierFor(file.name))"
+                                            StorageManager=@StorageManager
+                                            ContainerName="@ContainerName"/>
                         }
                     </div>
                 </div>
@@ -185,6 +187,8 @@ else
     private ICloudStorageManager? StorageManager => Container?.StorageManager;
 
     private string _userId = null!;
+
+    private bool _isStorageTierDisabled = false;
 
     private bool _loading = true;
     private bool _failed = false;
@@ -240,6 +244,11 @@ else
                 var tier = await StorageManager.GetFileStorageTierAsync(ContainerName, f.name);
                 _fileTiers[f.name] = tier ?? "Hot";
             }
+            catch (NotImplementedException)
+            {
+                _fileTiers[f.name] = "";
+                _isStorageTierDisabled = true;
+            }
             catch
             {
                 _fileTiers[f.name] = "Hot";
@@ -252,7 +261,6 @@ else
 
     private string GetStorageTierFor(string filename)
     {
-        if (string.IsNullOrEmpty(filename)) return "Hot";
         return _fileTiers.TryGetValue(filename, out var t) ? t : "Hot";
     }
 

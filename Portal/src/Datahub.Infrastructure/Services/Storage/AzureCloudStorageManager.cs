@@ -590,4 +590,20 @@ public class AzureCloudStorageManager : ICloudStorageManager
             AccessTier.Archive.ToString()
         };
     }
+
+    public async Task<IDictionary<string, string>> GetFileMetadataAsync(string container, string file)
+    {
+        var blobClient = (await GetBlobContainerClient(container)).GetBlobClient(file);
+
+        BlobProperties metadata = await blobClient.GetPropertiesAsync();
+
+        return metadata.Metadata;
+    }
+
+    public async Task SetFileMetadataAsync(string container, string file, Dictionary<string, string> metadata)
+    {
+        var blobClient = (await GetBlobContainerClient(container)).GetBlobClient(file);
+
+        await blobClient.SetMetadataAsync(metadata);
+    }
 }
