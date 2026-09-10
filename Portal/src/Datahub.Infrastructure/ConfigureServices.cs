@@ -135,6 +135,7 @@ public static class ConfigureServices
 
         return services;
     }
+    
 
     public static IServiceCollection AddFunctionsInfrastructureServices(this IServiceCollection services)
     {
