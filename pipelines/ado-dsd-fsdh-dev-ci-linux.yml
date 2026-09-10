@@ -39,7 +39,6 @@ jobs:
     steps:
       - checkout: self
         clean: true
-        lfs: true
         fetchTags: false
         persistCredentials: true
 
