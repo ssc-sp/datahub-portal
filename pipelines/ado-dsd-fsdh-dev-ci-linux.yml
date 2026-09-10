@@ -34,7 +34,7 @@ jobs:
     displayName: Build and Test
 
     pool:
-      vmImage: GcDc-CTO-ENT-FSDH-Core-EW-ag
+      name: GcDc-CTO-ENT-FSDH-Core-EW-ag
 
     steps:
       - checkout: self
