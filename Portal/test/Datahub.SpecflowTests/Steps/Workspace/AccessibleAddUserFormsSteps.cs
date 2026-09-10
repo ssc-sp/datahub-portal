@@ -152,6 +152,26 @@ public class AccessibleAddUserFormsSteps : BunitTestSteps, IDisposable
         });
     }
 
+    [Then("the pending Entra user is displayed as an accessible list item")]
+    public void ThenThePendingEntraUserIsDisplayedAsAnAccessibleListItem()
+    {
+        ArgumentNullException.ThrowIfNull(_entraForm);
+        _entraForm.FindAll("table").Should().BeEmpty();
+
+        var heading = _entraForm.Find("#pending-users-heading");
+        heading.TagName.Should().Be("H3");
+        heading.TextContent.Trim().Should().Be("Users to be added:");
+
+        var list = _entraForm.Find("ul.pending-user-list");
+        list.GetAttribute("aria-labelledby").Should().Be("pending-users-heading");
+        var listItem = list.Children.Should().ContainSingle().Which;
+        listItem.TagName.Should().Be("LI");
+        var legend = listItem.QuerySelector("fieldset legend");
+        legend.Should().NotBeNull();
+        legend!.TextContent.Trim().Should().Be("Test User");
+        listItem.QuerySelector("gcds-select").Should().NotBeNull();
+    }
+
     [When("the Entra user's role is changed to Collaborator")]
     public async Task WhenTheEntraUsersRoleIsChangedToCollaborator()
     {

@@ -13,7 +13,8 @@ The forms used to add workspace users should be part of the page and usable with
     Scenario: An Entra user's selected role is submitted
         Given the Entra add-user form is rendered
         When an Entra user is selected
-        And the Entra user's role is changed to Collaborator
+        Then the pending Entra user is displayed as an accessible list item
+        When the Entra user's role is changed to Collaborator
         And the Entra add-user form is submitted
         Then the Entra user is submitted as a Collaborator
 
