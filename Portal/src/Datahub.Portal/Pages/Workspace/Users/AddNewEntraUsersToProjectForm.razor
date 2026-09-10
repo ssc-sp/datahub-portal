@@ -6,6 +6,7 @@
 @using Datahub.Core.Model.Achievements
 @using Datahub.Core.Model.Projects
 @using Datahub.Core.Model.Users
+@using GcdsWrapper.Blazor
 @inject IMSGraphService _msGraphService
 @inject IUserEnrollmentService _userEnrollmentService
 @inject IUserInformationService _userInformationService
@@ -52,18 +53,19 @@
             @foreach (var user in _usersToAdd)
             {
                 <tr>
-                    <td>@GetListText(user)</td>
+                    <td>@GetListText(user.Command)</td>
                     <td>
-                        <MudSelect T="int" Label="@Localizer["Role"]" @bind-Value="user.RoleId" Class="role-dropdown">
+                        <GcdsSelect Id="@user.RoleSelectId" Name="@user.RoleSelectId" Label="@Localizer["Role"]"
+                                    @bind-Value="user.RoleId">
                             @foreach (var role in _projectRoles.Where(r => r.Id is not ((int)Project_Role.RoleNames.Removed or (int)Project_Role.RoleNames.WorkspaceLead or (int)Project_Role.RoleNames.DisabledUser)))
                             {
-                                <MudSelectItem T="int" Value="@role.Id">@Localizer[role.Name]</MudSelectItem>
+                                <option value="@role.Id">@Localizer[role.Name]</option>
                             }
-                        </MudSelect>
+                        </GcdsSelect>
                     </td>
                     <td>
-                        <MudIconButton Icon="@RemoveUserIcon" Color="Color.Primary" OnClick="() => RemoveUser(user)"
-                                       aria-label="@Localizer["Remove {0}", GetListText(user)]" />
+                        <MudIconButton Icon="@RemoveUserIcon" Color="Color.Primary" OnClick="() => RemoveUser(user.Command)"
+                                       aria-label="@Localizer["Remove {0}", GetListText(user.Command)]" />
                     </td>
                 </tr>
             }
@@ -82,11 +84,6 @@
 </section>
 
 <style>
-    .role-dropdown {
-        min-width: 150px;
-        max-width: 200px;
-    }
-
     .user-table {
         width: 100%;
         border-collapse: collapse;
@@ -128,7 +125,8 @@
     [Parameter]
     public EventCallback OnCancelled { get; set; }
 
-    private readonly List<ProjectUserAddEntraUserCommand> _usersToAdd = new();
+    private readonly List<PendingEntraUser> _usersToAdd = new();
+    private int _nextRoleSelectId;
     private readonly EmailAddressAttribute _emailValidator = new();
     private ElementReference _heading;
     private string _userSearch = string.Empty;
@@ -173,7 +171,7 @@
         _searchResultUsers = existingUsersList
             .Select(u => u.Value)
             .Where(u => CurrentProjectUsers.All(x => x.PortalUser?.EntraUser?.GraphGuid != u.Id)
-                        && _usersToAdd.All(user => user.GraphGuid != u.Id))
+                        && _usersToAdd.All(user => user.Command.GraphGuid != u.Id))
             .ToList();
 
         var matchIndex = _searchResultUsers.FindIndex(u => u.Mail.Equals(search, StringComparison.InvariantCultureIgnoreCase));
@@ -216,7 +214,7 @@
         }
 
         if (CurrentProjectUsers.Any(projectUser => projectUser.PortalUser.Email.Equals(user.Mail, StringComparison.OrdinalIgnoreCase))
-            || _usersToAdd.Any(pendingUser => pendingUser.Email.Equals(user.Mail, StringComparison.OrdinalIgnoreCase)))
+            || _usersToAdd.Any(pendingUser => pendingUser.Command.Email.Equals(user.Mail, StringComparison.OrdinalIgnoreCase)))
         {
             ShowError(UserExistsError);
             return;
@@ -243,7 +241,7 @@
             addUserCommand.PortalUser = await _userInformationService.GetEntraUserAsync(user.Id);
         }
 
-        _usersToAdd.Add(addUserCommand);
+        _usersToAdd.Add(new PendingEntraUser(addUserCommand, $"role-{_nextRoleSelectId++}"));
         await _autocomplete.ClearAsync();
     }
 
@@ -261,13 +259,33 @@
 
     private void RemoveUser(ProjectUserAddEntraUserCommand user)
     {
-        _usersToAdd.RemoveAll(u => u.Email.Equals(user.Email, StringComparison.OrdinalIgnoreCase));
+        _usersToAdd.RemoveAll(u => u.Command.Email.Equals(user.Email, StringComparison.OrdinalIgnoreCase));
     }
 
     private static string GetListText(ProjectUserAddEntraUserCommand command)
         => command.GraphGuid == ProjectUserAddEntraUserCommand.NEW_USER_GUID ? command.Email : command.DisplayName;
 
-    private Task CompleteAsync() => OnCompleted.InvokeAsync(_usersToAdd.ToList());
+    private Task CompleteAsync() => OnCompleted.InvokeAsync(_usersToAdd.Select(user => user.Command).ToList());
 
     private Task CancelAsync() => OnCancelled.InvokeAsync();
+
+    private sealed class PendingEntraUser(ProjectUserAddEntraUserCommand command, string roleSelectId)
+    {
+        public ProjectUserAddEntraUserCommand Command { get; } = command;
+
+        public string RoleSelectId { get; } = roleSelectId;
+
+        public string RoleId
+        {
+            get => Command.RoleId.ToString(System.Globalization.CultureInfo.InvariantCulture);
+            set
+            {
+                if (int.TryParse(value, System.Globalization.NumberStyles.Integer,
+                    System.Globalization.CultureInfo.InvariantCulture, out var roleId))
+                {
+                    Command.RoleId = roleId;
+                }
+            }
+        }
+    }
 }

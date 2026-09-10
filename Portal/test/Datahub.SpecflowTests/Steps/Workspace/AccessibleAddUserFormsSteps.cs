@@ -1,12 +1,16 @@
 using AngleSharp.Dom;
 using Bunit;
+using Datahub.Application.Commands;
 using Datahub.Application.Services;
 using Datahub.Application.Services.UserManagement;
+using Datahub.Core.Data;
 using Datahub.Core.Model.Context;
+using Datahub.Core.Model.Projects;
 using Datahub.Core.Model.Users;
 using Datahub.Portal.Pages.Workspace.Users;
 using Datahub.SpecflowTests.Utils;
 using FluentAssertions;
+using GcdsWrapper.Blazor;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Localization;
@@ -14,6 +18,8 @@ using MudBlazor;
 using MudBlazor.Services;
 using NSubstitute;
 using Reqnroll;
+using System.Globalization;
+using System.Net.Mail;
 
 namespace Datahub.SpecflowTests.Steps.Workspace;
 
@@ -22,19 +28,30 @@ public class AccessibleAddUserFormsSteps : BunitTestSteps, IDisposable
 {
     private IRenderedComponent<AddNewEntraUsersToProjectForm>? _entraForm;
     private IRenderedComponent<AddNewExternalUsersToProjectForm>? _externalForm;
+    private List<ProjectUserAddEntraUserCommand>? _completedEntraUsers;
     private bool _cancelled;
 
     [Given("the Entra add-user form is rendered")]
     public void GivenTheEntraAddUserFormIsRendered()
     {
         ConfigureCommonServices();
-        Services.AddSingleton(Substitute.For<IMSGraphService>());
+        var graphUser = new GraphUser
+        {
+            Id = "graph-user-id",
+            DisplayName = "Test User",
+            MailAddress = new MailAddress("test.user@example.gc.ca")
+        };
+        var graphService = Substitute.For<IMSGraphService>();
+        graphService.GetUsersListAsync(Arg.Any<string>(), Arg.Any<CancellationToken>())
+            .Returns(new Dictionary<string, GraphUser> { [graphUser.Id] = graphUser });
+        Services.AddSingleton(graphService);
         Services.AddSingleton(Substitute.For<IUserEnrollmentService>());
         Services.AddSingleton(Substitute.For<IUserInformationService>());
 
         _entraForm = Render<AddNewEntraUsersToProjectForm>(parameters => parameters
             .Add(form => form.ProjectAcronym, "TEST")
             .Add(form => form.CurrentProjectUsers, [])
+            .Add(form => form.OnCompleted, users => _completedEntraUsers = users)
             .Add(form => form.OnCancelled, () => _cancelled = true));
     }
 
@@ -117,6 +134,50 @@ public class AccessibleAddUserFormsSteps : BunitTestSteps, IDisposable
     public void ThenTheAddUserFormReportsThatItWasCancelled()
     {
         _cancelled.Should().BeTrue();
+    }
+
+    [When("an Entra user is selected")]
+    public async Task WhenAnEntraUserIsSelected()
+    {
+        ArgumentNullException.ThrowIfNull(_entraForm);
+        var autocomplete = _entraForm.FindComponent<MudAutocomplete<string>>();
+        const string email = "test.user@example.gc.ca";
+
+        await _entraForm.InvokeAsync(async () =>
+        {
+            var matches = await autocomplete.Instance.SearchFunc!(email, CancellationToken.None);
+            matches.Should().NotBeNull();
+            matches!.Should().Contain(email);
+            await autocomplete.Instance.ValueChanged.InvokeAsync(email);
+        });
+    }
+
+    [When("the Entra user's role is changed to Collaborator")]
+    public async Task WhenTheEntraUsersRoleIsChangedToCollaborator()
+    {
+        ArgumentNullException.ThrowIfNull(_entraForm);
+        var roleSelect = _entraForm.FindComponent<GcdsSelect>();
+        roleSelect.Instance.ValueExpression.Should().NotBeNull();
+        roleSelect.Instance.ValueExpression!.Body.NodeType.Should().Be(System.Linq.Expressions.ExpressionType.MemberAccess);
+
+        var collaboratorRoleId = ((int)Project_Role.RoleNames.Collaborator).ToString(CultureInfo.InvariantCulture);
+        await roleSelect.InvokeAsync(() => roleSelect.Instance.ValueChanged.InvokeAsync(collaboratorRoleId));
+    }
+
+    [When("the Entra add-user form is submitted")]
+    public void WhenTheEntraAddUserFormIsSubmitted()
+    {
+        ArgumentNullException.ThrowIfNull(_entraForm);
+        _entraForm.FindAll("button")
+            .Single(button => button.TextContent.Contains("Add New Users", StringComparison.Ordinal))
+            .Click();
+    }
+
+    [Then("the Entra user is submitted as a Collaborator")]
+    public void ThenTheEntraUserIsSubmittedAsACollaborator()
+    {
+        _completedEntraUsers.Should().ContainSingle()
+            .Which.RoleId.Should().Be((int)Project_Role.RoleNames.Collaborator);
     }
 
     private IEnumerable<IElement> FindAllInCurrentForm(string selector)
