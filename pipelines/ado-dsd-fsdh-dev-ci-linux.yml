@@ -40,7 +40,7 @@ jobs:
     steps:
       - checkout: self
         clean: true
-        lfs: true
+
         fetchTags: false
       - task: UseDotNet@2
         displayName: Use .NET Core sdk 10.0.x
@@ -98,7 +98,6 @@ jobs:
     steps:
       - checkout: self
         clean: true
-        lfs: true
         fetchTags: false
       - task: UseDotNet@2
         displayName: Use .NET Core sdk 10.0.x
@@ -142,7 +141,6 @@ jobs:
     steps:
       - checkout: self
         clean: true
-        lfs: true
         fetchTags: false
       - task: UseDotNet@2
         displayName: Use .NET Core sdk 10.0.x
@@ -180,7 +178,6 @@ jobs:
     steps:
       - checkout: self
         clean: true
-        lfs: true
         fetchTags: false
       - task: UseDotNet@2
         displayName: Use .NET Core sdk 10.0.x
@@ -217,7 +214,6 @@ jobs:
     steps:
       - checkout: self
         clean: true
-        lfs: true
         fetchTags: false
       - task: UseDotNet@2
         displayName: Use .NET Core sdk 10.0.x
@@ -254,7 +250,6 @@ jobs:
     steps:
       - checkout: self
         clean: true
-        lfs: true
         fetchTags: false
       - task: UsePythonVersion@0
         displayName: Use Python 3.11
@@ -297,7 +292,6 @@ jobs:
     steps:
       - checkout: self
         clean: true
-        lfs: true
         fetchTags: false
         persistCredentials: True
       - task: PowerShell@2
