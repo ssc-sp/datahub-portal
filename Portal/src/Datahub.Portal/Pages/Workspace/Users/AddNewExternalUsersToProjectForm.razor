@@ -3,6 +3,7 @@
 @using Datahub.Application.Services.UserManagement
 @using Datahub.Core.Model.Projects
 @using Datahub.Core.Model.Users
+@using GcdsWrapper.Blazor
 @using Microsoft.EntityFrameworkCore
 @inject IUserInformationService _userInformationService
 @inject IExternalUserInvitationService _externalUserInvitationService
@@ -34,7 +35,7 @@
                               RequiredError="@Localizer["Email is required"]"
                               Immediate="true"
                               Variant="Variant.Outlined" />
-                @if (!string.IsNullOrEmpty(_emailValidationMessage))
+                @if (!String.IsNullOrEmpty(_emailValidationMessage))
                 {
                     <MudAlert Severity="@_emailValidationSeverity" Dense="true" Class="mt-2" role="status">
                         @_emailValidationMessage
@@ -78,16 +79,17 @@
                               Disabled="@(_existingExternalPortalUser is not null)" />
                 @if (_externalRoles is not null)
                 {
-                    <MudSelect @bind-Value="_command.Role"
-                               Label="@Localizer["Select user role"]"
-                               Placeholder="@Localizer["Please Select"]"
-                               Required="true"
-                               RequiredError="@Localizer["Role is required"]">
+                    <GcdsSelect Id="external-user-role"
+                                Name="external-user-role"
+                                Label="@Localizer["Select user role"]"
+                                DefaultValue="@Localizer["Please Select"]"
+                                Required
+                                @bind-Value="SelectedRoleId">
                         @foreach (var role in _externalRoles)
                         {
-                            <MudSelectItem Value="@role">@Localizer[role.Name]</MudSelectItem>
+                            <option value="@role.Id">@Localizer[role.Name]</option>
                         }
-                    </MudSelect>
+                    </GcdsSelect>
                 }
 
                 <MudDatePicker Label="@Localizer["Account Expiry"]"
@@ -146,7 +148,7 @@
                 @if (_page < TotalSteps)
                 {
                     <DHButton HtmlTag="button" ButtonType="ButtonType.Button" Color="Color.Primary" OnClick="NextPageAsync"
-                              Variant="Variant.Filled" Disabled="@(!_successes[_page - 1])">
+                              Variant="Variant.Filled" Disabled="@(!CanContinue)">
                         @Localizer["Next"]
                     </DHButton>
                 }
@@ -198,12 +200,26 @@
     private string? _emailValidationMessage;
     private Severity _emailValidationSeverity = Severity.Warning;
     private PortalUser? _existingExternalPortalUser;
-    private ProjectUserAddExternalUserCommand _command = null!;
+    private ProjectUserAddExternalUserCommand _command = new() { ProjectAcronym = string.Empty };
     private List<Project_Role>? _externalRoles;
     private ElementReference _formHeading;
     private ElementReference _stepHeading;
     private bool _focusStepHeading;
     private bool _isSubmitting;
+
+    private bool CanContinue => _successes[_page - 1] && (_page != 2 || _command.Role is not null);
+
+    private string? SelectedRoleId
+    {
+        get => _command?.Role?.Id.ToString(System.Globalization.CultureInfo.InvariantCulture);
+        set
+        {
+            _command.Role = int.TryParse(value, System.Globalization.NumberStyles.Integer,
+                System.Globalization.CultureInfo.InvariantCulture, out var roleId)
+                ? _externalRoles?.FirstOrDefault(role => role.Id == roleId)!
+                : null!;
+        }
+    }
 
     private string StepHeading => _page switch
     {
@@ -254,7 +270,7 @@
 
     private async Task NextPageAsync()
     {
-        if (_page >= TotalSteps || !_successes[_page - 1])
+        if (_page >= TotalSteps || !CanContinue)
         {
             return;
         }

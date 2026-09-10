@@ -62,6 +62,11 @@ public class AccessibleAddUserFormsSteps : BunitTestSteps, IDisposable
         var options = new DbContextOptionsBuilder<DatahubProjectDBContext>()
             .UseInMemoryDatabase(Guid.NewGuid().ToString())
             .Options;
+        using (var context = new DatahubProjectDBContext(options))
+        {
+            context.Project_Roles.AddRange(Project_Role.GetAll().Where(role => role.IsExternalRole));
+            context.SaveChanges();
+        }
         Services.AddSingleton<IDbContextFactory<DatahubProjectDBContext>>(new SpecFlowDbContextFactory(options));
         Services.AddSingleton(Substitute.For<IUserInformationService>());
         Services.AddSingleton(Substitute.For<IExternalUserInvitationService>());
@@ -199,6 +204,46 @@ public class AccessibleAddUserFormsSteps : BunitTestSteps, IDisposable
         _completedEntraUsers.Should().ContainSingle()
             .Which.RoleId.Should().Be((int)Project_Role.RoleNames.Collaborator);
     }
+
+    [When("a valid external email address is entered")]
+    public async Task WhenAValidExternalEmailAddressIsEntered()
+    {
+        ArgumentNullException.ThrowIfNull(_externalForm);
+        var emailField = _externalForm.FindComponent<MudTextField<string>>();
+        await emailField.InvokeAsync(() => emailField.Instance.ValueChanged.InvokeAsync("external.user@example.com"));
+
+        _externalForm.WaitForAssertion(() =>
+            FindButton(_externalForm, "Next").HasAttribute("disabled").Should().BeFalse());
+    }
+
+    [When("the external add-user form advances to user details")]
+    public void WhenTheExternalAddUserFormAdvancesToUserDetails()
+    {
+        ArgumentNullException.ThrowIfNull(_externalForm);
+        FindButton(_externalForm, "Next").Click();
+        _externalForm.WaitForAssertion(() =>
+            _externalForm.Find("h3").TextContent.Trim().Should().Be("Enter the user details"));
+    }
+
+    [Then("the external role is selected with a GCDS select")]
+    public async Task ThenTheExternalRoleIsSelectedWithAGcdsSelect()
+    {
+        ArgumentNullException.ThrowIfNull(_externalForm);
+        _externalForm.FindComponents<MudSelect<Project_Role>>().Should().BeEmpty();
+
+        var roleSelect = _externalForm.FindComponent<GcdsSelect>();
+        roleSelect.Instance.Id.Should().Be("external-user-role");
+        roleSelect.Instance.ValueExpression.Should().NotBeNull();
+        roleSelect.Instance.ValueExpression!.Body.NodeType.Should().Be(System.Linq.Expressions.ExpressionType.MemberAccess);
+
+        var roleId = ((int)Project_Role.RoleNames.WebApp).ToString(CultureInfo.InvariantCulture);
+        await roleSelect.InvokeAsync(() => roleSelect.Instance.ValueChanged.InvokeAsync(roleId));
+        _externalForm.WaitForAssertion(() =>
+            _externalForm.FindComponent<GcdsSelect>().Instance.Value.Should().Be(roleId));
+    }
+
+    private static IElement FindButton(IRenderedComponent<AddNewExternalUsersToProjectForm> form, string text)
+        => form.FindAll("button").Single(button => button.TextContent.Contains(text, StringComparison.Ordinal));
 
     private IEnumerable<IElement> FindAllInCurrentForm(string selector)
     {

@@ -26,3 +26,9 @@ The forms used to add workspace users should be part of the page and usable with
         And the add-user form actions use button semantics
         When the user cancels the add-user form
         Then the add-user form reports that it was cancelled
+
+    Scenario: The external user role uses the accessible select
+        Given the external add-user form is rendered
+        When a valid external email address is entered
+        And the external add-user form advances to user details
+        Then the external role is selected with a GCDS select
