@@ -112,8 +112,6 @@ public static class ConfigureServices
                 x.UsingInMemory((context, cfg) =>
                 {
                     cfg.ConfigureEndpoints(context);
-                    cfg.ReceiveEndpoint(QueueConstants.InfrastructureHealthCheckQueueName,
-                        endpoint => { endpoint.Consumer<HealthCheckConsumer>(); });
                     cfg.ReceiveEndpoint(QueueConstants.InfrastructureHealthCheckResultsQueueName,
                         endpoint => { endpoint.Consumer<HealthCheckResultConsumer>(); });
                 });
@@ -127,8 +125,8 @@ public static class ConfigureServices
                     cfg.PrefetchCount = 1;
                     cfg.ConfigureEndpoints(context);
                     cfg.ReceiveEndpoint(QueueConstants.VirusScanStatusQueueName, endpoint => { endpoint.Consumer<VirusScanStatusConsumer>(context); });
-                    cfg.ReceiveEndpoint(QueueConstants.InfrastructureHealthCheckQueueName,
-                        endpoint => { endpoint.Consumer<HealthCheckConsumer>(); });
+                    //cfg.ReceiveEndpoint(QueueConstants.InfrastructureHealthCheckQueueName,
+                    //    endpoint => { endpoint.Consumer<HealthCheckConsumer>(); });
                     cfg.ReceiveEndpoint(QueueConstants.InfrastructureHealthCheckResultsQueueName,
                         endpoint => { endpoint.Consumer<HealthCheckResultConsumer>(); });
                 });
