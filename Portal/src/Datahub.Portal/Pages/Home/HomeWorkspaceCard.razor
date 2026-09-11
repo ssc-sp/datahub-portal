@@ -207,7 +207,7 @@
 		UpdateResourceStatusesFromHealthChecks();
 		var users = await ProjectUserManagementService.GetProjectUsersAsync(Workspace?.Project_Acronym_CD);
 
-		NumberOfUsers = users?.Count(x => x.Role?.Id != (int)Project_Role.RoleNames.Removed) ?? 0;
+        NumberOfUsers = users?.Count(x => x.Role?.Id != (int)Project_Role.RoleNames.Removed && x.Role?.Id != (int)Project_Role.RoleNames.DisabledUser) ?? 0;
 	}
 
 	protected override async Task OnInitializedAsync()
