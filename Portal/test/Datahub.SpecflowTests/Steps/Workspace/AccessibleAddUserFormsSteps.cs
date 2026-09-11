@@ -118,21 +118,38 @@ public class AccessibleAddUserFormsSteps : BunitTestSteps, IDisposable
     [Then("the add-user form actions use button semantics")]
     public void ThenTheAddUserFormActionsUseButtonSemantics()
     {
-        var buttons = FindAllInCurrentForm("button");
-        var cancelButton = buttons.Single(button => button.TextContent.Contains("Cancel", StringComparison.Ordinal));
-        cancelButton.GetAttribute("type").Should().Be("button");
+        var buttons = GetButtonsInCurrentForm();
+        var cancelButton = buttons.Single(button => button.Markup.Contains("Cancel", StringComparison.Ordinal));
+        cancelButton.Instance.Type.Should().Be(GcdsButtonType.Button);
 
         var forwardButton = buttons.Single(button =>
-            button.TextContent.Contains(_entraForm is not null ? "Add New Users" : "Next", StringComparison.Ordinal));
-        forwardButton.GetAttribute("type").Should().Be("button");
+            button.Markup.Contains(_entraForm is not null ? "Add New Users" : "Next", StringComparison.Ordinal));
+        forwardButton.Instance.Type.Should().Be(GcdsButtonType.Button);
+    }
+
+    [Then("the form uses GCDS inputs and buttons")]
+    public void ThenTheFormUsesGcdsInputsAndButtons()
+    {
+        if (_entraForm is not null)
+        {
+            _entraForm.FindComponents<MudAutocomplete<string>>().Should().BeEmpty();
+            _entraForm.FindComponents<GcdsInput>().Should().ContainSingle();
+            _entraForm.FindComponents<GcdsButton>().Should().HaveCount(3);
+            return;
+        }
+
+        ArgumentNullException.ThrowIfNull(_externalForm);
+        _externalForm.FindComponents<MudTextField<string>>().Should().BeEmpty();
+        _externalForm.FindComponents<GcdsInput>().Should().ContainSingle();
+        _externalForm.FindComponents<GcdsButton>().Should().HaveCount(2);
     }
 
     [When("the user cancels the add-user form")]
-    public void WhenTheUserCancelsTheAddUserForm()
+    public async Task WhenTheUserCancelsTheAddUserForm()
     {
-        FindAllInCurrentForm("button")
-            .Single(button => button.TextContent.Contains("Cancel", StringComparison.Ordinal))
-            .Click();
+        var button = GetButtonsInCurrentForm()
+            .Single(candidate => candidate.Markup.Contains("Cancel", StringComparison.Ordinal));
+        await button.InvokeAsync(() => button.Instance.OnClick.InvokeAsync(default));
     }
 
     [Then("the add-user form reports that it was cancelled")]
@@ -145,16 +162,13 @@ public class AccessibleAddUserFormsSteps : BunitTestSteps, IDisposable
     public async Task WhenAnEntraUserIsSelected()
     {
         ArgumentNullException.ThrowIfNull(_entraForm);
-        var autocomplete = _entraForm.FindComponent<MudAutocomplete<string>>();
+        var emailInput = _entraForm.FindComponent<GcdsInput>();
         const string email = "test.user@example.gc.ca";
 
-        await _entraForm.InvokeAsync(async () =>
-        {
-            var matches = await autocomplete.Instance.SearchFunc!(email, CancellationToken.None);
-            matches.Should().NotBeNull();
-            matches!.Should().Contain(email);
-            await autocomplete.Instance.ValueChanged.InvokeAsync(email);
-        });
+        await emailInput.InvokeAsync(() => emailInput.Instance.ValueChanged.InvokeAsync(email));
+        var addButton = _entraForm.FindComponents<GcdsButton>()
+            .Single(button => button.Markup.Contains("Add user", StringComparison.Ordinal));
+        await addButton.InvokeAsync(() => addButton.Instance.OnClick.InvokeAsync(default));
     }
 
     [Then("the pending Entra user is displayed as an accessible list item")]
@@ -190,12 +204,12 @@ public class AccessibleAddUserFormsSteps : BunitTestSteps, IDisposable
     }
 
     [When("the Entra add-user form is submitted")]
-    public void WhenTheEntraAddUserFormIsSubmitted()
+    public async Task WhenTheEntraAddUserFormIsSubmitted()
     {
         ArgumentNullException.ThrowIfNull(_entraForm);
-        _entraForm.FindAll("button")
-            .Single(button => button.TextContent.Contains("Add New Users", StringComparison.Ordinal))
-            .Click();
+        var button = _entraForm.FindComponents<GcdsButton>()
+            .Single(candidate => candidate.Markup.Contains("Add New Users", StringComparison.Ordinal));
+        await button.InvokeAsync(() => button.Instance.OnClick.InvokeAsync(default));
     }
 
     [Then("the Entra user is submitted as a Collaborator")]
@@ -209,18 +223,19 @@ public class AccessibleAddUserFormsSteps : BunitTestSteps, IDisposable
     public async Task WhenAValidExternalEmailAddressIsEntered()
     {
         ArgumentNullException.ThrowIfNull(_externalForm);
-        var emailField = _externalForm.FindComponent<MudTextField<string>>();
+        var emailField = _externalForm.FindComponent<GcdsInput>();
         await emailField.InvokeAsync(() => emailField.Instance.ValueChanged.InvokeAsync("external.user@example.com"));
 
         _externalForm.WaitForAssertion(() =>
-            FindButton(_externalForm, "Next").HasAttribute("disabled").Should().BeFalse());
+            FindButton(_externalForm, "Next").Instance.Disabled.Should().BeFalse());
     }
 
     [When("the external add-user form advances to user details")]
-    public void WhenTheExternalAddUserFormAdvancesToUserDetails()
+    public async Task WhenTheExternalAddUserFormAdvancesToUserDetails()
     {
         ArgumentNullException.ThrowIfNull(_externalForm);
-        FindButton(_externalForm, "Next").Click();
+        var button = FindButton(_externalForm, "Next");
+        await button.InvokeAsync(() => button.Instance.OnClick.InvokeAsync(default));
         _externalForm.WaitForAssertion(() =>
             _externalForm.Find("h3").TextContent.Trim().Should().Be("Enter the user details"));
     }
@@ -242,8 +257,25 @@ public class AccessibleAddUserFormsSteps : BunitTestSteps, IDisposable
             _externalForm.FindComponent<GcdsSelect>().Instance.Value.Should().Be(roleId));
     }
 
-    private static IElement FindButton(IRenderedComponent<AddNewExternalUsersToProjectForm> form, string text)
-        => form.FindAll("button").Single(button => button.TextContent.Contains(text, StringComparison.Ordinal));
+    private static IRenderedComponent<GcdsButton> FindButton(
+        IRenderedComponent<AddNewExternalUsersToProjectForm> form, string text)
+        => form.FindComponents<GcdsButton>()
+            .Single(button => button.Markup.Contains(text, StringComparison.Ordinal));
+
+    private IReadOnlyList<IRenderedComponent<GcdsButton>> GetButtonsInCurrentForm()
+    {
+        if (_entraForm is not null)
+        {
+            return _entraForm.FindComponents<GcdsButton>();
+        }
+
+        if (_externalForm is not null)
+        {
+            return _externalForm.FindComponents<GcdsButton>();
+        }
+
+        throw new InvalidOperationException("The add-user form has not been rendered.");
+    }
 
     private IEnumerable<IElement> FindAllInCurrentForm(string selector)
     {

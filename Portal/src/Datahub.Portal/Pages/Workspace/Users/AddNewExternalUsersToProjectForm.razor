@@ -24,59 +24,46 @@
 
         @if (_page == 1)
         {
-            <MudForm Model="@_command" @bind-IsValid="@_successes[0]">
-                <MudTextField Class="form-control"
-                              InputId="external-user-email"
-                              @bind-Value="_command.Email"
-                              @bind-Value:after="ValidateEmailAsync"
-                              For="@(() => _command.Email)"
-                              Label="@Localizer["Email"]"
-                              Required="true"
-                              RequiredError="@Localizer["Email is required"]"
-                              Immediate="true"
-                              Variant="Variant.Outlined" />
-                @if (!String.IsNullOrEmpty(_emailValidationMessage))
-                {
-                    <MudAlert Severity="@_emailValidationSeverity" Dense="true" Class="mt-2" role="status">
-                        @_emailValidationMessage
-                    </MudAlert>
-                }
-            </MudForm>
+            <GcdsInput Id="external-user-email"
+                       Name="external-user-email"
+                       Label="@Localizer["Email"]"
+                       Type="GcdsInputType.Email"
+                       Required
+                       @bind-Value="_command.Email"
+                       @bind-Value:after="ValidateEmailAsync" />
+            @if (!String.IsNullOrEmpty(_emailValidationMessage))
+            {
+                <MudAlert Severity="@_emailValidationSeverity" Dense="true" Class="mt-2" role="status">
+                    @_emailValidationMessage
+                </MudAlert>
+            }
         }
         else if (_page == 2)
         {
-            <MudForm Model="@_command" @bind-IsValid="@_successes[1]">
-                <MudTooltip Text="@Localizer["First Name"]">
-                    <MudTextField Class="form-control"
-                                  @bind-Value="_command.FirstName"
-                                  For="@(() => _command.FirstName)"
-                                  Label="@Localizer["First Name"]"
-                                  Required="true"
-                                  RequiredError="@Localizer["Name is required"]"
-                                  Immediate="true"
-                                  Disabled="@(_existingExternalPortalUser is not null)" />
-                </MudTooltip>
-                <MudTextField Class="form-control"
-                              @bind-Value="_command.LastName"
-                              For="@(() => _command.LastName)"
-                              Label="@Localizer["Last Name"]"
-                              Required="true"
-                              RequiredError="@Localizer["Name is required"]"
-                              Immediate="true"
-                              Disabled="@(_existingExternalPortalUser is not null)" />
-                <MudTextField Class="form-control"
-                              @bind-Value="_command.Email"
-                              For="@(() => _command.Email)"
-                              Label="@Localizer["Email"]"
-                              Disabled="true" />
-                <MudTextField Class="form-control"
-                              @bind-Value="_command.Organization"
-                              For="@(() => _command.Organization)"
-                              Label="@Localizer["Organization"]"
-                              Required="true"
-                              RequiredError="@Localizer["Organization name is required"]"
-                              Immediate="true"
-                              Disabled="@(_existingExternalPortalUser is not null)" />
+            <GcdsInput Id="external-user-first-name"
+                       Name="external-user-first-name"
+                       Label="@Localizer["First Name"]"
+                       Required
+                       Disabled="@(_existingExternalPortalUser is not null)"
+                       @bind-Value="_command.FirstName" />
+            <GcdsInput Id="external-user-last-name"
+                       Name="external-user-last-name"
+                       Label="@Localizer["Last Name"]"
+                       Required
+                       Disabled="@(_existingExternalPortalUser is not null)"
+                       @bind-Value="_command.LastName" />
+            <GcdsInput Id="external-user-details-email"
+                       Name="external-user-details-email"
+                       Label="@Localizer["Email"]"
+                       Type="GcdsInputType.Email"
+                       Disabled
+                       @bind-Value="_command.Email" />
+            <GcdsInput Id="external-user-organization"
+                       Name="external-user-organization"
+                       Label="@Localizer["Organization"]"
+                       Required
+                       Disabled="@(_existingExternalPortalUser is not null)"
+                       @bind-Value="_command.Organization" />
                 @if (_externalRoles is not null)
                 {
                     <GcdsSelect Id="external-user-role"
@@ -98,21 +85,15 @@
                                RequiredError="@Localizer["Account expiry date is required"]"
                                Disabled="@(_existingExternalPortalUser is not null)"
                                ShowToolbar="false" />
-            </MudForm>
         }
         else if (_page == 3)
         {
-            <MudForm Model="@_command" @bind-IsValid="@_successes[2]">
-                <MudTextField Class="form-control"
-                              @bind-Value="_command.CollaborationObjectives"
-                              For="@(() => _command.CollaborationObjectives)"
-                              Label="@Localizer["Collaboration Objectives"]"
-                              Placeholder="@Localizer["e.g. Define external user models and collaborate on compliance"]"
-                              Required="true"
-                              RequiredError="@Localizer["Objectives are required"]"
-                              Immediate="true"
-                              Lines="5" />
-            </MudForm>
+            <GcdsInput Id="external-user-collaboration-objectives"
+                       Name="external-user-collaboration-objectives"
+                       Label="@Localizer["Collaboration Objectives"]"
+                       Placeholder="@Localizer["e.g. Define external user models and collaborate on compliance"]"
+                       Required
+                       @bind-Value="_command.CollaborationObjectives" />
         }
         else
         {
@@ -134,30 +115,28 @@
 
         <MudGrid Class="mt-4">
             <MudItem xs="6" Class="d-flex justify-start">
-                <DHButton HtmlTag="button" ButtonType="ButtonType.Button" Color="Color.Error" OnClick="CancelAsync" Variant="Variant.Filled">
+                <GcdsButton Type="GcdsButtonType.Button" Role="GcdsButtonRole.Danger" OnClick="CancelAsync">
                     @Localizer["Cancel"]
-                </DHButton>
+                </GcdsButton>
             </MudItem>
             <MudItem xs="6" Class="d-flex justify-end">
                 @if (_page > 1)
                 {
-                    <DHButton HtmlTag="button" ButtonType="ButtonType.Button" Color="Color.Default" OnClick="BackPageAsync" Variant="Variant.Filled">
+                    <GcdsButton Type="GcdsButtonType.Button" Role="GcdsButtonRole.Secondary" OnClick="BackPageAsync">
                         @Localizer["Back"]
-                    </DHButton>
+                    </GcdsButton>
                 }
                 @if (_page < TotalSteps)
                 {
-                    <DHButton HtmlTag="button" ButtonType="ButtonType.Button" Color="Color.Primary" OnClick="NextPageAsync"
-                              Variant="Variant.Filled" Disabled="@(!CanContinue)">
+                    <GcdsButton Type="GcdsButtonType.Button" OnClick="NextPageAsync" Disabled="@(!CanContinue)">
                         @Localizer["Next"]
-                    </DHButton>
+                    </GcdsButton>
                 }
                 else
                 {
-                    <DHButton HtmlTag="button" ButtonType="ButtonType.Button" Color="Color.Primary" OnClick="AddExternalUser"
-                              Variant="Variant.Filled" Disabled="@_isSubmitting">
+                    <GcdsButton Type="GcdsButtonType.Button" OnClick="AddExternalUser" Disabled="@_isSubmitting">
                         @Localizer["Send user invite"]
-                    </DHButton>
+                    </GcdsButton>
                 }
             </MudItem>
         </MudGrid>
@@ -195,7 +174,6 @@
     public EventCallback OnCancelled { get; set; }
 
     private int _page = 1;
-    private readonly bool[] _successes = [false, false, false];
     private string? _initializedProjectAcronym;
     private string? _emailValidationMessage;
     private Severity _emailValidationSeverity = Severity.Warning;
@@ -207,7 +185,17 @@
     private bool _focusStepHeading;
     private bool _isSubmitting;
 
-    private bool CanContinue => _successes[_page - 1] && (_page != 2 || _command.Role is not null);
+    private bool CanContinue => _page switch
+    {
+        1 => !string.IsNullOrWhiteSpace(_command.Email) && new EmailAddressAttribute().IsValid(_command.Email),
+        2 => HasMinimumTrimmedLength(_command.FirstName, 2)
+             && HasMinimumTrimmedLength(_command.LastName, 2)
+             && HasMinimumTrimmedLength(_command.Organization, 2)
+             && _command.Role is not null
+             && _command.AccountExpiry is not null,
+        3 => !string.IsNullOrWhiteSpace(_command.CollaborationObjectives),
+        _ => true
+    };
 
     private string? SelectedRoleId
     {
@@ -261,7 +249,6 @@
     {
         _command = new ProjectUserAddExternalUserCommand { ProjectAcronym = ProjectAcronym };
         _page = 1;
-        Array.Fill(_successes, false);
         _emailValidationMessage = null;
         _emailValidationSeverity = Severity.Warning;
         _existingExternalPortalUser = null;
@@ -279,6 +266,9 @@
         _focusStepHeading = true;
         await InvokeAsync(StateHasChanged);
     }
+
+    private static bool HasMinimumTrimmedLength(string? value, int minimumLength)
+        => !string.IsNullOrWhiteSpace(value) && value.Trim().Length >= minimumLength;
 
     private async Task BackPageAsync()
     {

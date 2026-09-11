@@ -6,6 +6,7 @@ The forms used to add workspace users should be part of the page and usable with
         Given the Entra add-user form is rendered
         Then the add-user form is not a dialog
         And the Entra add-user form is labelled by its heading
+        And the form uses GCDS inputs and buttons
         And the add-user form actions use button semantics
         When the user cancels the add-user form
         Then the add-user form reports that it was cancelled
@@ -23,6 +24,7 @@ The forms used to add workspace users should be part of the page and usable with
         Then the add-user form is not a dialog
         And the external add-user form is labelled by its heading
         And the external add-user form announces step 1 of 4
+        And the form uses GCDS inputs and buttons
         And the add-user form actions use button semantics
         When the user cancels the add-user form
         Then the add-user form reports that it was cancelled
