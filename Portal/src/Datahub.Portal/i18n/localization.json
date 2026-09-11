@@ -1,4 +1,5 @@
 {
+  "_lang": "en",
   " ({0})": " ({0})",
   " is the default role and has only read access to all resources within your project.": " is the default role and has only read access to all resources within your project.",
   " is the role that you will want to give to most of your colleagues. It gives them read/write access to most of your resources.": " is the role that you will want to give to most of your colleagues. It gives them read/write access to most of your resources.",
@@ -2411,6 +2412,7 @@
   "Use a recent link to get to the same page again": "Use a recent link to get to the same page again",
   "User": "User",
   "User activity": "User activity",
+  "User already exists": "User already exists",
   "User area for file storage and sharing": "User area for file storage and sharing",
   "User deactivated": "User deactivated",
   "User domains": "User domains",

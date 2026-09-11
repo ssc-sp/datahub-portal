@@ -14,7 +14,7 @@
 
 <section id="entra-invite-form" role="region" aria-labelledby="entra-invite-heading">
 <MudPaper Elevation="0" Outlined Class="px-6 pb-6">
-    <GcdsHeading Tag="h2">
+    <GcdsHeading Id="entra-invite-heading" Tag="h2">
         @Localizer["Invite New Users"]
     </GcdsHeading>
     <GcdsText>
@@ -40,7 +40,7 @@
     }
     @if (_usersToAdd.Count > 0)
     {
-        <GcdsHeading Tag="h3">
+        <GcdsHeading Id="pending-users-heading" Tag="h3">
             @Localizer["Users to be added:"]
         </GcdsHeading>
         <ul class="pending-user-list d-flex flex-column gap-4 ma-0 pa-0"

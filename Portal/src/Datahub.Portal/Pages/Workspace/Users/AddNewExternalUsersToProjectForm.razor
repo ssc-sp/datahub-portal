@@ -11,16 +11,13 @@
 @inject IDbContextFactory<DatahubProjectDBContext> _dbContextFactory
 
 <section id="external-invite-form" role="region" aria-labelledby="external-invite-heading">
-    <MudPaper Elevation="0" Outlined Class="pa-6 mb-6">
-        <h2 id="external-invite-heading" tabindex="-1" @ref="_formHeading" class="mud-typography mud-typography-h5 mb-2">
+    <MudPaper Elevation="0" Outlined Class="px-6 pb-6">
+        <GcdsHeading Id="external-invite-heading" Tag="h2">
             @Localizer["Invite New Users"]
-        </h2>
-        <p class="mud-typography mud-typography-body1" role="status" aria-live="polite">
-            @Localizer["Step {0} of {1}", _page, TotalSteps]
-        </p>
-        <h3 tabindex="-1" @ref="_stepHeading" class="mud-typography mud-typography-h6 py-2">
+        </GcdsHeading>
+        <GcdsStepper CurrentStep="@_page" TotalSteps="@TotalSteps" Tag="h3" lang="@Localizer["_lang"]">
             @StepHeading
-        </h3>
+        </GcdsStepper>
 
         @if (_page == 1)
         {
@@ -33,9 +30,11 @@
                        @bind-Value:after="ValidateEmailAsync" />
             @if (!String.IsNullOrEmpty(_emailValidationMessage))
             {
-                <MudAlert Severity="@_emailValidationSeverity" Dense="true" Class="mt-2" role="status">
-                    @_emailValidationMessage
-                </MudAlert>
+                <GcdsNotice NoticeRole="info" NoticeTitle="@Localizer["User already exists"]" NoticeTitleTag="h3">
+                    <GcdsText>
+                        @Localizer["An external user with this email address already exists. Existing profile details have been loaded."]
+                    </GcdsText>
+                </GcdsNotice>
             }
         }
         else if (_page == 2)
@@ -79,12 +78,11 @@
                     </GcdsSelect>
                 }
 
-                <MudDatePicker Label="@Localizer["Account Expiry"]"
-                               @bind-Date="_command.AccountExpiry"
-                               Required="true"
-                               RequiredError="@Localizer["Account expiry date is required"]"
+                <GcdsDateInput Name="external-user-account-expiry"
+                               Legend="@Localizer["Account Expiry"]"
+                               Required
                                Disabled="@(_existingExternalPortalUser is not null)"
-                               ShowToolbar="false" />
+                               @bind-Value="AccountExpiryValue" />
         }
         else if (_page == 3)
         {
@@ -97,20 +95,16 @@
         }
         else
         {
-            <dl class="review-list">
-                <dt>@Localizer["Name:"]</dt>
-                <dd>@_command.FirstName @_command.LastName</dd>
-                <dt>@Localizer["Email:"]</dt>
-                <dd>@_command.Email</dd>
-                <dt>@Localizer["Role:"]</dt>
-                <dd>@Localizer[_command.Role!.Description]</dd>
-                <dt>@Localizer["Organization:"]</dt>
-                <dd>@_command.Organization</dd>
-                <dt>@Localizer["Account Expiry:"]</dt>
-                <dd>@_command.AccountExpiry?.ToString("d")</dd>
-                <dt>@Localizer["Collaboration Objectives:"]</dt>
-                <dd>@_command.CollaborationObjectives</dd>
-            </dl>
+            <GcdsText>
+                <ul>
+                    <li><strong>@Localizer["Name:"]</strong> @_command.FirstName @_command.LastName</li>
+                    <li><strong>@Localizer["Email:"]</strong> @_command.Email</li>
+                    <li><strong>@Localizer["Role:"]</strong> @Localizer[_command.Role!.Description]</li>
+                    <li><strong>@Localizer["Organization:"]</strong> @_command.Organization</li>
+                    <li><strong>@Localizer["Account Expiry:"]</strong> @_command.AccountExpiry?.ToString("d")</li>
+                    <li><strong>@Localizer["Collaboration Objectives:"]</strong> @_command.CollaborationObjectives</li>
+                </ul>
+            </GcdsText>
         }
 
         <MudGrid Class="mt-4">
@@ -122,7 +116,7 @@
             <MudItem xs="6" Class="d-flex justify-end">
                 @if (_page > 1)
                 {
-                    <GcdsButton Type="GcdsButtonType.Button" Role="GcdsButtonRole.Secondary" OnClick="BackPageAsync">
+                    <GcdsButton Type="GcdsButtonType.Button" Role="GcdsButtonRole.Secondary" OnClick="BackPageAsync" class="mr-2">
                         @Localizer["Back"]
                     </GcdsButton>
                 }
@@ -142,17 +136,6 @@
         </MudGrid>
     </MudPaper>
 </section>
-
-<style>
-    .review-list dt {
-        font-weight: 600;
-        margin-top: 1rem;
-    }
-
-    .review-list dd {
-        margin-left: 0;
-    }
-</style>
 
 @code {
     #nullable enable
@@ -180,8 +163,6 @@
     private PortalUser? _existingExternalPortalUser;
     private ProjectUserAddExternalUserCommand _command = new() { ProjectAcronym = string.Empty };
     private List<Project_Role>? _externalRoles;
-    private ElementReference _formHeading;
-    private ElementReference _stepHeading;
     private bool _focusStepHeading;
     private bool _isSubmitting;
 
@@ -209,6 +190,15 @@
         }
     }
 
+    private string? AccountExpiryValue
+    {
+        get => _command.AccountExpiry?.ToString("yyyy-MM-dd", System.Globalization.CultureInfo.InvariantCulture);
+        set => _command.AccountExpiry = DateTime.TryParseExact(value, "yyyy-MM-dd",
+            System.Globalization.CultureInfo.InvariantCulture, System.Globalization.DateTimeStyles.None, out var date)
+                ? date
+                : null;
+    }
+
     private string StepHeading => _page switch
     {
         1 => Localizer["Enter the user's primary email address"],
@@ -229,19 +219,6 @@
         {
             _initializedProjectAcronym = ProjectAcronym;
             ResetForm();
-        }
-    }
-
-    protected override async Task OnAfterRenderAsync(bool firstRender)
-    {
-        if (firstRender)
-        {
-            await _formHeading.FocusAsync();
-        }
-        else if (_focusStepHeading)
-        {
-            _focusStepHeading = false;
-            await _stepHeading.FocusAsync();
         }
     }
 

@@ -1,4 +1,5 @@
 {
+  "_lang": "fr",
   " ({0})": " ({0})",
   " is the default role and has only read access to all resources within your project.": " est le rôle par défaut et n'a qu'un accès en lecture à toutes les ressources de votre projet.",
   " is the role that you will want to give to most of your colleagues. It gives them read/write access to most of your resources.": " est le rôle que vous voudrez donner à la plupart de vos collègues. Il leur donne un accès en lecture/écriture à la plupart de vos ressources.",
@@ -3298,6 +3299,7 @@
   "Use of this functionality is subject to the NRCAN DataHub Terms of Use and Privacy Policy": "L’utilisation de cette fonctionnalité est assujettie aux Modalités d’utilisation et à la Politique de confidentialité du Carrefour de données de RNCan",
   "User": "Utilisateur",
   "User activity": "Activité des utilisateurs",
+  "User already exists": "L'utilisateur existe déjà",
   "User area for file storage and sharing": "Zone utilisateur pour le stockage et le partage de fichiers",
   "User deactivated": "Utilisateur d\u00e9sactiv\u00e9",
   "User domains": "Domaines utilisateurs",
