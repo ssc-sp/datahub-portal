@@ -110,9 +110,10 @@ public class AccessibleAddUserFormsSteps : BunitTestSteps, IDisposable
     public void ThenTheExternalAddUserFormAnnouncesStepOneOfFour()
     {
         ArgumentNullException.ThrowIfNull(_externalForm);
-        var form = _externalForm;
-        form.Find("[role='status']").TextContent.Should().Contain("Step 1 of 4");
-        form.Find("h3").TextContent.Trim().Should().Be("Enter the user's primary email address");
+        var stepper = _externalForm.FindComponent<GcdsStepper>();
+        stepper.Instance.CurrentStep.Should().Be(1);
+        stepper.Instance.TotalSteps.Should().Be(4);
+        stepper.Markup.Should().Contain("Enter the user's primary email address");
     }
 
     [Then("the add-user form actions use button semantics")]
@@ -178,7 +179,8 @@ public class AccessibleAddUserFormsSteps : BunitTestSteps, IDisposable
         _entraForm.FindAll("table").Should().BeEmpty();
 
         var heading = _entraForm.Find("#pending-users-heading");
-        heading.TagName.Should().Be("H3");
+        heading.TagName.Should().Be("GCDS-HEADING");
+        heading.GetAttribute("tag").Should().Be("h3");
         heading.TextContent.Trim().Should().Be("Users to be added:");
 
         var list = _entraForm.Find("ul.pending-user-list");
@@ -237,7 +239,11 @@ public class AccessibleAddUserFormsSteps : BunitTestSteps, IDisposable
         var button = FindButton(_externalForm, "Next");
         await button.InvokeAsync(() => button.Instance.OnClick.InvokeAsync(default));
         _externalForm.WaitForAssertion(() =>
-            _externalForm.Find("h3").TextContent.Trim().Should().Be("Enter the user details"));
+        {
+            var stepper = _externalForm.FindComponent<GcdsStepper>();
+            stepper.Instance.CurrentStep.Should().Be(2);
+            stepper.Markup.Should().Contain("Enter the user details");
+        });
     }
 
     [Then("the external role is selected with a GCDS select")]
@@ -255,6 +261,24 @@ public class AccessibleAddUserFormsSteps : BunitTestSteps, IDisposable
         await roleSelect.InvokeAsync(() => roleSelect.Instance.ValueChanged.InvokeAsync(roleId));
         _externalForm.WaitForAssertion(() =>
             _externalForm.FindComponent<GcdsSelect>().Instance.Value.Should().Be(roleId));
+    }
+
+    [Then("the external account expiry uses a GCDS date input")]
+    public async Task ThenTheExternalAccountExpiryUsesAGcdsDateInput()
+    {
+        ArgumentNullException.ThrowIfNull(_externalForm);
+        _externalForm.FindComponents<MudDatePicker>().Should().BeEmpty();
+
+        var dateInput = _externalForm.FindComponent<GcdsDateInput>();
+        dateInput.Instance.Name.Should().Be("external-user-account-expiry");
+        dateInput.Instance.ValueExpression.Should().NotBeNull();
+        dateInput.Instance.ValueExpression!.Body.NodeType.Should()
+            .Be(System.Linq.Expressions.ExpressionType.MemberAccess);
+
+        const string expiryDate = "2030-12-31";
+        await dateInput.InvokeAsync(() => dateInput.Instance.ValueChanged.InvokeAsync(expiryDate));
+        _externalForm.WaitForAssertion(() =>
+            _externalForm.FindComponent<GcdsDateInput>().Instance.Value.Should().Be(expiryDate));
     }
 
     private static IRenderedComponent<GcdsButton> FindButton(
