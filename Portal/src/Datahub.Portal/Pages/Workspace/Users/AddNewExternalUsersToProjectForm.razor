@@ -9,13 +9,14 @@
 @inject IExternalUserInvitationService _externalUserInvitationService
 @inject ISnackbar _snackbar
 @inject IDbContextFactory<DatahubProjectDBContext> _dbContextFactory
+@inject ICultureService _cultureService
 
 <section id="external-invite-form" role="region" aria-labelledby="external-invite-heading">
     <MudPaper Elevation="0" Outlined Class="px-6 pb-6">
         <GcdsHeading Id="external-invite-heading" Tag="h2">
             @Localizer["Invite New Users"]
         </GcdsHeading>
-        <GcdsStepper CurrentStep="@_page" TotalSteps="@TotalSteps" Tag="h3" lang="@Localizer["_lang"]">
+        <GcdsStepper CurrentStep="@_page" TotalSteps="@TotalSteps" Tag="h3" lang="@_language">
             @StepHeading
         </GcdsStepper>
 
@@ -155,6 +156,8 @@
 
     [Parameter]
     public EventCallback OnCancelled { get; set; }
+
+    private string _language => _cultureService.IsFrench ? ICultureService.CanadaFrench : ICultureService.CanadaEnglish;
 
     private int _page = 1;
     private string? _initializedProjectAcronym;

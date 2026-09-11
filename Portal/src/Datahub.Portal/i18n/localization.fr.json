@@ -1,5 +1,4 @@
 {
-  "_lang": "fr",
   " ({0})": " ({0})",
   " is the default role and has only read access to all resources within your project.": " est le rôle par défaut et n'a qu'un accès en lecture à toutes les ressources de votre projet.",
   " is the role that you will want to give to most of your colleagues. It gives them read/write access to most of your resources.": " est le rôle que vous voudrez donner à la plupart de vos collègues. Il leur donne un accès en lecture/écriture à la plupart de vos ressources.",
