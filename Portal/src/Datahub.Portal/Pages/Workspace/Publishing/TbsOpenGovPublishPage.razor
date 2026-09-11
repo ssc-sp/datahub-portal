@@ -1,4 +1,4 @@
-﻿@* TbsOpenGovPublishPage.razor *@
+@* TbsOpenGovPublishPage.razor *@
 
 @using Datahub.Application.Services.Publishing;
 @using Datahub.Application.Services.UserManagement
@@ -60,6 +60,21 @@
                 <MudCollapse Expanded=@(!MetadataPanelExpanded)>
                     <DHButton OnClick="@(() => MetadataPanelExpanded = true)">@Localizer["Revise"]</DHButton>
                 </MudCollapse>
+            </MudCardContent>
+        </MudCard>
+
+        <MudCard>
+            <MudCardHeader>
+                <MudText Typo=@Typo.h3>@Localizer["Server"]</MudText>
+            </MudCardHeader>
+
+            <MudCardContent>
+                <MudSelect T="string" @bind-Value="@_config.CkanConfiguration.BaseUrl" ToStringFunc="@GetURLName">
+                    @foreach (var u in _urls)
+                    {
+                        <MudSelectItem Value="@(u)" />
+                    }
+                </MudSelect>
             </MudCardContent>
         </MudCard>
         
@@ -334,6 +349,8 @@
     private Dictionary<StatusEnum, (string, string)?> _stepInfo = new();
 
     private List<StatusEnum> _steps = Enum.GetValues<StatusEnum>().ToList();
+    private IEnumerable<string> _urls = new string[] { "https://registry-staging.open.canada.ca/", "https://registry.open.canada.ca/" };
+
 
     private (string, string)? GetStepPair(StatusEnum status)
     {
@@ -620,4 +637,11 @@
     {
         if (Syncer != null) Syncer.Notify -= StateHasChanged;
     }
+
+    private string GetURLName(string name) => name switch
+    {
+        "https://registry-staging.open.canada.ca/" => "Staging",
+        "https://registry.open.canada.ca/" => "Production",
+        _ => name
+    };
 }
