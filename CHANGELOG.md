@@ -3,6 +3,21 @@
 <!-- markdownlint-disable MD024 -->
 # Changelog
 
+## [10.3.0](https://github.com/ssc-sp/datahub-portal/compare/v10.2.0...v10.3.0) (2026-09-11)
+
+
+### Features
+
+* added repo reset before changes in resource provisioner ([#2087](https://github.com/ssc-sp/datahub-portal/issues/2087)) ([32e0dd5](https://github.com/ssc-sp/datahub-portal/commit/32e0dd547b116ac7f4041352f574ba3493509cad))
+
+
+### Bug Fixes
+
+* Filtering disabled users out from workspace users page and count ([#2114](https://github.com/ssc-sp/datahub-portal/issues/2114)) ([4d76aa2](https://github.com/ssc-sp/datahub-portal/commit/4d76aa2f8701afcb6561b6ba7873a793f64eabd5))
+* fixed logic for external user changes ([#2113](https://github.com/ssc-sp/datahub-portal/issues/2113)) ([22d88c4](https://github.com/ssc-sp/datahub-portal/commit/22d88c49d3b58631140841386b4590744056645c))
+* health check queue is consumed by portal ([#2119](https://github.com/ssc-sp/datahub-portal/issues/2119)) ([27050e9](https://github.com/ssc-sp/datahub-portal/commit/27050e9b0ca80f93b94dda00313ead34e2f4b665))
+* updated settings management to work with new 163ent environment ([#2117](https://github.com/ssc-sp/datahub-portal/issues/2117)) ([260afbc](https://github.com/ssc-sp/datahub-portal/commit/260afbce5ea92fe1a00cce01061cee4ad8264665))
+
 ## [10.2.0](https://github.com/ssc-sp/datahub-portal/compare/v10.1.0...v10.2.0) (2026-08-28)
 
 
