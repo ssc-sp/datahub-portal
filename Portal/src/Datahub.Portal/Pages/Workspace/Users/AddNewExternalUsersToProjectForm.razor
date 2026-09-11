@@ -1,0 +1,381 @@
+@using System.ComponentModel.DataAnnotations
+@using Datahub.Application.Commands
+@using Datahub.Application.Services.UserManagement
+@using Datahub.Core.Model.Projects
+@using Datahub.Core.Model.Users
+@using GcdsWrapper.Blazor
+@using Microsoft.EntityFrameworkCore
+@inject IUserInformationService _userInformationService
+@inject IExternalUserInvitationService _externalUserInvitationService
+@inject ISnackbar _snackbar
+@inject IDbContextFactory<DatahubProjectDBContext> _dbContextFactory
+@inject ICultureService _cultureService
+
+<section id="external-invite-form" role="region" aria-labelledby="external-invite-heading">
+    <MudPaper Elevation="0" Outlined Class="px-6 pb-6">
+        <GcdsHeading Id="external-invite-heading" Tag="h2">
+            @Localizer["Invite New Users"]
+        </GcdsHeading>
+        <GcdsStepper CurrentStep="@_page" TotalSteps="@TotalSteps" Tag="h3" lang="@_language">
+            @StepHeading
+        </GcdsStepper>
+
+        @if (_page == 1)
+        {
+            <GcdsInput Id="external-user-email"
+                       Name="external-user-email"
+                       Label="@Localizer["Email"]"
+                       Type="GcdsInputType.Email"
+                       Required
+                       @bind-Value="_command.Email"
+                       @bind-Value:after="ValidateEmailAsync" />
+            @if (!String.IsNullOrEmpty(_emailValidationMessage))
+            {
+                <GcdsNotice NoticeRole="info" NoticeTitle="@Localizer["User already exists"]" NoticeTitleTag="h3">
+                    <GcdsText>
+                        @Localizer["An external user with this email address already exists. Existing profile details have been loaded."]
+                    </GcdsText>
+                </GcdsNotice>
+            }
+        }
+        else if (_page == 2)
+        {
+            <GcdsInput Id="external-user-first-name"
+                       Name="external-user-first-name"
+                       Label="@Localizer["First Name"]"
+                       Required
+                       Disabled="@(_existingExternalPortalUser is not null)"
+                       @bind-Value="_command.FirstName" />
+            <GcdsInput Id="external-user-last-name"
+                       Name="external-user-last-name"
+                       Label="@Localizer["Last Name"]"
+                       Required
+                       Disabled="@(_existingExternalPortalUser is not null)"
+                       @bind-Value="_command.LastName" />
+            <GcdsInput Id="external-user-details-email"
+                       Name="external-user-details-email"
+                       Label="@Localizer["Email"]"
+                       Type="GcdsInputType.Email"
+                       Disabled
+                       @bind-Value="_command.Email" />
+            <GcdsInput Id="external-user-organization"
+                       Name="external-user-organization"
+                       Label="@Localizer["Organization"]"
+                       Required
+                       Disabled="@(_existingExternalPortalUser is not null)"
+                       @bind-Value="_command.Organization" />
+                @if (_externalRoles is not null)
+                {
+                    <GcdsSelect Id="external-user-role"
+                                Name="external-user-role"
+                                Label="@Localizer["Select user role"]"
+                                DefaultValue="@Localizer["Please Select"]"
+                                Required
+                                @bind-Value="SelectedRoleId">
+                        @foreach (var role in _externalRoles)
+                        {
+                            <option value="@role.Id">@Localizer[role.Name]</option>
+                        }
+                    </GcdsSelect>
+                }
+
+                <GcdsDateInput Name="external-user-account-expiry"
+                               Legend="@Localizer["Account Expiry"]"
+                               Required
+                               Disabled="@(_existingExternalPortalUser is not null)"
+                               @bind-Value="AccountExpiryValue" />
+        }
+        else if (_page == 3)
+        {
+            <GcdsInput Id="external-user-collaboration-objectives"
+                       Name="external-user-collaboration-objectives"
+                       Label="@Localizer["Collaboration Objectives"]"
+                       Placeholder="@Localizer["e.g. Define external user models and collaborate on compliance"]"
+                       Required
+                       @bind-Value="_command.CollaborationObjectives" />
+        }
+        else
+        {
+            <GcdsText>
+                <ul>
+                    <li><strong>@Localizer["Name:"]</strong> @_command.FirstName @_command.LastName</li>
+                    <li><strong>@Localizer["Email:"]</strong> @_command.Email</li>
+                    <li><strong>@Localizer["Role:"]</strong> @Localizer[_command.Role!.Description]</li>
+                    <li><strong>@Localizer["Organization:"]</strong> @_command.Organization</li>
+                    <li><strong>@Localizer["Account Expiry:"]</strong> @_command.AccountExpiry?.ToString("d")</li>
+                    <li><strong>@Localizer["Collaboration Objectives:"]</strong> @_command.CollaborationObjectives</li>
+                </ul>
+            </GcdsText>
+        }
+
+        <MudGrid Class="mt-4">
+            <MudItem xs="6" Class="d-flex justify-start">
+                <GcdsButton Type="GcdsButtonType.Button" Role="GcdsButtonRole.Danger" OnClick="CancelAsync">
+                    @Localizer["Cancel"]
+                </GcdsButton>
+            </MudItem>
+            <MudItem xs="6" Class="d-flex justify-end">
+                @if (_page > 1)
+                {
+                    <GcdsButton Type="GcdsButtonType.Button" Role="GcdsButtonRole.Secondary" OnClick="BackPageAsync" class="mr-2">
+                        @Localizer["Back"]
+                    </GcdsButton>
+                }
+                @if (_page < TotalSteps)
+                {
+                    <GcdsButton Type="GcdsButtonType.Button" OnClick="NextPageAsync" Disabled="@(!CanContinue)">
+                        @Localizer["Next"]
+                    </GcdsButton>
+                }
+                else
+                {
+                    <GcdsButton Type="GcdsButtonType.Button" OnClick="AddExternalUser" Disabled="@_isSubmitting">
+                        @Localizer["Send user invite"]
+                    </GcdsButton>
+                }
+            </MudItem>
+        </MudGrid>
+    </MudPaper>
+</section>
+
+@code {
+    #nullable enable
+    private const int TotalSteps = 4;
+
+    [Parameter]
+    public string ProjectAcronym { get; set; } = null!;
+
+    [Parameter]
+    public PortalUser Inviter { get; set; } = null!;
+
+    [Parameter]
+    public Func<WorkspaceInvitation, (string enURL, string frURL)> GetGcInvitationLink { get; set; } = null!;
+
+    [Parameter]
+    public EventCallback OnCompleted { get; set; }
+
+    [Parameter]
+    public EventCallback OnCancelled { get; set; }
+
+    private string _language => _cultureService.IsFrench ? ICultureService.CanadaFrench : ICultureService.CanadaEnglish;
+
+    private int _page = 1;
+    private string? _initializedProjectAcronym;
+    private string? _emailValidationMessage;
+    private Severity _emailValidationSeverity = Severity.Warning;
+    private PortalUser? _existingExternalPortalUser;
+    private ProjectUserAddExternalUserCommand _command = new() { ProjectAcronym = string.Empty };
+    private List<Project_Role>? _externalRoles;
+    private bool _focusStepHeading;
+    private bool _isSubmitting;
+
+    private bool CanContinue => _page switch
+    {
+        1 => !string.IsNullOrWhiteSpace(_command.Email) && new EmailAddressAttribute().IsValid(_command.Email),
+        2 => HasMinimumTrimmedLength(_command.FirstName, 2)
+             && HasMinimumTrimmedLength(_command.LastName, 2)
+             && HasMinimumTrimmedLength(_command.Organization, 2)
+             && _command.Role is not null
+             && _command.AccountExpiry is not null,
+        3 => !string.IsNullOrWhiteSpace(_command.CollaborationObjectives),
+        _ => true
+    };
+
+    private string? SelectedRoleId
+    {
+        get => _command?.Role?.Id.ToString(System.Globalization.CultureInfo.InvariantCulture);
+        set
+        {
+            _command.Role = int.TryParse(value, System.Globalization.NumberStyles.Integer,
+                System.Globalization.CultureInfo.InvariantCulture, out var roleId)
+                ? _externalRoles?.FirstOrDefault(role => role.Id == roleId)!
+                : null!;
+        }
+    }
+
+    private string? AccountExpiryValue
+    {
+        get => _command.AccountExpiry?.ToString("yyyy-MM-dd", System.Globalization.CultureInfo.InvariantCulture);
+        set => _command.AccountExpiry = DateTime.TryParseExact(value, "yyyy-MM-dd",
+            System.Globalization.CultureInfo.InvariantCulture, System.Globalization.DateTimeStyles.None, out var date)
+                ? date
+                : null;
+    }
+
+    private string StepHeading => _page switch
+    {
+        1 => Localizer["Enter the user's primary email address"],
+        2 => Localizer["Enter the user details"],
+        3 => Localizer["Define Collaboration Objectives (Mandatory)"],
+        _ => Localizer["Review user to be added"]
+    };
+
+    protected override async Task OnInitializedAsync()
+    {
+        await using var context = await _dbContextFactory.CreateDbContextAsync();
+        _externalRoles = await context.Project_Roles.Where(role => role.IsExternalRole).ToListAsync();
+    }
+
+    protected override void OnParametersSet()
+    {
+        if (!string.Equals(_initializedProjectAcronym, ProjectAcronym, StringComparison.Ordinal))
+        {
+            _initializedProjectAcronym = ProjectAcronym;
+            ResetForm();
+        }
+    }
+
+    private void ResetForm()
+    {
+        _command = new ProjectUserAddExternalUserCommand { ProjectAcronym = ProjectAcronym };
+        _page = 1;
+        _emailValidationMessage = null;
+        _emailValidationSeverity = Severity.Warning;
+        _existingExternalPortalUser = null;
+        _isSubmitting = false;
+    }
+
+    private async Task NextPageAsync()
+    {
+        if (_page >= TotalSteps || !CanContinue)
+        {
+            return;
+        }
+
+        _page++;
+        _focusStepHeading = true;
+        await InvokeAsync(StateHasChanged);
+    }
+
+    private static bool HasMinimumTrimmedLength(string? value, int minimumLength)
+        => !string.IsNullOrWhiteSpace(value) && value.Trim().Length >= minimumLength;
+
+    private async Task BackPageAsync()
+    {
+        if (_page <= 1)
+        {
+            return;
+        }
+
+        _page--;
+        _focusStepHeading = true;
+        await InvokeAsync(StateHasChanged);
+    }
+
+    private async Task CancelAsync()
+    {
+        ResetForm();
+        await OnCancelled.InvokeAsync();
+    }
+
+    private async Task<PortalUser?> GetExistingExternalPortalUserByEmailAsync(string email)
+    {
+        await using var context = await _dbContextFactory.CreateDbContextAsync();
+        return await context.PortalUsers
+            .Include(p => p.ExternalUser)
+            .FirstOrDefaultAsync(p => p.Email == email && p.ExternalUser != null);
+    }
+
+    private void ClearLoadedExternalUserDetails()
+    {
+        _existingExternalPortalUser = null;
+        _command.ExternalUser = null;
+        _command.FirstName = string.Empty;
+        _command.LastName = string.Empty;
+        _command.Organization = string.Empty;
+        _command.AccountExpiry = DateTime.Today;
+    }
+
+    private void LoadExistingExternalUserDetails(PortalUser portalUser)
+    {
+        _existingExternalPortalUser = portalUser;
+        _command.ExternalUser = portalUser.ExternalUser;
+        _command.FirstName = portalUser.ExternalUser!.FirstName;
+        _command.LastName = portalUser.ExternalUser.LastName;
+        _command.Organization = portalUser.ExternalUser.Organization;
+        _command.AccountExpiry = portalUser.ExternalUser.UserExpiryDate.UtcDateTime;
+    }
+
+    private async Task ValidateEmailAsync()
+    {
+        _emailValidationMessage = null;
+        _emailValidationSeverity = Severity.Warning;
+
+        if (string.IsNullOrWhiteSpace(_command.Email) || !new EmailAddressAttribute().IsValid(_command.Email))
+        {
+            ClearLoadedExternalUserDetails();
+            return;
+        }
+
+        var existingPortalUser = await GetExistingExternalPortalUserByEmailAsync(_command.Email);
+        if (existingPortalUser is not null)
+        {
+            LoadExistingExternalUserDetails(existingPortalUser);
+            _emailValidationSeverity = Severity.Info;
+            _emailValidationMessage = Localizer["An external user with this email address already exists. Existing profile details have been loaded."];
+            return;
+        }
+
+        ClearLoadedExternalUserDetails();
+    }
+
+    internal async Task AddExternalUser()
+    {
+        if (_command.AccountExpiry is null)
+        {
+            _snackbar.Add(Localizer["Account expiry date is required"], Severity.Error);
+            return;
+        }
+
+        if (_command.Role is null)
+        {
+            _snackbar.Add(Localizer["User role is required"], Severity.Error);
+            return;
+        }
+
+        _isSubmitting = true;
+        try
+        {
+            await using var context = await _dbContextFactory.CreateDbContextAsync();
+            var project = await context.Projects.FirstOrDefaultAsync(p => p.Project_Acronym_CD == ProjectAcronym);
+            if (project is null)
+            {
+                throw new InvalidOperationException($"Project {ProjectAcronym} not found.");
+            }
+
+            var existingPortalUser = await context.PortalUsers
+                .Include(p => p.ExternalUser)
+                .FirstOrDefaultAsync(p => p.Email == _command.Email && p.ExternalUser != null);
+
+            var portalUser = existingPortalUser ?? await _userInformationService.CreatePortalExternalUserAsync(
+                null,
+                _command.FirstName,
+                _command.LastName,
+                _command.Organization,
+                _command.Email,
+                new DateTimeOffset(DateTime.SpecifyKind(_command.AccountExpiry.Value, DateTimeKind.Utc)));
+
+            if (portalUser?.ExternalUser is null)
+            {
+                throw new InvalidOperationException("Unable to create external user profile.");
+            }
+
+            _command.ExternalUser = portalUser.ExternalUser;
+            await _externalUserInvitationService.CreateInvitationAsync(
+                portalUser.ExternalUser.Id,
+                ProjectAcronym,
+                _command.Email,
+                "Initial Invitation",
+                _command.Role.Id,
+                Inviter,
+                GetGcInvitationLink);
+
+            await OnCompleted.InvokeAsync();
+        }
+        catch (Exception)
+        {
+            _isSubmitting = false;
+            _snackbar.Add(Localizer["Error inviting new user to workspace"], Severity.Error);
+        }
+    }
+}

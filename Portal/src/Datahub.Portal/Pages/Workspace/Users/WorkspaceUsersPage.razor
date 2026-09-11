@@ -57,9 +57,9 @@
             @if (_usersToAdd.Any())
             {
                 <MudStack>
-                    <MudText Typo="Typo.h2">
+                    <h2 tabindex="-1" @ref="_invitationsHeading" class="mud-typography mud-typography-h2">
                         @Localizer["Invitations"]
-                    </MudText>
+                    </h2>
                     <MudText Typo="Typo.body1">
                         @Localizer["You will be inviting the following users to your workspace"]
                     </MudText>
@@ -120,11 +120,22 @@
                 <DHMainContentTitle Title="@Localizer["Workspace Members"]" />
                 <MudSpacer />
                 <DatahubAuthView AuthLevel="DatahubAuthView.AuthLevels.WorkspaceAdmin" ProjectAcronym="@WorkspaceAcronym" ElevatedWorkspaceAccessEnabled="@ElevatedWorkspaceAccessEnabled">
-                    <DHButton Variant="Variant.Outlined" Color="Color.Primary" EndIcon="@Icons.Material.Outlined.PersonAdd" OnClick="OpenDialog">
+                    <DHButton @ref="_inviteUserButton" HtmlTag="button" ButtonType="ButtonType.Button"
+                              Variant="Variant.Outlined" Color="Color.Primary" EndIcon="@Icons.Material.Outlined.PersonAdd"
+                              OnClick="ShowInviteForm" aria-expanded="@(_showInviteForm ? "true" : "false")" aria-controls="entra-invite-form">
                         @Localizer["Invite New User"]
                     </DHButton>
                 </DatahubAuthView>
             </MudStack>
+            @if (_showInviteForm)
+            {
+                <DatahubAuthView AuthLevel="DatahubAuthView.AuthLevels.WorkspaceAdmin" ProjectAcronym="@WorkspaceAcronym" ElevatedWorkspaceAccessEnabled="@ElevatedWorkspaceAccessEnabled">
+                    <AddNewEntraUsersToProjectForm ProjectAcronym="@WorkspaceAcronym"
+                                                   CurrentProjectUsers="@_projectUsers.Where(x => x.Role.Id != (int)Project_Role.RoleNames.Removed).ToList()"
+                                                   OnCompleted="HandleInviteFormCompletedAsync"
+                                                   OnCancelled="HideInviteFormAsync" />
+                </DatahubAuthView>
+            }
             @if (_gccfEnabled)
             {
                 <DatahubAuthView AuthLevel="DatahubAuthView.AuthLevels.WorkspaceLead" ProjectAcronym="@WorkspaceAcronym" ElevatedWorkspaceAccessEnabled="@ElevatedWorkspaceAccessEnabled">
@@ -298,6 +309,11 @@
     private bool _updateInProgress;
     private bool _loading = true;
     private bool _gccfEnabled = false;
+    private bool _showInviteForm;
+    private bool _focusInviteUserButton;
+    private bool _focusInvitationsHeading;
+    private DHButton? _inviteUserButton;
+    private ElementReference _invitationsHeading;
 
     //
     private int _workspaceLeadCount => _projectUsers?.Count(x => x.Role?.Id == (int)Project_Role.RoleNames.WorkspaceLead) ?? 0;
