@@ -13,7 +13,7 @@
             <MudStack>
                 <MudGrid>
                     <MudItem xs="9">
-                        <MudImage Src=@Localizer["/img/canada-fip.svg"] Class="mb-4" Alt="Government of Canada Wordmark / Symbole de mot du gouvernement du Canada" Style="max-height: 1.5rem" />
+                        <MudImage Src="@ImageSrc" Class="mb-4" Alt="Government of Canada Wordmark / Symbole de mot du gouvernement du Canada" Style="max-height: 1.5rem" />
                     </MudItem>
                     <MudItem xs="3">
                         <MudStack Row="true" AlignItems="AlignItems.End">
@@ -39,6 +39,13 @@
 @code {
     private string _imageUrl;
     private string _backgroundStyle;
+
+    private string ImageSrc => IsDarkMode
+   ? "/img/canada-fip-dark.png"
+   : "/img/canada-fip.svg";
+
+    [CascadingParameter]
+    public bool IsDarkMode { get; set; }
 
     protected override async Task OnInitializedAsync()
     {
