@@ -71,6 +71,9 @@ public class AccessibleAddUserFormsSteps : BunitTestSteps, IDisposable
         Services.AddSingleton(Substitute.For<IUserInformationService>());
         Services.AddSingleton(Substitute.For<IExternalUserInvitationService>());
         Services.AddSingleton(Substitute.For<ISnackbar>());
+        var cultureService = Substitute.For<ICultureService>();
+        cultureService.IsFrench.Returns(false);
+        Services.AddSingleton(cultureService);
 
         _externalForm = Render<AddNewExternalUsersToProjectForm>(parameters => parameters
             .Add(form => form.ProjectAcronym, "TEST")
