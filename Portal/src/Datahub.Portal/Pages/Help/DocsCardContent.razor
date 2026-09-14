@@ -1,14 +1,14 @@
 @using GcdsWrapper.Blazor
 
-<MudPaper Elevation="0" Outlined Class="py-2 px-3 flex-1">
-    <MudStack>
+<MudPaper Elevation="0" Outlined Class="help-card d-flex flex-column py-2 px-3 flex-1" style="min-height:22rem">
+    <MudStack Class="flex-grow-1">
         <GcdsHeading Id="support-request-heading" Tag="h2" MarginTop="200">
             @Localizer["Documentation"]
         </GcdsHeading>
         <GcdsText>
             @Localizer["Our documentation site has many resources that could be helpful for you. Additional support is available using the {0} Support Request Form.", Localizer["MainAcronym"]]
         </GcdsText>
-        <MudStack Row Justify="Justify.FlexEnd">
+        <MudStack Row Justify="Justify.FlexEnd" Class="mt-auto pt-4 pb-3">
             <GcdsButton Type="GcdsButtonType.Link" Href="@Localizer[PageRoutes.ResourceSite]" Target="_blank">
                 @Localizer["View Documentation"]
             </GcdsButton>

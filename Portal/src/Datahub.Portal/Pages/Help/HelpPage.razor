@@ -31,7 +31,7 @@
 <DatahubAuthView AuthLevel="DatahubAuthView.AuthLevels.Authenticated">
     <MudStack Spacing="6">
         <DHMainContentTitle Title="@Localizer["Support"]" />
-        <ul class="my-4" style="display: flex; align-items: flex-start; gap: 25px; flex-wrap: wrap">
+        <ul class="help-card-row" style="display: flex; align-items: flex-start; gap: 25px; flex-wrap: wrap">
             <li class="d-flex flex-1">
                 <SupportRequestForm Workspaces="@_ticketWorkspaces" OnSubmit="SubmitFormAsync" />
             </li>
