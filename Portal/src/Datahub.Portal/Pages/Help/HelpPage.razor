@@ -3,6 +3,7 @@
 @using Datahub.Infrastructure.Queues.Messages
 @using Datahub.Shared.Clients
 @using Datahub.Shared.Configuration
+@using GcdsWrapper.Blazor
 @using MassTransit
 @using Microsoft.JSInterop
 @using Microsoft.TeamFoundation.WorkItemTracking.WebApi.Models
@@ -39,35 +40,9 @@
                 <DocsCardContent />
             </li>
         </ul>
-        <MudDivider />
-        <MudText Typo="Typo.h2">@Localizer["Your Support Requests"]</MudText>
-        <MudText Typo="Typo.body1">@Localizer["These are your previously submitted support requests. Requests may take up to 15 minutes to appear here."]</MudText>
-        <MudTable Items="@_issues" Loading="@_loading" Hover Dense>
-            <HeaderContent>
-                <MudTh>@Localizer["ID"]</MudTh>
-                <MudTh>@Localizer["Title"]</MudTh>
-                <MudTh>@Localizer["Description"]</MudTh>
-                <MudTh>@Localizer["Status"]</MudTh>
-                <MudTh>@Localizer["Submitted_DT"]</MudTh>
-                <MudTh>@Localizer["Last Update"]</MudTh>
-            </HeaderContent>
-            <RowTemplate>
-                <MudTd>@context.Id</MudTd>
-                <MudTd>@context.Title</MudTd>
-                <MudTd>@context.Description</MudTd>
-                <MudTd>
-                    <MudChip Class="dh_themed_chip" T="string" Color="@GetColor(context.State)">
-                        @Localizer[context.Message]
-                    </MudChip>
-                </MudTd>
-                <MudTd>@context.SubmittedDate</MudTd>
-                <MudTd>@context.ChangedDate</MudTd>
-            </RowTemplate>
-            <PagerContent>
-                <MudTablePager RowsPerPageString="@Localizer["Rows per page:"]"
-                               InfoFormat="@("{first_item}-{last_item} " + Localizer["of"] + " {all_items}")" />
-            </PagerContent>
-        </MudTable>
+        <GcdsHeading Tag="h2">@Localizer["Your Support Requests"]</GcdsHeading>
+        <GcdsText>@Localizer["These are your previously submitted support requests. Requests may take up to 15 minutes to appear here."]</GcdsText>
+        <SupportRequestHistoryTable Issues="@_issues" Loading="@_loading" />
     </MudStack>
 </DatahubAuthView>
 
@@ -221,13 +196,4 @@
         }
     }
 
-    private static Color GetColor(string status)
-    {
-        return status switch
-        {
-            "Closed" => Color.Success,
-            "Waiting" => Color.Warning,
-            _ => Color.Default
-        };
-    }
 }
