@@ -127,6 +127,7 @@ public class NewProjectTemplateTests : TemplateTestCollection
             ["az_subscription_id"] = _resourceProvisionerConfiguration.Terraform.Variables.az_subscription_id,
             ["az_tenant_id"] = _resourceProvisionerConfiguration.Terraform.Variables.az_tenant_id,
             ["datahub_app_sp_oid"] = _resourceProvisionerConfiguration.Terraform.Variables.datahub_app_sp_oid,
+            ["datahub_ado_sp_oid"] = _resourceProvisionerConfiguration.Terraform.Variables.datahub_app_sp_oid,
             ["environment_classification"] = _resourceProvisionerConfiguration.Terraform.Variables.environment_classification,
             ["environment_name"] = _resourceProvisionerConfiguration.Terraform.Variables.environment_name,
             ["az_location"] = _resourceProvisionerConfiguration.Terraform.Variables.az_location,
