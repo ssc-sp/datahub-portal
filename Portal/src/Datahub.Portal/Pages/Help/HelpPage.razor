@@ -36,21 +36,7 @@
                 <SupportRequestForm Workspaces="@_ticketWorkspaces" OnSubmit="SubmitFormAsync" />
             </li>
             <li class="d-flex flex-1">
-                <MudPaper Elevation="0" Outlined Class="py-2 px-3 flex-1">
-                    <MudStack>
-                        <MudText Typo="Typo.h2" Class="py-3">@Localizer["Resources"]</MudText>
-                        <MudText Typo="Typo.body1">
-                            @Localizer["Our Resources page has many resources that could be helpful for you. Additional support is available using the {0} Support Request Form.", Localizer["MainAcronym"]]
-                        </MudText>
-                        <MudItem xs="6" Class="py-3">
-                            <DHButton Href="@Localizer[PageRoutes.ResourceSite]" Target="_blank" Variant="Variant.Text"
-                                      Color="Color.Primary" Underline
-                                      EndIcon="@Icons.Material.Filled.KeyboardDoubleArrowRight">
-                                @Localizer["View resources"]
-                            </DHButton>
-                        </MudItem>
-                    </MudStack>
-                </MudPaper>
+                <DocsCardContent />
             </li>
         </ul>
         <MudDivider />

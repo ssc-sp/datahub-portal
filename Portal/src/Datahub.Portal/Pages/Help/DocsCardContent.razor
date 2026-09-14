@@ -1,0 +1,18 @@
+@using GcdsWrapper.Blazor
+
+<MudPaper Elevation="0" Outlined Class="py-2 px-3 flex-1">
+    <MudStack>
+        <GcdsHeading Id="support-request-heading" Tag="h2" MarginTop="200">
+            @Localizer["Documentation"]
+        </GcdsHeading>
+        <GcdsText>
+            @Localizer["Our documentation site has many resources that could be helpful for you. Additional support is available using the {0} Support Request Form.", Localizer["MainAcronym"]]
+        </GcdsText>
+        <MudStack Row Justify="Justify.FlexEnd">
+            <GcdsButton Type="GcdsButtonType.Link" Href="@Localizer[PageRoutes.ResourceSite]" Target="_blank">
+                @Localizer["View Documentation"]
+            </GcdsButton>
+        </MudStack>
+    </MudStack>
+</MudPaper>
+

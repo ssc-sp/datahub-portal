@@ -1,7 +1,9 @@
+@using GcdsWrapper.Blazor
+
 <SkipLink Anchor Type="SkipLinkType.MainContent">
     @if (Title != null)
     {
-        <MudText Typo="Typo.h1">@Title</MudText>
+        <GcdsHeading Tag="h1">@Title</GcdsHeading>
     }
     else
     {

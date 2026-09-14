@@ -3,12 +3,15 @@
 
 <section id="support-request-form" role="region" aria-labelledby="support-request-heading">
     <MudPaper Elevation="0" Outlined Class="py-2 px-3 flex-1">
-        <GcdsHeading Id="support-request-heading" Tag="h2">
+        <GcdsHeading Id="support-request-heading" Tag="h2" MarginTop="200">
             @Localizer["{0} Support Request", Localizer["MainAcronym"]]
         </GcdsHeading>
-        <GcdsStepper CurrentStep="@_currentStep" TotalSteps="@TotalSteps" Tag="h3" lang="@Language">
-            @StepHeading
-        </GcdsStepper>
+        @if (_currentStep > StartStep)
+        {
+            <GcdsStepper CurrentStep="@(_currentStep - StartStep)" TotalSteps="@TotalSteps" Tag="h3" lang="@Language">
+                @StepHeading
+            </GcdsStepper>
+        }
 
         @if (_currentStep == StartStep)
         {
@@ -17,13 +20,15 @@
                 @Localizer["To report an issue or request assistance, please use the {0} Support Request Form", Localizer["MainAcronym"]]
             </GcdsText>
         }
-        else if (_currentStep == DetailsStep)
+        else if (_currentStep == TopicsStep)
         {
             <GcdsCheckboxes Name="support-request-topics"
                             Legend="@Localizer["What are you having trouble with? (Please select all that apply)"]"
                             Options="@TopicOptions"
                             @bind-Value="_selectedTopics" />
-
+        }
+        else if (_currentStep == DescriptionStep)
+        {
             <GcdsTextarea Id="support-request-description"
                           Name="support-request-description"
                           Label="@DescriptionLabel"
@@ -32,7 +37,9 @@
                           Rows="5"
                           @bind-Value="_description"
                           @bind-Value:after="ClearDescriptionError" />
-
+        }
+        else if (_currentStep == WorkspacesStep)
+        {
             @if (Workspaces.Count > 0)
             {
                 <GcdsCheckboxes Name="support-request-workspaces"
@@ -40,7 +47,13 @@
                                 Options="@WorkspaceOptions"
                                 @bind-Value="_selectedWorkspaces" />
             }
-
+            else
+            {
+                <GcdsText>@Localizer["You do not currently have any workspaces to select."]</GcdsText>
+            }
+        }
+        else if (_currentStep == LanguageStep)
+        {
             <GcdsRadios Name="support-request-language"
                         Legend="@Localizer["Please indicate which language you would like to be contacted in."]"
                         Options="@LanguageOptions"
@@ -52,27 +65,25 @@
             <GcdsText>
                 @Localizer["Please confirm the following. If you see any errors, use the Previous button to change them. Otherwise, click Submit to submit your ticket."]
             </GcdsText>
-            <dl class="mt-4">
-                <dt><strong>@Localizer["Ticket Topics"]</strong></dt>
-                <dd>@FormatTopics()</dd>
-                <dt class="mt-3"><strong>@Localizer["Workspaces"]</strong></dt>
-                <dd>@FormatWorkspaces()</dd>
-                <dt class="mt-3"><strong>@Localizer["Ticket Description"]</strong></dt>
-                <dd class="text-pre-wrap">@_description</dd>
-                <dt class="mt-3"><strong>@Localizer["Preferred Contact Language"]</strong></dt>
-                <dd>@PreferredLanguageLabel</dd>
-            </dl>
+            <GcdsText>
+                <ul>
+                    <li><strong>@Localizer["Ticket Topics"]</strong> @FormatTopics()</li>
+                    <li><strong>@Localizer["Workspaces"]</strong> @FormatWorkspaces()</li>
+                    <li><strong>@Localizer["Ticket Description"]</strong> @_description</li>
+                    <li><strong>@Localizer["Preferred Contact Language"]</strong> @PreferredLanguageLabel</li>
+                </ul>
+            </GcdsText>
         }
 
         <MudGrid Class="mt-4">
             <MudItem xs="6" Class="d-flex justify-start">
-                @if (_currentStep == DetailsStep)
+                @if (_currentStep == TopicsStep)
                 {
                     <GcdsButton Type="GcdsButtonType.Button" Role="GcdsButtonRole.Danger" OnClick="BackAsync">
                         @Localizer["Close"]
                     </GcdsButton>
                 }
-                else if (_currentStep == ReviewStep)
+                else if (_currentStep > TopicsStep)
                 {
                     <GcdsButton Type="GcdsButtonType.Button" Role="GcdsButtonRole.Secondary" OnClick="BackAsync">
                         @Localizer["Previous"]
@@ -99,9 +110,12 @@
 
 @code {
     private const int StartStep = 1;
-    private const int DetailsStep = 2;
-    private const int ReviewStep = 3;
-    private const int TotalSteps = 3;
+    private const int TopicsStep = 2;
+    private const int DescriptionStep = 3;
+    private const int WorkspacesStep = 4;
+    private const int LanguageStep = 5;
+    private const int ReviewStep = 6;
+    private const int TotalSteps = 5;
 
     private static readonly string[] TopicValues =
     [
@@ -137,8 +151,10 @@
 
     private string StepHeading => _currentStep switch
     {
-        StartStep => Localizer["Start your support request"],
-        DetailsStep => Localizer["Describe your support request"],
+        TopicsStep => Localizer["Select support request topics"],
+        DescriptionStep => Localizer["Describe your support request"],
+        WorkspacesStep => Localizer["Select affected workspaces"],
+        LanguageStep => Localizer["Choose your preferred contact language"],
         _ => Localizer["Review your support request"]
     };
 
@@ -170,7 +186,7 @@
 
     private Task NextAsync()
     {
-        if (_currentStep == DetailsStep && string.IsNullOrWhiteSpace(_description))
+        if (_currentStep == DescriptionStep && string.IsNullOrWhiteSpace(_description))
         {
             _showDescriptionError = true;
             return Task.CompletedTask;
