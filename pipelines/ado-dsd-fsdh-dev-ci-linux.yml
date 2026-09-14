@@ -25,6 +25,8 @@ pr:
       - "ServerlessOperations/**"
       - "ResourceProvisioner/**"
       - "Directory.Packages.props"
+      - "pipelines/ado-dsd-fsdh-dev-ci-linux.yml"
+
 resources:
   repositories:
     - repository: self
@@ -34,11 +36,11 @@ jobs:
   - job: Job_1
     displayName: "Agent job: prepare"
     pool:
-      vmImage: ubuntu-latest
+      name: GcDc-CTO-ENT-FSDH-Core-EW-ag
     steps:
       - checkout: self
         clean: true
-        lfs: true
+
         fetchTags: false
       - task: UseDotNet@2
         displayName: Use .NET Core sdk 10.0.x
@@ -92,11 +94,10 @@ jobs:
     displayName: Agent job - build portal app
     dependsOn: Job_1
     pool:
-      vmImage: ubuntu-latest
+      name: GcDc-CTO-ENT-FSDH-Core-EW-ag
     steps:
       - checkout: self
         clean: true
-        lfs: true
         fetchTags: false
       - task: UseDotNet@2
         displayName: Use .NET Core sdk 10.0.x
@@ -136,11 +137,10 @@ jobs:
     displayName: Agent job - build function app
     dependsOn: Job_1
     pool:
-      vmImage: ubuntu-latest
+      name: GcDc-CTO-ENT-FSDH-Core-EW-ag
     steps:
       - checkout: self
         clean: true
-        lfs: true
         fetchTags: false
       - task: UseDotNet@2
         displayName: Use .NET Core sdk 10.0.x
@@ -174,11 +174,10 @@ jobs:
     displayName: Agent job - build resource provisioner function app
     dependsOn: Job_1
     pool:
-      vmImage: ubuntu-latest
+      name: GcDc-CTO-ENT-FSDH-Core-EW-ag
     steps:
       - checkout: self
         clean: true
-        lfs: true
         fetchTags: false
       - task: UseDotNet@2
         displayName: Use .NET Core sdk 10.0.x
@@ -211,11 +210,10 @@ jobs:
   - job: Job_6
     displayName: Agent job - package maintenance pages
     pool:
-      vmImage: ubuntu-latest
+      name: GcDc-CTO-ENT-FSDH-Core-EW-ag
     steps:
       - checkout: self
         clean: true
-        lfs: true
         fetchTags: false
       - task: UseDotNet@2
         displayName: Use .NET Core sdk 10.0.x
@@ -248,11 +246,10 @@ jobs:
   - job: Job_7
     displayName: Agent job - build python user provisioner function
     pool:
-      vmImage: ubuntu-latest
+      name: GcDc-CTO-ENT-FSDH-Core-EW-ag
     steps:
       - checkout: self
         clean: true
-        lfs: true
         fetchTags: false
       - task: UsePythonVersion@0
         displayName: Use Python 3.11
@@ -291,11 +288,10 @@ jobs:
       - Job_2
       - Job_3
     pool:
-      vmImage: ubuntu-latest
+      name: GcDc-CTO-ENT-FSDH-Core-EW-ag
     steps:
       - checkout: self
         clean: true
-        lfs: true
         fetchTags: false
         persistCredentials: True
       - task: PowerShell@2
@@ -315,7 +311,7 @@ jobs:
     displayName: Agent job - Portal Testing
     dependsOn: Job_2
     pool:
-      vmImage: ubuntu-latest
+      name: GcDc-CTO-ENT-FSDH-Core-EW-ag
     steps:
       - template: fsdh-portal-tests.yml
 
@@ -323,6 +319,6 @@ jobs:
     displayName: Agent job - Resource Provisioner Testing
     dependsOn: Job_2
     pool:
-      vmImage: ubuntu-latest
+      name: GcDc-CTO-ENT-FSDH-Core-EW-ag
     steps:
       - template: fsdh-resource-provisioner-tests.yml
