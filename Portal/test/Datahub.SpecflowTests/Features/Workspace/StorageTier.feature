@@ -91,6 +91,13 @@ The workspace storage interface displays file tiers and enforces tier-specific b
           | /       | report.csv        |
           | nested/ | nested/report.csv |
 
+    Scenario: Checking a nested selected file tier uses its canonical storage path
+        Given a storage heading in folder "nested/" with selected file "report.csv"
+        When the heading checks selected files for tier "Archive"
+        Then storage tiers should be requested for paths
+          | Path              |
+          | nested/report.csv |
+
     Scenario: Bulk tier changes ignore selected folders
         Given a storage heading with selected files and a folder
         When the heading changes the tier to "Cold"
