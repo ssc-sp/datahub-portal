@@ -1,0 +1,250 @@
+@using System.ComponentModel.DataAnnotations
+@using System.Net.Mail
+@using Datahub.Application.Commands
+@using Datahub.Application.Services
+@using Datahub.Application.Services.UserManagement
+@using Datahub.Core.Model.Achievements
+@using Datahub.Core.Model.Projects
+@using Datahub.Core.Model.Users
+@using GcdsWrapper.Blazor
+@using MudBlazor.Utilities
+@inject IMSGraphService _msGraphService
+@inject IUserEnrollmentService _userEnrollmentService
+@inject IUserInformationService _userInformationService
+
+<section id="entra-invite-form" role="region" aria-labelledby="entra-invite-heading">
+<MudPaper Elevation="0" Outlined Class="px-6 pb-6">
+    <GcdsHeading Id="entra-invite-heading" Tag="h2">
+        @Localizer["Invite New Users"]
+    </GcdsHeading>
+    <GcdsText>
+        @Localizer["Type in the user's email below and select the role to assign."]
+    </GcdsText>
+    <MudStack Row AlignItems="AlignItems.Center">
+        <GcdsInput Id="entra-user-email"
+                   Name="entra-user-email"
+                   Label="@Localizer["User's GC Email"]"
+                   Type="GcdsInputType.Email"
+                   Required
+                   @bind-Value="_userSearch"
+                   Class="flex-grow-1" />
+        <GcdsButton Type="GcdsButtonType.Button"
+                    OnClick="AddUserAsync"
+                    Disabled="@_searchingForUsers">
+            @Localizer["Add user"]
+        </GcdsButton>
+    </MudStack>
+    @if (_error)
+    {
+        <div role="alert" class="mud-error-text mt-2">@_errorMessage</div>
+    }
+    @if (_usersToAdd.Count > 0)
+    {
+        <GcdsHeading Id="pending-users-heading" Tag="h3">
+            @Localizer["Users to be added:"]
+        </GcdsHeading>
+        <ul class="pending-user-list d-flex flex-column gap-4 ma-0 pa-0"
+            style="@PendingUserListStyle" aria-labelledby="pending-users-heading">
+            @foreach (var user in _usersToAdd)
+            {
+                <li class="pending-user-card">
+                    <MudPaper Elevation="0" Outlined Class="pa-4">
+                        <fieldset style="@PendingUserFieldsetStyle">
+                            <legend class="mud-typography mud-typography-h6 mb-3 pa-0">@GetListText(user.Command)</legend>
+                            <MudGrid Spacing="2">
+                                <MudItem xs="12" sm="10">
+                                    <GcdsSelect Id="@user.RoleSelectId" Name="@user.RoleSelectId" Label="@Localizer["Role"]"
+                                                @bind-Value="user.RoleId">
+                                        @foreach (var role in _projectRoles.Where(r => r.Id is not ((int)Project_Role.RoleNames.Removed or (int)Project_Role.RoleNames.WorkspaceLead or (int)Project_Role.RoleNames.DisabledUser)))
+                                        {
+                                            <option value="@role.Id">@Localizer[role.Name]</option>
+                                        }
+                                    </GcdsSelect>
+                                </MudItem>
+                                <MudItem xs="12" sm="2">
+                                    <MudStack Row AlignItems="AlignItems.End" Justify="Justify.FlexEnd" Class="h-100">
+                                        <GcdsButton Type="GcdsButtonType.Button" Role="GcdsButtonRole.Danger" OnClick="() => RemoveUser(user.Command)">
+                                            @Localizer["Remove"]
+                                        </GcdsButton>
+                                    </MudStack>
+                                </MudItem>
+                            </MudGrid>
+                        </fieldset>
+                    </MudPaper>
+                </li>
+            }
+        </ul>
+    }
+    <MudStack Row Justify="Justify.FlexEnd" Class="mt-4">
+        <GcdsButton Type="GcdsButtonType.Button" Role="GcdsButtonRole.Secondary" OnClick="CancelAsync">
+            @Localizer["Cancel"]
+        </GcdsButton>
+        <GcdsButton Type="GcdsButtonType.Button" OnClick="CompleteAsync"
+                    Disabled="@(_usersToAdd.Count == 0)">
+            @Localizer["Add New Users"]
+        </GcdsButton>
+    </MudStack>
+</MudPaper>
+</section>
+
+@code {
+    #nullable enable
+    [Parameter]
+    public string ProjectAcronym { get; set; } = null!;
+
+    [Parameter]
+    public List<UserRoleLinks> CurrentProjectUsers { get; set; } = new();
+
+    [Parameter]
+    public EventCallback<List<ProjectUserAddEntraUserCommand>> OnCompleted { get; set; }
+
+    [Parameter]
+    public EventCallback OnCancelled { get; set; }
+
+    private readonly List<PendingEntraUser> _usersToAdd = new();
+    private int _nextRoleSelectId;
+    private readonly EmailAddressAttribute _emailValidator = new();
+    private string _userSearch = string.Empty;
+    private bool _searchingForUsers;
+    private bool _error;
+    private string _errorMessage = string.Empty;
+    private IEnumerable<Project_Role> _projectRoles = Enumerable.Empty<Project_Role>();
+
+    private static readonly string PendingUserListStyle = new StyleBuilder()
+        .AddStyle("list-style-type", "none")
+        .Build();
+
+    private static readonly string PendingUserFieldsetStyle = new StyleBuilder()
+        .AddStyle("width", "100%")
+        .AddStyle("min-width", "0")
+        .AddStyle("margin", "0")
+        .AddStyle("padding", "0")
+        .AddStyle("border", "0")
+        .Build();
+
+    private const string RemoveUserIcon = "fa-duotone fa-trash-can-slash";
+    private const string UserExistsError = "The user is already a member of this workspace";
+    private const string NotValidEmailError = "Please enter a valid GC email address";
+
+    protected override void OnInitialized()
+    {
+        _projectRoles = Project_Role.GetAll().ToList();
+    }
+
+    private async Task AddUserAsync()
+    {
+        var search = _userSearch.Trim();
+        if (string.IsNullOrWhiteSpace(search)
+            || !_emailValidator.IsValid(search)
+            || !search.EndsWith(".gc.ca", StringComparison.OrdinalIgnoreCase))
+        {
+            ShowError(NotValidEmailError);
+            return;
+        }
+
+        _searchingForUsers = true;
+        try
+        {
+            var existingUsers = await _msGraphService.GetUsersListAsync(search, CancellationToken.None);
+            var user = existingUsers.Values.FirstOrDefault(candidate =>
+                candidate.Mail.Equals(search, StringComparison.OrdinalIgnoreCase));
+
+            user ??= new GraphUser
+            {
+                MailAddress = new MailAddress(search),
+                DisplayName = Localizer["Add New User"],
+                Id = ProjectUserAddEntraUserCommand.NEW_USER_GUID
+            };
+
+            await AddUserAsync(user);
+        }
+        finally
+        {
+            _searchingForUsers = false;
+        }
+    }
+
+    private async Task AddUserAsync(GraphUser user)
+    {
+        if (string.IsNullOrWhiteSpace(user.Id))
+        {
+            ShowError(NotValidEmailError);
+            return;
+        }
+
+        if (CurrentProjectUsers.Any(projectUser => projectUser.PortalUser.Email.Equals(user.Mail, StringComparison.OrdinalIgnoreCase))
+            || _usersToAdd.Any(pendingUser => pendingUser.Command.Email.Equals(user.Mail, StringComparison.OrdinalIgnoreCase)))
+        {
+            ShowError(UserExistsError);
+            return;
+        }
+
+        if (user.Id.Equals(ProjectUserAddEntraUserCommand.NEW_USER_GUID) && !_userEnrollmentService.IsValidGcEmail(user.Mail))
+        {
+            ShowError(NotValidEmailError);
+            return;
+        }
+
+        ClearError();
+        var addUserCommand = new ProjectUserAddEntraUserCommand
+        {
+            ProjectAcronym = ProjectAcronym,
+            GraphGuid = user.Id,
+            Email = user.Mail,
+            DisplayName = user.DisplayName,
+            RoleId = (int)Project_Role.RoleNames.Guest
+        };
+
+        if (!user.Id.Equals(ProjectUserAddEntraUserCommand.NEW_USER_GUID))
+        {
+            addUserCommand.PortalUser = await _userInformationService.GetEntraUserAsync(user.Id);
+        }
+
+        _usersToAdd.Add(new PendingEntraUser(addUserCommand, $"role-{_nextRoleSelectId++}"));
+        _userSearch = string.Empty;
+    }
+
+    private void ShowError(string message)
+    {
+        _error = true;
+        _errorMessage = Localizer[message];
+    }
+
+    private void ClearError()
+    {
+        _error = false;
+        _errorMessage = string.Empty;
+    }
+
+    private void RemoveUser(ProjectUserAddEntraUserCommand user)
+    {
+        _usersToAdd.RemoveAll(u => u.Command.Email.Equals(user.Email, StringComparison.OrdinalIgnoreCase));
+    }
+
+    private static string GetListText(ProjectUserAddEntraUserCommand command)
+        => command.GraphGuid == ProjectUserAddEntraUserCommand.NEW_USER_GUID ? command.Email : command.DisplayName;
+
+    private Task CompleteAsync() => OnCompleted.InvokeAsync(_usersToAdd.Select(user => user.Command).ToList());
+
+    private Task CancelAsync() => OnCancelled.InvokeAsync();
+
+    private sealed class PendingEntraUser(ProjectUserAddEntraUserCommand command, string roleSelectId)
+    {
+        public ProjectUserAddEntraUserCommand Command { get; } = command;
+
+        public string RoleSelectId { get; } = roleSelectId;
+
+        public string RoleId
+        {
+            get => Command.RoleId.ToString(System.Globalization.CultureInfo.InvariantCulture);
+            set
+            {
+                if (int.TryParse(value, System.Globalization.NumberStyles.Integer,
+                    System.Globalization.CultureInfo.InvariantCulture, out var roleId))
+                {
+                    Command.RoleId = roleId;
+                }
+            }
+        }
+    }
+}
