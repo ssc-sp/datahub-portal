@@ -5,6 +5,8 @@ using Datahub.Application.Services.Storage;
 using Datahub.Core.Model.Context;
 using Datahub.Infrastructure.Queues.Messages;
 using Datahub.Infrastructure.Services.Helpers;
+using Datahub.Functions.Domain.Exceptions;
+using Azure;
 using FluentAssertions;
 using MassTransit;
 using Microsoft.EntityFrameworkCore;
@@ -143,6 +145,52 @@ namespace Datahub.Functions.UnitTests
 
             // Assert
             result.Should().Be((2, 2));
+        }
+
+        [Test]
+        public async Task RunScheduler_ShouldNotPublishAnything_WhenCostQueryIsThrottled()
+        {
+            // Arrange
+            var projects = new List<string>
+            {
+                TestHelper.ACTIVE_WEB_APP_PROJECT_ACRONYM,
+                TestHelper.TEST_PROJECT_ACRONYM
+            };
+            var throttlingException = new RequestFailedException((int)HttpStatusCode.TooManyRequests,
+                "Too many requests");
+            _workspaceCostMgmtServiceMock.Setup(s => s.QuerySubscriptionCostsAsync(It.IsAny<string>(),
+                    It.IsAny<DateTime>(), It.IsAny<DateTime>(), QueryGranularity.Daily,
+                    It.IsAny<List<string>>(), It.IsAny<CancellationToken>()))
+                .ThrowsAsync(throttlingException);
+
+            var mockedScheduler = new Mock<ProjectUsageScheduler>(
+                _logger,
+                _dbContextFactory,
+                _sendEndpointProviderMock.Object,
+                _workspaceCostMgmtServiceMock.Object,
+                _workspaceStorageMgmtServiceMock.Object,
+                _rgMgmtServiceMock.Object,
+                Testing._configuration)
+            {
+                CallBase = true
+            };
+            mockedScheduler.Setup(s => s.PostToBlob(It.IsAny<List<DailyServiceCost>>(),
+                    It.IsAny<List<DailyServiceCost>>()))
+                .ReturnsAsync(("costs", "totals"));
+            mockedScheduler.Setup(s => s.SendMessagesIfNeeded(It.IsAny<ProjectUsageUpdateMessage>(),
+                    It.IsAny<DatahubProjectDBContext>()))
+                .ReturnsAsync((true, true));
+
+            // Act
+            var action = () => mockedScheduler.Object.RunScheduler(projects);
+
+            // Assert
+            var exception = await action.Should().ThrowAsync<CostQueryException>();
+            exception.Which.InnerException.Should().BeSameAs(throttlingException);
+            mockedScheduler.Verify(s => s.PostToBlob(It.IsAny<List<DailyServiceCost>>(),
+                It.IsAny<List<DailyServiceCost>>()), Times.Never);
+            mockedScheduler.Verify(s => s.SendMessagesIfNeeded(It.IsAny<ProjectUsageUpdateMessage>(),
+                It.IsAny<DatahubProjectDBContext>()), Times.Never);
         }
 
         [Test]

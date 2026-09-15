@@ -32,6 +32,10 @@ namespace Datahub.SpecflowTests.Hooks
                 .AddEnvironmentVariables()
                 .AddUserSecrets<Hooks>()
                 .AddJsonFile("appsettings.test.json", optional: true)
+                .AddInMemoryCollection(new Dictionary<string, string?>
+                {
+                    ["CostManagementQueryIntervalSeconds"] = "0"
+                })
                 .Build();
 
             var datahubPortalConfiguration = new DatahubPortalConfiguration();
@@ -48,7 +52,7 @@ namespace Datahub.SpecflowTests.Hooks
 
             var workspaceRgManagementService = Substitute.For<IWorkspaceResourceGroupsManagementService>();
             var workspaceCostsManagementService = new WorkspaceCostManagementService(armClient, logger,
-                dbContextFactory, workspaceRgManagementService);
+                dbContextFactory, workspaceRgManagementService, configuration);
 
             var mockRgId1 = new ResourceIdentifier(
                 $"/subscriptions/{Testing.WorkspaceSubscriptionGuid}/resourceGroups/{Testing.ResourceGroupName1}");
@@ -115,6 +119,10 @@ namespace Datahub.SpecflowTests.Hooks
                 .AddEnvironmentVariables()
                 .AddUserSecrets<Hooks>()
                 .AddJsonFile("appsettings.test.json", optional: true)
+                .AddInMemoryCollection(new Dictionary<string, string?>
+                {
+                    ["CostManagementQueryIntervalSeconds"] = "0"
+                })
                 .Build();
 
             var datahubPortalConfiguration = new DatahubPortalConfiguration();
@@ -131,7 +139,7 @@ namespace Datahub.SpecflowTests.Hooks
 
             var workspaceRgManagementService = Substitute.For<IWorkspaceResourceGroupsManagementService>();
             var workspaceCostsManagementService = new WorkspaceCostManagementService(armClient, logger,
-                dbContextFactory, workspaceRgManagementService);
+                dbContextFactory, workspaceRgManagementService, configuration);
 
             var mockRgId1 = new ResourceIdentifier(
                 $"/subscriptions/{Testing.WorkspaceSubscriptionGuid}/resourceGroups/{Testing.ResourceGroupName1}");
