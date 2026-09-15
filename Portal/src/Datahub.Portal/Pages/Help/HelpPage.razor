@@ -1,3 +1,4 @@
+@using Datahub.Core.Model.Projects
 @using Datahub.Core.Model.Users
 @using Datahub.Infrastructure.Extensions
 @using Datahub.Infrastructure.Queues.Messages
@@ -70,21 +71,17 @@
         _ticketPortalLanguage = await _userSettingsService.GetUserLanguage();
 
         await using var dbContext = await _dbContextFactory.CreateDbContextAsync();
-        var userRoles = await dbContext.UserRolesLinks
-            .Include(userRole => userRole.Role)
-            .Include(userRole => userRole.Project)
-            .ThenInclude(project => project.UserRoles)
-            .Include(userRole => userRole.PortalUser)
-            .Where(userRole => userRole.PortalUser == _viewedUser)
+        var currentTime = DateTime.UtcNow;
+        var workspaceNames = await dbContext.UserRolesLinks
+            .Where(userRole => userRole.PortalUserId == _viewedUser.Id
+                && (userRole.Project.Deleted_DT == null || userRole.Project.Deleted_DT >= currentTime)
+                && userRole.RoleId != (int)Project_Role.RoleNames.Removed
+                && userRole.RoleId != (int)Project_Role.RoleNames.DisabledUser)
+            .Select(userRole => userRole.Project.Project_Name)
+            .Distinct()
             .ToListAsync();
 
-        foreach (var project in userRoles.Select(userRole => userRole.Project).Where(project => !project.IsDeleted))
-        {
-            if (!_ticketWorkspaces.Contains(project.Project_Name, StringComparer.Ordinal))
-            {
-                _ticketWorkspaces.Add(project.Project_Name);
-            }
-        }
+        _ticketWorkspaces.AddRange(workspaceNames);
     }
 
     protected override async Task OnAfterRenderAsync(bool firstRender)
