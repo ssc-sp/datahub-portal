@@ -38,14 +38,12 @@ public class ProjectUsageScheduler(
     private readonly AzureConfig _azConfig = new(config);
     private bool _forceUpdate = false;
     private const int WORKSPACE_UPDATE_LIMIT = 100;
-    private static readonly TimeSpan CostQueryDelay = TimeSpan.FromHours(1);
-    private static readonly object CostQueryThrottleLock = new();
-    private static DateTime _nextCostQueryAllowedAt = DateTime.MinValue;
 
     [Function("ProjectUsageScheduler")]
-    public async Task Run([TimerTrigger("%ProjectUsageCRON%")] TimerInfo timerInfo)
+    public async Task Run([TimerTrigger("%ProjectUsageCRON%")] TimerInfo timerInfo,
+        CancellationToken cancellationToken = default)
     {
-        await RunScheduler();
+        await RunScheduler(cancellationToken: cancellationToken);
     }
 
     /*
@@ -58,7 +56,8 @@ public class ProjectUsageScheduler(
     [Function("ProjectUsageSchedulerHttp")]
     public async Task<HttpResponseData> RunHttp(
         [HttpTrigger(AuthorizationLevel.Function, "get", "post", Route = null)]
-        HttpRequestData req)
+        HttpRequestData req,
+        CancellationToken cancellationToken = default)
     {
         logger.LogInformation("Processing manual project usage request");
         var body = await req.ReadAsStringAsync();
@@ -76,7 +75,7 @@ public class ProjectUsageScheduler(
         _forceUpdate = schedulerRequest.Acronyms.Count != 0; // If acronyms are given, we force update for those projects
         logger.LogInformation("Manual rollover is set to: {ManualRollover}", schedulerRequest.ManualRollover);
         logger.LogInformation("Acronyms: {Acronyms}", schedulerRequest.Acronyms);
-        await RunScheduler(schedulerRequest.Acronyms, schedulerRequest.ManualRollover);
+        await RunScheduler(schedulerRequest.Acronyms, schedulerRequest.ManualRollover, cancellationToken);
         var responseOk = req.CreateResponse(HttpStatusCode.OK);
         responseOk.Headers.Add("Content-Type", "text/plain; charset=utf-8");
         await responseOk.WriteStringAsync("Request processed for manual project usage update" +
@@ -85,7 +84,8 @@ public class ProjectUsageScheduler(
         return responseOk;
     }
 
-    internal async Task<(int, int)> RunScheduler(List<string>? acronyms = default, bool manualRollover = false)
+    internal async Task<(int, int)> RunScheduler(List<string>? acronyms = default, bool manualRollover = false,
+        CancellationToken cancellationToken = default)
     {
         // Arrange
         logger.LogInformation("Running project usage scheduler");
@@ -108,7 +108,7 @@ public class ProjectUsageScheduler(
         // Query and aggregate costs
         logger.LogInformation("Querying and aggregating costs for {Count} subscriptions", subIds.Count);
         var aggregateTime = Stopwatch.StartNew();
-        var (allCosts, allTotals) = await AggregateCosts(subIds);
+        var (allCosts, allTotals) = await AggregateCosts(subIds, cancellationToken);
         aggregateTime.Stop();
         logger.LogInformation("Aggregated costs for {Count} subscriptions in {Time}ms", subIds.Count,
             aggregateTime.ElapsedMilliseconds);
@@ -227,7 +227,8 @@ public class ProjectUsageScheduler(
     }
 
 
-    internal async Task<(List<DailyServiceCost>, List<DailyServiceCost>)> AggregateCosts(List<string> subIds)
+    internal async Task<(List<DailyServiceCost>, List<DailyServiceCost>)> AggregateCosts(List<string> subIds,
+        CancellationToken cancellationToken = default)
     {
         try
         {
@@ -237,61 +238,40 @@ public class ProjectUsageScheduler(
 
             foreach (var subId in subIds)
             {
-                if (ShouldBypassCostQueries())
-                {
-                    logger.LogWarning(
-                        "Skipping cost query for all subscriptions until {NextCostQueryAllowedAt:O} because a previous Azure cost query hit a 429.",
-                        _nextCostQueryAllowedAt);
-                    break;
-                }
+                var rgNames = await rgMgmtService.GetAllSubscriptionResourceGroupsAsync(subId);
+                var costs = await workspaceCostMgmtService.QuerySubscriptionCostsAsync(subId,
+                    DateTime.UtcNow.Date.AddDays(-7),
+                    DateTime.UtcNow.Date, QueryGranularity.Daily, rgNames, cancellationToken);
 
+                var totals = await workspaceCostMgmtService.QuerySubscriptionCostsAsync(subId, startFiscalYear,
+                    DateTime.UtcNow.Date, QueryGranularity.Total, rgNames, cancellationToken);
 
-                try
-                {
-                    var rgNames = await rgMgmtService.GetAllSubscriptionResourceGroupsAsync(subId);
-                    var costs = await workspaceCostMgmtService.QuerySubscriptionCostsAsync(subId,
-                        DateTime.UtcNow.Date.AddDays(-7),
-                        DateTime.UtcNow.Date, QueryGranularity.Daily, rgNames);
-
-                    var totals = await workspaceCostMgmtService.QuerySubscriptionCostsAsync(subId, startFiscalYear,
-                        DateTime.UtcNow.Date, QueryGranularity.Total, rgNames);
-
-                    allCosts.AddRange(costs);
-                    allTotals.AddRange(totals);
-                }
-                catch (RequestFailedException ex) when (ex.Status == (int)HttpStatusCode.TooManyRequests)
-                {
-                    ApplyCostQueryThrottle();
-                    logger.LogWarning(ex,
-                        "Azure cost query hit 429 for subscription {SubscriptionId}. Skipping all future cost queries for {Delay}.",
-                        subId, CostQueryDelay);
-                    throw;
-                }
+                allCosts.AddRange(costs);
+                allTotals.AddRange(totals);
             }
 
             return (allCosts, allTotals);
         }
+        catch (RequestFailedException e) when (e.Status == (int)HttpStatusCode.TooManyRequests)
+        {
+            var response = e.GetRawResponse();
+            logger.LogError(e,
+                "Azure Cost Management throttled the scheduler. ClientTypeRetryAfter={ClientTypeRetryAfter}, QpuRetryAfter={QpuRetryAfter}, QpuRemaining={QpuRemaining}",
+                GetHeader(response, "x-ms-ratelimit-microsoft.costmanagement-clienttype-retry-after"),
+                GetHeader(response, "x-ms-ratelimit-microsoft.costmanagement-qpu-retry-after"),
+                GetHeader(response, "x-ms-ratelimit-microsoft.costmanagement-qpu-remaining"));
+            throw new CostQueryException($"Error while aggregating costs: {e.Message}", e);
+        }
         catch (Exception e)
         {
             logger.LogError(e, "Error while aggregating costs");
-            throw new CostQueryException($"Error while aggregating costs: {e.Message}");
+            throw new CostQueryException($"Error while aggregating costs: {e.Message}", e);
         }
     }
 
-    private static bool ShouldBypassCostQueries()
+    private static string? GetHeader(Azure.Response? response, string name)
     {
-        lock (CostQueryThrottleLock)
-        {
-            return DateTime.UtcNow < _nextCostQueryAllowedAt;
-        }
-    }
-
-    private static void ApplyCostQueryThrottle()
-    {
-        lock (CostQueryThrottleLock)
-        {
-            _nextCostQueryAllowedAt = DateTime.UtcNow.Add(CostQueryDelay);
-        }
+        return response?.Headers.TryGetValue(name, out var value) == true ? value : null;
     }
 
     internal async Task<string> UploadToBlob(string key, string date, Guid guid, List<DailyServiceCost> list)

@@ -12,7 +12,7 @@
 
     public class RolloverException(string message) : Exception(message);
 
-    public class CostQueryException(string message) : Exception(message);
+    public class CostQueryException(string message, Exception? innerException = null) : Exception(message, innerException);
 
     public class ProjectFilteringException(string message) : Exception(message);
 

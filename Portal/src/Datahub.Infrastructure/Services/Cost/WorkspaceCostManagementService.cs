@@ -1,6 +1,8 @@
 ﻿using System.Globalization;
+using System.Diagnostics;
 using System.Runtime.CompilerServices;
 using System.Text.Json;
+using Azure;
 using Azure.Core;
 using Azure.ResourceManager;
 using Azure.ResourceManager.CostManagement;
@@ -10,9 +12,11 @@ using Datahub.Application.Services.ResourceGroups;
 using Datahub.Core.Model.Context;
 using Datahub.Core.Model.Projects;
 using Microsoft.EntityFrameworkCore;
+using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.Logging;
 
 [assembly: InternalsVisibleTo("Datahub.Infrastructure.UnitTests")]
+[assembly: InternalsVisibleTo("DynamicProxyGenAssembly2")]
 
 namespace Datahub.Infrastructure.Services.Cost
 {
@@ -20,7 +24,8 @@ namespace Datahub.Infrastructure.Services.Cost
         ArmClient armClient,
         ILogger<WorkspaceCostManagementService> logger,
         IDbContextFactory<DatahubProjectDBContext> dbContextFactory,
-        IWorkspaceResourceGroupsManagementService rgMgmtService)
+        IWorkspaceResourceGroupsManagementService rgMgmtService,
+        IConfiguration? configuration = null)
         : IWorkspaceCostManagementService
     {
         private const string COST_COLUMN = "Cost";
@@ -31,6 +36,8 @@ namespace Datahub.Infrastructure.Services.Cost
         private const decimal DIFFERENCE_THRESHOLD = (decimal)0.1;
         private const decimal REFRESH_THRESHOLD = 5;
         private static readonly TimeSpan UPDATE_THRESHOLD = TimeSpan.FromHours(2);
+        private readonly CostManagementQueryGate _queryGate = new(TimeSpan.FromSeconds(Math.Max(0,
+            configuration?.GetValue<double?>("CostManagementQueryIntervalSeconds") ?? 12)));
 
         #region Implementations
 
@@ -137,7 +144,8 @@ namespace Datahub.Infrastructure.Services.Cost
         /// <inheritdoc />
         public async Task<List<DailyServiceCost>> QuerySubscriptionCostsAsync(string subscriptionId,
             DateTime startDate,
-            DateTime endDate, QueryGranularity granularity, List<string>? rgNames = default)
+            DateTime endDate, QueryGranularity granularity, List<string>? rgNames = default,
+            CancellationToken cancellationToken = default)
         {
             ValidateDateRange(startDate, endDate);
             if (!subscriptionId.Contains("/"))
@@ -145,16 +153,18 @@ namespace Datahub.Infrastructure.Services.Cost
                 subscriptionId = $"/subscriptions/{subscriptionId}";
             }
 
-            var queryResult = await QueryScopeCostsAsync(subscriptionId, startDate, endDate, granularity, rgNames);
+            var queryResult = await QueryScopeCostsAsync(subscriptionId, startDate, endDate, granularity, rgNames,
+                cancellationToken);
             return queryResult;
         }
 
         /// <inheritdoc />
         public async Task<List<DailyServiceCost>> QueryScopeCostsAsync(string scopeId, DateTime startDate,
-            DateTime endDate, QueryGranularity granularity, List<string>? rgNames = default)
+            DateTime endDate, QueryGranularity granularity, List<string>? rgNames = default,
+            CancellationToken cancellationToken = default)
         {
             ValidateDateRange(startDate, endDate);
-            using var ctx = await dbContextFactory.CreateDbContextAsync();
+            using var ctx = await dbContextFactory.CreateDbContextAsync(cancellationToken);
             var scope = new ResourceIdentifier(scopeId);
 
             if (scope is null)
@@ -182,31 +192,66 @@ namespace Datahub.Infrastructure.Services.Cost
                 }
             }
 
-            var queryResults = new List<QueryResult>();
-            string nextLink;
-            var lastDate = startDate;
-            do
-            {
-                var query = BuildQueryDefinition(rgNames, lastDate, endDate, granularity);
-                var response = await armClient.UsageQueryAsync(scope, query);
-
-                if (!response.HasValue)
-                {
-                    throw new Exception($"Could not get cost data for scope {scopeId}");
-                }
-
-                var result = response.Value;
-                queryResults.Add(result);
-                lastDate = granularity == QueryGranularity.Daily ? (GetLastDate(result) ?? endDate) : endDate;
-                nextLink = result.NextLink;
-            } while (!string.IsNullOrEmpty(nextLink));
+            var queryResults = await QueryRangeAsync(scope, rgNames, startDate.Date, endDate.Date, granularity,
+                cancellationToken);
 
             return ParseQueryResult(queryResults);
         }
 
+        private async Task<List<QueryResult>> QueryRangeAsync(ResourceIdentifier scope, List<string> rgNames,
+            DateTime startDate, DateTime endDate, QueryGranularity granularity,
+            CancellationToken cancellationToken)
+        {
+            await _queryGate.WaitAsync(cancellationToken);
+            var query = BuildQueryDefinition(rgNames, startDate, endDate, granularity);
+            logger.LogInformation(
+                "Querying Azure costs for scope {Scope}, granularity {Granularity}, from {StartDate:yyyy-MM-dd} to {EndDate:yyyy-MM-dd}",
+                scope, granularity, startDate, endDate);
+
+            var startedAt = Stopwatch.GetTimestamp();
+            var response = await ExecuteUsageQueryAsync(scope, query, cancellationToken);
+            logger.LogInformation(
+                "Azure cost query for scope {Scope} and granularity {Granularity} completed in {ElapsedMilliseconds}ms",
+                scope, granularity, Stopwatch.GetElapsedTime(startedAt).TotalMilliseconds);
+
+            if (!response.HasValue)
+            {
+                throw new Exception($"Could not get cost data for scope {scope}");
+            }
+
+            var result = response.Value;
+            if (string.IsNullOrEmpty(result.NextLink))
+            {
+                return [result];
+            }
+
+            if (startDate >= endDate)
+            {
+                throw new InvalidOperationException(
+                    $"Azure Cost Management returned a paginated response for the single-day range {startDate:yyyy-MM-dd} at scope {scope}.");
+            }
+
+            var midpoint = startDate.AddDays((endDate - startDate).Days / 2);
+            logger.LogWarning(
+                "Azure cost query for scope {Scope} returned a continuation link. Splitting {StartDate:yyyy-MM-dd} to {EndDate:yyyy-MM-dd} at {Midpoint:yyyy-MM-dd}.",
+                scope, startDate, endDate, midpoint);
+
+            var left = await QueryRangeAsync(scope, rgNames, startDate, midpoint, granularity, cancellationToken);
+            var right = await QueryRangeAsync(scope, rgNames, midpoint.AddDays(1), endDate, granularity,
+                cancellationToken);
+            left.AddRange(right);
+            return left;
+        }
+
+        internal virtual Task<Response<QueryResult>> ExecuteUsageQueryAsync(ResourceIdentifier scope,
+            QueryDefinition query, CancellationToken cancellationToken)
+        {
+            return armClient.UsageQueryAsync(scope, query, cancellationToken);
+        }
+
         /// <inheritdoc />
         public async Task<List<DailyServiceCost>> QueryWorkspaceCostsAsync(string workspaceAcronym, DateTime startDate,
-            DateTime endDate, QueryGranularity granularity)
+            DateTime endDate, QueryGranularity granularity, CancellationToken cancellationToken = default)
         {
             ValidateDateRange(startDate, endDate);
             var rgIds = await rgMgmtService.GetWorkspaceResourceGroupsIdentifiersAsync(workspaceAcronym);
@@ -215,7 +260,7 @@ namespace Datahub.Infrastructure.Services.Cost
             foreach (var rgId in rgIds)
             {
                 var rgCosts = await QueryScopeCostsAsync(rgId.ToString(), startDate, DateTime.UtcNow,
-                    granularity);
+                    granularity, cancellationToken: cancellationToken);
 
                 workspaceCosts.AddRange(rgCosts);
             }
@@ -520,7 +565,7 @@ namespace Datahub.Infrastructure.Services.Cost
         /// <returns>A List of DailyServiceCosts</returns>
         internal List<DailyServiceCost> ParseQueryResult(List<QueryResult> queryResults)
         {
-            var lstDailyCosts = new HashSet<DailyServiceCost>();
+            var lstDailyCosts = new List<DailyServiceCost>();
 
             queryResults.ForEach(queryResult =>
             {
@@ -555,7 +600,7 @@ namespace Datahub.Infrastructure.Services.Cost
                     });
                 });
             });
-            return lstDailyCosts.ToList();
+            return lstDailyCosts;
         }
 
         /// <summary>

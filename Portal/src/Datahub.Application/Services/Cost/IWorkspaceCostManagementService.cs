@@ -54,9 +54,11 @@ namespace Datahub.Application.Services.Cost
         /// Total will only fetch totals per resource groups</param>
         /// <param name="rgNames">Optional list of resource group names to filter for. If not provided, will make
         /// the queries to find them</param>
+        /// <param name="cancellationToken">The cancellation token to use</param>
         /// <returns>A List containing all daily service costs</returns>
         public Task<List<DailyServiceCost>> QuerySubscriptionCostsAsync(string subscriptionId, DateTime startDate,
-            DateTime endDate, QueryGranularity granularity, List<string>? rgNames = default);
+            DateTime endDate, QueryGranularity granularity, List<string>? rgNames = default,
+            CancellationToken cancellationToken = default);
 
         /// <summary>
         /// Queries the given scopes for costs within the given date range. Daily granularity.
@@ -68,10 +70,12 @@ namespace Datahub.Application.Services.Cost
         /// Total will only fetch totals per resource groups</param>
         /// <param name="rgNames">Optional list of resource group names to filter for. If not provided, will make
         /// the queries to find them</param>
+        /// <param name="cancellationToken">The cancellation token to use</param>
         /// <returns>A List containing all daily service costs or null if the query was throttled</returns>
         /// <exception cref="Exception">Throws exception if the query was incorrect or if it was throttled</exception>
         public Task<List<DailyServiceCost>> QueryScopeCostsAsync(string scopeId, DateTime startDate,
-            DateTime endDate, QueryGranularity granularity, List<string>? rgNames = default);
+            DateTime endDate, QueryGranularity granularity, List<string>? rgNames = default,
+            CancellationToken cancellationToken = default);
 
         /// <summary>
         /// Queries the costs for the given workspace acronym within the given date range.
@@ -81,9 +85,10 @@ namespace Datahub.Application.Services.Cost
         /// <param name="endDate">The end date of the filter</param>
         /// <param name="granularity">The granularity of the query. Daily will do a very granular and detailed query and
         /// Total will only fetch totals per resource groups</param>
+        /// <param name="cancellationToken">The cancellation token to use</param>
         /// <returns>A List containing all daily service costs or null if the query was throttled. A daily service cost is a cost caused by one service during one day.</returns>
         public Task<List<DailyServiceCost>> QueryWorkspaceCostsAsync(string workspaceAcronym, DateTime startDate,
-            DateTime endDate, QueryGranularity granularity);
+            DateTime endDate, QueryGranularity granularity, CancellationToken cancellationToken = default);
 
         #endregion
     }

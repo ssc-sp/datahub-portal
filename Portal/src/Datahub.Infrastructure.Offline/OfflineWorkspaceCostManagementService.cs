@@ -26,19 +26,19 @@ namespace Datahub.Infrastructure.Offline
         }
 
         public Task<List<DailyServiceCost>> QuerySubscriptionCostsAsync(string subscriptionId, DateTime startDate, DateTime endDate,
-            QueryGranularity granularity, List<string>? rgNames = default)
+            QueryGranularity granularity, List<string>? rgNames = default, CancellationToken cancellationToken = default)
         {
             throw new NotImplementedException();
         }
 
         public Task<List<DailyServiceCost>> QueryScopeCostsAsync(string scopeId, DateTime startDate, DateTime endDate, QueryGranularity granularity,
-            List<string>? rgNames = default)
+            List<string>? rgNames = default, CancellationToken cancellationToken = default)
         {
             throw new NotImplementedException();
         }
 
         public Task<List<DailyServiceCost>> QueryWorkspaceCostsAsync(string workspaceAcronym, DateTime startDate, DateTime endDate,
-            QueryGranularity granularity)
+            QueryGranularity granularity, CancellationToken cancellationToken = default)
         {
             throw new NotImplementedException();
         }

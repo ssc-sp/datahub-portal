@@ -1,4 +1,5 @@
 using Azure.Core;
+using Azure.Core.Pipeline;
 using Azure.Identity;
 using Azure.ResourceManager;
 using Datahub.Application.Services;
@@ -175,6 +176,17 @@ public static class ConfigureServices
                 builder.AddClient<ArmClient, ArmClientOptions>(options =>
                 {
                     options.Diagnostics.IsLoggingEnabled = true;
+                    options.Diagnostics.LoggedHeaderNames.Add("x-ms-ratelimit-microsoft.costmanagement-clienttype-retry-after");
+                    options.Diagnostics.LoggedHeaderNames.Add("x-ms-ratelimit-remaining-microsoft.costmanagement-clienttype-requests");
+                    options.Diagnostics.LoggedHeaderNames.Add("x-ms-ratelimit-microsoft.costmanagement-qpu-retry-after");
+                    options.Diagnostics.LoggedHeaderNames.Add("x-ms-ratelimit-microsoft.costmanagement-qpu-consumed");
+                    options.Diagnostics.LoggedHeaderNames.Add("x-ms-ratelimit-microsoft.costmanagement-qpu-remaining");
+                    options.Diagnostics.LoggedHeaderNames.Add("x-ms-ratelimit-remaining-microsoft.costmanagement-tenant-requests");
+                    options.Diagnostics.LoggedHeaderNames.Add("x-ms-ratelimit-remaining-microsoft.costmanagement-entity-requests");
+                    options.Diagnostics.LoggedHeaderNames.Add("x-ms-failure-cause");
+                    var clientType = configuration.GetValue<string>("CostManagementClientType") ??
+                                     "FederalScienceDataHub";
+                    options.AddPolicy(new CostManagementClientTypePolicy(clientType), HttpPipelinePosition.PerCall);
                     options.Retry.Mode = RetryMode.Exponential;
                     options.Retry.MaxRetries = 5;
                     options.Retry.Delay = TimeSpan.FromSeconds(2);

@@ -21,7 +21,7 @@ public class CheckInfrastructureStatus(ILoggerFactory loggerFactory, HealthCheck
     /// <param name="timerInfo"></param>
     /// <returns>An OkObjectResult containing the results for all infrastructure tests.</returns>
     [Function("CheckInfrastructureScheduled")]
-    public async Task<IActionResult> RunCheckTimer([TimerTrigger("%ProjectUsageCRON%")] TimerInfo timerInfo)
+    public async Task<IActionResult> RunCheckTimer([TimerTrigger("%InfrastructureHealthCheckCRON%")] TimerInfo timerInfo)
     {
         _logger.LogInformation($"C# Timer trigger function executed at: {DateTime.Now}");
         var results = await healthCheckHelper.RunAllChecks();
