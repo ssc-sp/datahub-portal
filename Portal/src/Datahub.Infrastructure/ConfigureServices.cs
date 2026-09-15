@@ -160,7 +160,7 @@ public static class ConfigureServices
         services.AddSingleton<IWorkspaceBudgetManagementService, WorkspaceBudgetManagementService>();
         services.AddSingleton<IWorkspaceCostManagementService, WorkspaceCostManagementService>();
         services.AddSingleton<IWorkspaceResourceGroupsManagementService, WorkspaceResourceGroupsManagementService>();
-        services.AddSingleton<IWorkspaceStorageManagementService, WorkspaceStorageManagementService>();
+        services.AddScoped<IWorkspaceStorageManagementService, WorkspaceStorageManagementService>();
         services.AddSingleton<IServiceBusConfiguration, NoServiceBusConfiguration>();
 
         services.AddScoped<HealthCheckHelper>();

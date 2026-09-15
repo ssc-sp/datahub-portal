@@ -76,7 +76,7 @@ builder.Services.AddSingleton<IKeyVaultCoreService, KeyVaultCoreService>();
 builder.Services.AddSingleton<IWorkspaceBudgetManagementService, WorkspaceBudgetManagementService>();
 builder.Services.AddSingleton<IWorkspaceCostManagementService, WorkspaceCostManagementService>();
 builder.Services.AddSingleton<IWorkspaceResourceGroupsManagementService, WorkspaceResourceGroupsManagementService>();
-builder.Services.AddSingleton<IWorkspaceStorageManagementService, WorkspaceStorageManagementService>();
+builder.Services.AddScoped<IWorkspaceStorageManagementService, WorkspaceStorageManagementService>();
 // IServiceBusConfiguration is only required to create workspace definitions shouldn't be required here
 builder.Services.AddSingleton<IServiceBusConfiguration, NoServiceBusConfiguration>();
 
