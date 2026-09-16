@@ -125,9 +125,15 @@ public class TerraformOutputHandler(
 
     internal async Task ProcessTerraformInputVariables(Dictionary<string, TerraformOutputVariable> output)
     {
-        var projectAcronym = output[TerraformVariables.ProjectAcronym].Value;
-        var pipelineId = int.Parse(output[TerraformVariables.PipelineRunId].Value);
-        
+        if (!TryGetRequiredValue(output, TerraformVariables.ProjectAcronym, out var projectAcronym) ||
+            !TryGetRequiredValue(output, TerraformVariables.PipelineRunId, out var pipelineRunIdValue))
+        {
+            _logger.LogWarning("Terraform input message is missing required project or pipeline keys; skipping processing");
+            return;
+        }
+
+        var pipelineId = int.Parse(pipelineRunIdValue);
+        var projectAcronymValue = projectAcronym;
 
         var projects = await projectDbContext.Projects            
             .ToListAsync();
@@ -135,14 +141,14 @@ public class TerraformOutputHandler(
             .ToListAsync();
 
         var resources = (await projectDbContext.Projects
-            .Where(p => p.Project_Acronym_CD == projectAcronym)
+            .Where(p => p.Project_Acronym_CD == projectAcronymValue)
             .ToListAsync())
             .SelectMany(p => p.Resources.Where(r => r.PipelineId == null && TerraformStatus.RequestedOrInProcessOf(r.Status)));
 
         if (resources is null || !resources.Any())
         {
-            _logger.LogError("No current resources found for {projectAcronym} that need to be created or deleted", projectAcronym);
-            throw new Exception($"Project not found for acronym {projectAcronym}");
+            _logger.LogError("No current resources found for {projectAcronym} that need to be created or deleted", projectAcronymValue);
+            throw new Exception($"Project not found for acronym {projectAcronymValue}");
         }
 
         // Get unique RequestedAt dates and find the earliest one
@@ -177,7 +183,7 @@ public class TerraformOutputHandler(
         }
 
         _logger.LogInformation("Retrieved {ResourceCount} project resources for project {ProjectAcronym}", 
-            resources.Count(), projectAcronym);
+            resources.Count(), projectAcronymValue);
     }
 
     private async Task ProcessPostTerraformTriggers(IReadOnlyDictionary<string, TerraformOutputVariable> output)
@@ -192,7 +198,14 @@ public class TerraformOutputHandler(
             return;
         }
 
-        var projectVersionString = output[TerraformVariables.OutputWorkspaceVersion].Value;
+        if (!TryGetRequiredValue(output, TerraformVariables.OutputWorkspaceVersion, out var workspaceVersionValue) ||
+            !TryGetRequiredValue(output, TerraformVariables.OutputProjectAcronym, out var projectAcronymValue))
+        {
+            _logger.LogWarning("Terraform output is missing project or version values; skipping post-terraform triggers");
+            return;
+        }
+
+        var projectVersionString = workspaceVersionValue;
 
         // exclude the first character, which is a v
         var projectVersion = new Version(projectVersionString[1..]);
@@ -207,23 +220,23 @@ public class TerraformOutputHandler(
         // handle external user permissions
         var projectAcronym = output[TerraformVariables.OutputProjectAcronym];
         var project = await projectDbContext.Projects
-            .FirstOrDefaultAsync(p => p.Project_Acronym_CD == projectAcronym.Value);
+            .FirstOrDefaultAsync(p => p.Project_Acronym_CD == projectAcronymValue);
 
         if (project is null)
         {
-            _logger.LogError("Project not found for acronym {ProjectId}", projectAcronym.Value);
-            throw new Exception($"Project not found for acronym {projectAcronym.Value}");
+            _logger.LogError("Project not found for acronym {ProjectId}", projectAcronymValue);
+            throw new Exception($"Project not found for acronym {projectAcronymValue}");
         }
 
         _logger.LogInformation("Processing user updates to external permissions for project {ProjectAcronym}",
-            projectAcronym.Value);
+            projectAcronymValue);
         var workspaceDefinition =
             await resourceMessagingService.CreateWorkspaceDefinition(project.Project_Acronym_CD,
                 TerraformOutputHandlerName);
         await resourceMessagingService.QueueRBACSync(workspaceDefinition);
         _logger.LogInformation(
             "Processing complete for user updates to external permissions for project {ProjectAcronym}",
-            projectAcronym.Value);
+            projectAcronymValue);
     }
 
     private static SemaphoreSlim semaphore = new(1, 1);
@@ -239,6 +252,13 @@ public class TerraformOutputHandler(
             }
 
             await semaphore.WaitAsync();
+
+            if (!TryGetRequiredValue(outputVariables, TerraformVariables.OutputProjectAcronym, out _))
+            {
+                _logger.LogWarning("Terraform output is missing required project_cd; skipping processing");
+                return;
+            }
+
             using var transactionScope =
                 new TransactionScope(TransactionScopeOption.Required, TransactionScopeAsyncFlowOption.Enabled);
             await ProcessWorkspaceStatus(outputVariables);
@@ -423,25 +443,69 @@ public class TerraformOutputHandler(
         await projectDbContext.SaveChangesAsync();
     }
 
+    private static string GetStatusMapping(string value)
+    {
+        return value switch
+        {
+            "completed" => TerraformStatus.Completed,
+            "in_progress" => TerraformStatus.InProgress,
+            "deleted" => TerraformStatus.Deleted,
+            "failed" => TerraformStatus.Failed,
+            _ => TerraformStatus.Missing
+        };
+    }
+
+    private static bool TryGetRequiredValue(IReadOnlyDictionary<string, TerraformOutputVariable> outputVariables, string key, out string value)
+    {
+        value = string.Empty;
+
+        if (!outputVariables.TryGetValue(key, out var terraformOutputVariable) ||
+            terraformOutputVariable is null ||
+            string.IsNullOrWhiteSpace(terraformOutputVariable.Value))
+        {
+            return false;
+        }
+
+        value = terraformOutputVariable.Value;
+        return true;
+    }
+
     internal async Task ProcessWorkspaceStatus(IReadOnlyDictionary<string, TerraformOutputVariable> outputVariables)
     {
-        var projectAcronym = outputVariables[TerraformVariables.OutputProjectAcronym];
+        if (!TryGetRequiredValue(outputVariables, TerraformVariables.OutputProjectAcronym, out var projectAcronymValue))
+        {
+            _logger.LogWarning("Terraform output is missing project_cd; skipping workspace status processing");
+            return;
+        }
+
         var project = await projectDbContext.Projects
-            .FirstOrDefaultAsync(p => p.Project_Acronym_CD == projectAcronym.Value);
+            .FirstOrDefaultAsync(p => p.Project_Acronym_CD == projectAcronymValue);
 
         if (project == null)
         {
-            _logger.LogError("Project not found for acronym {ProjectId}", projectAcronym.Value);
-            throw new Exception($"Project not found for acronym {projectAcronym.Value}");
+            _logger.LogError("Project not found for acronym {ProjectId}", projectAcronymValue);
+            throw new Exception($"Project not found for acronym {projectAcronymValue}");
         }
 
-        var resourceGroupStatus = GetStatusMapping(outputVariables[TerraformVariables.OutputNewProjectTemplate].Value);
+        if (!TryGetRequiredValue(outputVariables, TerraformVariables.OutputNewProjectTemplate, out var resourceGroupStatusValue))
+        {
+            _logger.LogWarning("Terraform output is missing {OutputKey}; skipping workspace status processing",
+                TerraformVariables.OutputNewProjectTemplate);
+            return;
+        }
+
+        var resourceGroupStatus = GetStatusMapping(resourceGroupStatusValue);
         var projectResource = await GetProjectResource(outputVariables,
             TerraformTemplate.GetTerraformServiceType(TerraformTemplate.NewProjectTemplate));
         
         if (resourceGroupStatus == TerraformStatus.Completed)
         {
-            var resourceGroupName = outputVariables[TerraformVariables.OutputAzureResourceGroupName].Value;
+            if (!TryGetRequiredValue(outputVariables, TerraformVariables.OutputAzureResourceGroupName, out var resourceGroupName))
+            {
+                _logger.LogWarning("Terraform output is missing {OutputKey}; skipping resource group update",
+                    TerraformVariables.OutputAzureResourceGroupName);
+                return;
+            }
 
             // check if there's a workspace version variable
             if (outputVariables.ContainsKey(TerraformVariables.OutputWorkspaceVersion))
@@ -480,14 +544,19 @@ public class TerraformOutputHandler(
 
     internal async Task UpdateProjectVariables(IReadOnlyDictionary<string, TerraformOutputVariable> outputVariables)
     {
-        var projectAcronym = outputVariables[TerraformVariables.OutputProjectAcronym];
+        if (!TryGetRequiredValue(outputVariables, TerraformVariables.OutputProjectAcronym, out var projectAcronymValue))
+        {
+            _logger.LogWarning("Terraform output is missing project_cd; skipping project variable update");
+            return;
+        }
+
         var project = await projectDbContext.Projects
-            .FirstOrDefaultAsync(p => p.Project_Acronym_CD == projectAcronym.Value);
+            .FirstOrDefaultAsync(p => p.Project_Acronym_CD == projectAcronymValue);
 
         if (project == null)
         {
-            _logger.LogError("Project not found for acronym {ProjectId}", projectAcronym.Value);
-            throw new Exception($"Project not found for acronym {projectAcronym.Value}");
+            _logger.LogError("Project not found for acronym {ProjectId}", projectAcronymValue);
+            throw new Exception($"Project not found for acronym {projectAcronymValue}");
         }
 
         project.IsVersionUpdateRequested = false;
@@ -495,31 +564,23 @@ public class TerraformOutputHandler(
 
     }
 
-    private static string GetStatusMapping(string value)
-    {
-        return value switch
-        {
-            "completed" => TerraformStatus.Completed,
-            "in_progress" => TerraformStatus.InProgress,
-            "deleted" => TerraformStatus.Deleted,
-            "failed" => TerraformStatus.Failed,
-            _ => TerraformStatus.Missing
-        };
-    }
-
     private async Task<Project_Resources2> GetProjectResource(
         IReadOnlyDictionary<string, TerraformOutputVariable> outputVariables, string terraformServiceType)
     {
-        var projectAcronym = outputVariables[TerraformVariables.OutputProjectAcronym];
+        if (!TryGetRequiredValue(outputVariables, TerraformVariables.OutputProjectAcronym, out var projectAcronymValue))
+        {
+            _logger.LogWarning("Terraform output is missing project_cd; unable to resolve project resource");
+            throw new InvalidOperationException("Terraform output is missing project_cd");
+        }
 
         var project = await projectDbContext.Projects
             .Include(p => p.Resources)
-            .FirstOrDefaultAsync(p => p.Project_Acronym_CD == projectAcronym.Value);
+            .FirstOrDefaultAsync(p => p.Project_Acronym_CD == projectAcronymValue);
 
         if (project is null)
         {
-            _logger.LogError("Project not found for acronym {ProjectId}", projectAcronym.Value);
-            throw new Exception($"Project not found for acronym {projectAcronym.Value}");
+            _logger.LogError("Project not found for acronym {ProjectId}", projectAcronymValue);
+            throw new Exception($"Project not found for acronym {projectAcronymValue}");
         }
 
         var projectResource = project.Resources
@@ -529,9 +590,9 @@ public class TerraformOutputHandler(
         {
             _logger.LogError(
                 "Project resource not found for project acronym {ProjectAcronymValue} and service type {TerraformServiceType}",
-                projectAcronym.Value, terraformServiceType);
+                projectAcronymValue, terraformServiceType);
             throw new Exception(
-                $"Project resource not found for project acronym {projectAcronym.Value} and service type {terraformServiceType}");
+                $"Project resource not found for project acronym {projectAcronymValue} and service type {terraformServiceType}");
         }
 
         return projectResource;

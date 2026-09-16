@@ -487,7 +487,7 @@ public class TerraformOutputHandlerTests
         Func<Task> act = async () => await _terraformOutputHandler.RunAsync(serviceBusReceivedMessage);
 
         // Assert
-        await act.Should().ThrowAsync<Exception>().WithMessage("The given key 'project_cd' was not present in the dictionary.");
+        await act.Should().NotThrowAsync();
     }
 
     [Test]
