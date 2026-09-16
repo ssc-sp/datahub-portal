@@ -273,6 +273,12 @@ jobs:
 
             pip install -r ./requirements.txt
           workingDirectory: ResourceProvisioner/src/ResourceProvisioner_PyFunctions
+      - task: ArchiveFiles@2
+        displayName: Archive
+        enabled: False
+        inputs:
+          rootFolderOrFile: ResourceProvisioner/src/ResourceProvisioner.Functions.Python
+          archiveFile: $(Build.ArtifactStagingDirectory)/output/rpuser/rpuser.zip
       - task: Bash@3
         displayName: Bash Script - build docker image
         inputs:
@@ -284,7 +290,7 @@ jobs:
       - task: PublishBuildArtifacts@1
         displayName: "Publish Artifact: user provisioner python function app as docker image"
         inputs:
-          PathtoPublish: ResourceProvisioner/src/ResourceProvisioner_PyFunctions
+          PathtoPublish: $(Build.ArtifactStagingDirectory)/output/rpuser/user-py.tar.gz
           ArtifactName: user-provisioner
 
   - job: Job_4
