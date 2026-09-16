@@ -3611,5 +3611,16 @@
   "YRO": "BRY",
   "YT": "YN",
   "No external users in this workspace.": "Aucun utilisateur externe dans cet espace de travail.",
-  "Only the workspace lead can invite external users": "Seul le responsable de l'espace de travail peut inviter des utilisateurs externes"
+  "Only the workspace lead can invite external users": "Seul le responsable de l'espace de travail peut inviter des utilisateurs externes",
+  "Choose a workspace name and acronym": "Choisissez un nom et un acronyme pour l'espace de travail",
+  "Choose a CBR and assign a budget": "Choisissez une DRC et attribuez un budget",
+  "Select optional feature interests": "Sélectionnez les fonctionnalités qui vous intéressent",
+  "A unique alphanumeric acronym to identify the workspace.": "Un acronyme alphanumérique unique pour identifier l'espace de travail.",
+  "Other feature interests (optional)": "Autres fonctionnalités souhaitées (facultatif)",
+  "Characters remaining: {0}": "Caractères restants : {0}",
+  "Enter a valid workspace budget": "Entrez un budget valide pour l'espace de travail",
+  "Feature interests must be 128 characters or less": "Les fonctionnalités souhaitées doivent comporter au maximum 128 caractères",
+  "Creating workspace…": "Création de l'espace de travail…",
+  "An error occurred while generating the workspace acronym": "Une erreur s'est produite lors de la génération de l'acronyme de l'espace de travail",
+  "An error occurred while validating the workspace": "Une erreur s'est produite lors de la validation de l'espace de travail"
 }
