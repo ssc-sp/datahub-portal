@@ -185,6 +185,127 @@ def synchronize_workspace_users(definition_json, workspace_client, retries = 0):
                         break
                 synchronize_workspace_users(definition_json, workspace_client, retries + 1)
 
+def get_unity_catalog_targets(definition_json):
+    """
+    Returns the catalog and schema names to use for Unity Catalog grants.
+
+    Args:
+        definition_json (dict): The workspace definition file as a dictionary (json).
+
+    Returns:
+        tuple[str, str]: The catalog and schema names.
+    """
+    app_data = definition_json.get("AppData", {}) or {}
+    workspace_name = definition_json.get("Workspace", {}).get("Acronym", "default")
+    catalog_name = (
+        app_data.get("DatabricksCatalogName")
+        or app_data.get("UnityCatalogName")
+        or workspace_name
+    )
+    schema_name = (
+        app_data.get("DatabricksSchemaName")
+        or app_data.get("UnitySchemaName")
+        or "default"
+    )
+    return catalog_name, schema_name
+
+
+def apply_unity_catalog_grant(workspace_client, securable_type, full_name, principal, privileges):
+    """
+    Applies a Unity Catalog grant using the workspace client's grants API when available.
+
+    Args:
+        workspace_client (WorkspaceClient): The databricks workspace client.
+        securable_type (str): The Unity Catalog securable type.
+        full_name (str): The fully qualified name of the securable.
+        principal (str): The workspace group or user principal to grant access to.
+        privileges (list[str]): The privileges to apply.
+
+    Returns:
+        None
+    """
+    if not hasattr(workspace_client, "grants") or not hasattr(workspace_client.grants, "update"):
+        logging.info("Workspace client does not expose a grants API; skipping Unity Catalog permissions")
+        return
+
+    try:
+        try:
+            from databricks.sdk.service.catalog import Grant as CatalogGrant
+        except Exception:
+            CatalogGrant = None
+
+        if CatalogGrant is not None:
+            grant = CatalogGrant(principal=principal, privileges=privileges)
+            workspace_client.grants.update(
+                securable_type=securable_type,
+                full_name=full_name,
+                changes=[grant]
+            )
+        else:
+            workspace_client.grants.update(
+                securable_type=securable_type,
+                full_name=full_name,
+                changes=[{"principal": principal, "privileges": privileges}]
+            )
+
+        logging.info(f"Applied Unity Catalog privileges {privileges} to {principal} on {full_name}")
+    except Exception:
+        logging.exception(f"Failed to apply Unity Catalog grant for {principal} on {full_name}")
+
+
+def synchronize_unity_catalog_permissions(definition_json, workspace_client):
+    """
+    Synchronizes Unity Catalog permissions for the workspace groups derived from the definition roles.
+
+    Args:
+        definition_json (dict): The workspace definition file as a dictionary (json).
+        workspace_client (WorkspaceClient): The databricks workspace client.
+
+    Returns:
+        None
+    """
+    workspace_groups = get_workspace_groups(workspace_client)
+    if not workspace_groups:
+        logging.info("No Databricks workspace groups found; skipping Unity Catalog permissions")
+        return
+
+    catalog_name, schema_name = get_unity_catalog_targets(definition_json)
+    role_privileges = {
+        "Owner": {
+            "catalog": ["USE_CATALOG", "CREATE_SCHEMA", "CREATE_TABLE", "CREATE_VIEW"],
+            "schema": ["USE_SCHEMA", "CREATE_TABLE", "CREATE_VIEW", "SELECT"],
+        },
+        "Admin": {
+            "catalog": ["USE_CATALOG", "CREATE_SCHEMA", "CREATE_TABLE", "CREATE_VIEW"],
+            "schema": ["USE_SCHEMA", "CREATE_TABLE", "CREATE_VIEW", "SELECT"],
+        },
+        "User": {
+            "catalog": ["USE_CATALOG", "CREATE_SCHEMA", "CREATE_TABLE", "CREATE_VIEW"],
+            "schema": ["USE_SCHEMA", "CREATE_TABLE", "CREATE_VIEW", "SELECT"],
+        },
+        "Guest": {
+            "catalog": ["USE_CATALOG"],
+            "schema": ["USE_SCHEMA", "SELECT"],
+        },
+    }
+
+    definition_role_lookup = get_definition_role_lookup()
+    for user in (user for user in definition_json.get("Workspace", {}).get("Users", []) if user.get("Role") != "Removed"):
+        group_name = definition_role_lookup.get(user.get("Role"))
+        if not group_name or group_name not in workspace_groups:
+            logging.info(f"Skipping Unity Catalog permission sync for role {user.get('Role')} because group {group_name} was not found")
+            continue
+
+        principal = workspace_groups[group_name].display_name
+        logging.info(f"Synchronizing Unity Catalog permissions for {principal} ({user.get('Role')})")
+
+        for securable_type, full_name, privileges in [
+            ("catalog", catalog_name, role_privileges[user.get("Role", "User")]["catalog"]),
+            ("schema", f"{catalog_name}.{schema_name}", role_privileges[user.get("Role", "User")]["schema"]),
+        ]:
+            apply_unity_catalog_grant(workspace_client, securable_type, full_name, principal, privileges)
+
+
 def create_new_user_in_workspace(workspace_client, user):
     """
     Creates a new user in the workspace and adds them to the correct group based on their role.

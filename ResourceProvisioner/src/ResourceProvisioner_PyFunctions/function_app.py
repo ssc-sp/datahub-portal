@@ -252,6 +252,7 @@ def sync_databricks_workspace_users_function(workspace_definition):
     # Cleanup users in workspace that aren't in AAD Graph
     dtb_utils.remove_deleted_users_in_workspace(workspace_definition, workspace_client)
     dtb_utils.synchronize_workspace_users(workspace_definition, workspace_client)
+    dtb_utils.synchronize_unity_catalog_permissions(workspace_definition, workspace_client)
 
     dtb_utils.synchronize_workspace_secret_scopes(environment_name, subscription_id, workspace_definition, workspace_client)    
     #dtb_utils.synchronize_workspace_secrets(environment_name, subscription_id, workspace_definition, workspace_client)  
