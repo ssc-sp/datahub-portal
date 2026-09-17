@@ -1,0 +1,211 @@
+@using Datahub.Markdown.Model
+@using Datahub.Infrastructure.Services.Storage
+@using Datahub.Core.Model.CloudStorage
+@using Datahub.Core.Storage
+@using GcdsWrapper.Blazor
+@using Microsoft.Identity.Web
+@inject Datahub.Core.Services.Docs.DocumentationService DocService
+@inject CloudStorageManagerFactory StorageManagerFactory
+@inject ILogger<StorageConfigurationForm> Logger
+@inject MicrosoftIdentityConsentAndConditionalAccessHandler ConsentHandler
+
+<section id="storage-configuration-form" role="region" aria-labelledby="storage-configuration-heading" aria-busy="@(Busy ? "true" : "false")">
+    <MudPaper Elevation="0" Outlined Class="px-6 pb-6">
+        <GcdsHeading Id="storage-configuration-heading" Tag="h2" tabindex="-1">@Localizer["Configure Storage"]</GcdsHeading>
+        @if (!string.IsNullOrEmpty(_helpUrl))
+        {
+            <GcdsLink Href="@_helpUrl">@Localizer["Help"]</GcdsLink>
+        }
+        @if (IsNew)
+        {
+            <GcdsSelect Id="storage-provider" Name="storage-provider" Label="@Localizer["Cloud provider"]" Disabled="@Busy"
+                        @bind-Value="ProviderValue" @bind-Value:after="ChangeProviderAsync">
+                @foreach (var provider in Enum.GetValues<CloudStorageProviderType>())
+                {
+                    <option value="@provider.ToString()">@Localizer[provider.ToString()]</option>
+                }
+            </GcdsSelect>
+        }
+        else
+        {
+            <GcdsText>@Localizer["Cloud provider"]: @Localizer[_provider.ToString()]</GcdsText>
+        }
+        <GcdsInput Id="storage-friendly-name" Name="storage-friendly-name" Label="@Localizer["Friendly Name"]"
+                   MaxLength="100" Disabled="@Busy" @bind-Value="_settings.Name" />
+        <GcdsCheckboxes Name="storage-enabled" Legend="@Localizer["Storage account status"]" Options="@EnabledOptions"
+                        Disabled="@Busy" @bind-Value="EnabledValue" />
+        @if (_initialized)
+        {
+            @if (_provider == CloudStorageProviderType.AWS)
+            {
+                <AWSConnectionDataInput @key="_connectionData" ConnectionData="_connectionData" Disabled="@Busy" OnValidationChanged="HandleValidationChanged" />
+            }
+            else if (_provider == CloudStorageProviderType.Azure)
+            {
+                <AzureConnectionDataInput @key="_connectionData" ConnectionData="_connectionData" Disabled="@Busy" OnValidationChanged="HandleValidationChanged" />
+            }
+            else if (_provider == CloudStorageProviderType.GCP)
+            {
+                <GCPConnectionDataInput @key="_connectionData" ConnectionData="_connectionData" Disabled="@Busy" OnValidationChanged="HandleValidationChanged" />
+            }
+        }
+        <GcdsCheckboxes Name="storage-classification" Legend="@Localizer["Data classification"]" Options="@ClassificationOptions"
+                        Disabled="@Busy" @bind-Value="ClassificationValue" />
+        @if (!string.IsNullOrEmpty(_error))
+        {
+            <div role="alert">
+                <GcdsNotice NoticeRole="danger" NoticeTitle="@Localizer["Storage configuration error"]" NoticeTitleTag="h3">
+                    <GcdsText>@_error</GcdsText>
+                </GcdsNotice>
+            </div>
+        }
+        <div role="status" aria-live="polite">
+            @if (_testing)
+            {
+                <GcdsText>@Localizer["Testing"]</GcdsText>
+            }
+            else if (_verified)
+            {
+                <GcdsText>@Localizer["Storage connection verified"]</GcdsText>
+            }
+        </div>
+        <div class="d-flex flex-wrap gap-4 mt-4">
+            <GcdsButton Type="GcdsButtonType.Button" Role="GcdsButtonRole.Secondary" Disabled="@Busy" OnClick="CancelAsync">@Localizer["Cancel"]</GcdsButton>
+            @if (_verified)
+            {
+                <GcdsButton Type="GcdsButtonType.Button" Disabled="@(!CanSave)" OnClick="SaveAsync">@Localizer["Save"]</GcdsButton>
+            }
+            else
+            {
+                <GcdsButton Type="GcdsButtonType.Button" Disabled="@(Busy || !_valid || !_initialized)" OnClick="TestConnectionAsync">@Localizer["Test Connection"]</GcdsButton>
+            }
+        </div>
+    </MudPaper>
+</section>
+
+@code {
+    [Parameter] public CloudStorageProviderType CloudProvider { get; set; } = CloudStorageProviderType.Azure;
+    [Parameter] public ProjectCloudStorage ProjectCloudStorage { get; set; } = null!;
+    [Parameter] public string WorkspaceAcronym { get; set; } = string.Empty;
+    [Parameter] public EventCallback<(ProjectCloudStorage Settings, IDictionary<string, string> ConnectionData)> OnSaved { get; set; }
+    [Parameter] public EventCallback OnCancelled { get; set; }
+
+    private ProjectCloudStorage _settings = new() { Provider = "Azure" };
+    private CloudStorageProviderType _provider;
+    private IDictionary<string, string> _connectionData = CloudStorageManagerFactory.CreateNewStorageProperties();
+    private IDictionary<string, string> _verifiedData = new Dictionary<string, string>();
+    private bool _initialized;
+    private bool _valid;
+    private bool _verified;
+    private bool _unclassified;
+    private bool _testing;
+    private bool _saving;
+    private string? _error;
+    private string? _helpUrl;
+    private bool IsNew => _settings.Id == 0;
+    private bool Busy => _testing || _saving;
+    private bool CanSave => _initialized && !Busy && _valid && _verified && _unclassified;
+    private string? ProviderValue { get => _provider.ToString(); set => _provider = Enum.Parse<CloudStorageProviderType>(value!); }
+    private GcdsCheckboxOption[] EnabledOptions => [new("storage-enabled-option", Localizer["Enabled"].Value, "enabled")];
+    private GcdsCheckboxOption[] ClassificationOptions => [new("storage-unclassified-option", Localizer["UnclassifiedDataConfirmation"].Value, "unclassified")];
+    private string[]? EnabledValue { get => _settings.Enabled ? ["enabled"] : []; set => _settings.Enabled = value?.Contains("enabled") == true; }
+    private string[]? ClassificationValue { get => _unclassified ? ["unclassified"] : []; set => _unclassified = value?.Contains("unclassified") == true; }
+
+    protected override async Task OnInitializedAsync()
+    {
+        _provider = CloudProvider;
+        _settings = new ProjectCloudStorage
+        {
+            Id = ProjectCloudStorage.Id, ProjectId = ProjectCloudStorage.ProjectId,
+            Name = ProjectCloudStorage.Name, Provider = ProjectCloudStorage.Provider, Enabled = ProjectCloudStorage.Enabled
+        };
+        try
+        {
+            _connectionData = new Dictionary<string, string>(await StorageManagerFactory.GetConnectionSecrets(_settings, WorkspaceAcronym));
+            _unclassified = _connectionData.Any(entry => !string.IsNullOrEmpty(entry.Value));
+            _verified = _settings.Enabled && _unclassified;
+            _verifiedData = new Dictionary<string, string>(_connectionData);
+            _initialized = true;
+            await PopulateHelpUrlAsync();
+        }
+        catch (MicrosoftIdentityWebChallengeUserException e) { ConsentHandler.HandleException(e); }
+        catch (Exception e)
+        {
+            Logger.LogError(e, "Error loading storage configuration");
+            _error = Localizer["Unable to load storage configuration"];
+        }
+    }
+
+    private async Task ChangeProviderAsync()
+    {
+        _settings.Provider = _provider.ToString();
+        _settings.Name = $"{WorkspaceAcronym} Storage {_provider}";
+        _connectionData = CloudStorageManagerFactory.CreateNewStorageProperties();
+        _verified = _valid = _unclassified = false;
+        _error = null;
+        await PopulateHelpUrlAsync();
+    }
+
+    private void HandleValidationChanged(bool valid)
+    {
+        _valid = valid;
+        if (!valid || _connectionData.Count != _verifiedData.Count || _connectionData.Any(entry => !_verifiedData.TryGetValue(entry.Key, out var value) || value != entry.Value))
+        {
+            _verified = false;
+        }
+    }
+
+    private async Task TestConnectionAsync()
+    {
+        if (Busy || !_valid || !_initialized) return;
+        _testing = true;
+        _verified = false;
+        _error = null;
+        try
+        {
+            var manager = StorageManagerFactory.CreateTestCloudStorageManager(_provider, _connectionData)
+                ?? throw new InvalidOperationException("Unsupported storage provider");
+            await manager.GetContainersAsync();
+            _verifiedData = new Dictionary<string, string>(_connectionData);
+            _verified = true;
+        }
+        catch (MicrosoftIdentityWebChallengeUserException e) { ConsentHandler.HandleException(e); }
+        catch (Exception e)
+        {
+            Logger.LogError(e, "Error connecting to cloud storage");
+            _settings.Enabled = false;
+            _error = Localizer["DataHub was unable to successfully connect to the storage provider. Please verify that your connection credentials are correct and all necessary permissions are properly set on the storage account."];
+        }
+        finally { _testing = false; }
+    }
+
+    private async Task SaveAsync()
+    {
+        if (!CanSave) return;
+        _saving = true;
+        _error = null;
+        try { await OnSaved.InvokeAsync((_settings, new Dictionary<string, string>(_connectionData))); }
+        catch (MicrosoftIdentityWebChallengeUserException e) { ConsentHandler.HandleException(e); }
+        catch (Exception e)
+        {
+            Logger.LogError(e, "Error saving storage configuration");
+            _error = Localizer["Unable to save storage configuration. Please try again."];
+        }
+        finally { _saving = false; }
+    }
+
+    private Task CancelAsync() => Busy ? Task.CompletedTask : OnCancelled.InvokeAsync();
+
+    private async Task PopulateHelpUrlAsync()
+    {
+        _helpUrl = null;
+        var path = _provider switch
+        {
+            CloudStorageProviderType.GCP => "https://documentation.sds.canada.ca/en/storage/Import-GCP-Storage.html",
+            CloudStorageProviderType.Azure => "https://documentation.sds.canada.ca/en/storage/Import-Azure-Storage.html",
+            CloudStorageProviderType.AWS => "https://documentation.sds.canada.ca/en/storage/Import-AWS-Storage.html",
+            _ => throw new InvalidOperationException($"Unsupported storage provider: {_provider}")
+        };
+	    _helpUrl = Localizer[path];
+    }
+}
