@@ -34,6 +34,7 @@
 		<PackageReference Include="Blazor-ApexCharts" />
 		<PackageReference Include="DocumentFormat.OpenXml" />
 		<PackageReference Include="Blazored.SessionStorage" />
+		<PackageReference Include="GcdsWrapper.Blazor" />
 		<PackageReference Include="Microsoft.AspNetCore.Components.WebAssembly.Authentication" />
 		<PackageReference Include="Microsoft.Authentication.WebAssembly.Msal" />
 		<PackageReference Include="Microsoft.EntityFrameworkCore.Design">
