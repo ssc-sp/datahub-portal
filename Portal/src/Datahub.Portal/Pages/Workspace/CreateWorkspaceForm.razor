@@ -61,8 +61,8 @@
             {
                 <GcdsTextarea Id="workspace-other-features" Name="workspace-other-features" Label="@Localizer["Other feature interests (optional)"]"
                               @bind-Value="_otherFeatures" ErrorMessage="@FeaturesError" Disabled="@_isCreating" />
+                <GcdsText aria-live="polite">@Localizer["Characters remaining: {0}", Math.Max(0, 128 - SerializedFeatures.Length)]</GcdsText>
             }
-            <GcdsText aria-live="polite">@Localizer["Characters remaining: {0}", Math.Max(0, 128 - SerializedFeatures.Length)]</GcdsText>
         }
         @if (_errorMessage is not null)
         {
