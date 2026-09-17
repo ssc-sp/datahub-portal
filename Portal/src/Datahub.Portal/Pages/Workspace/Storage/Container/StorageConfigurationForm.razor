@@ -11,11 +11,16 @@
 
 <section id="storage-configuration-form" role="region" aria-labelledby="storage-configuration-heading" aria-busy="@(Busy ? "true" : "false")">
     <MudPaper Elevation="0" Outlined Class="px-6 pb-6">
-        <GcdsHeading Id="storage-configuration-heading" Tag="h2" tabindex="-1">@Localizer["Configure Storage"]</GcdsHeading>
-        @if (!string.IsNullOrEmpty(_helpUrl))
-        {
-            <GcdsLink Href="@_helpUrl">@Localizer["Help"]</GcdsLink>
-        }
+        <div class="d-flex flex-wrap justify-space-between align-center gap-4">
+            <GcdsHeading Id="storage-configuration-heading" Tag="h2" tabindex="-1">@Localizer["Configure Storage"]</GcdsHeading>
+            @if (!string.IsNullOrEmpty(_helpUrl))
+            {
+                <div class="ml-auto">
+                    <GcdsButton Type="GcdsButtonType.Link" Role="GcdsButtonRole.Secondary"
+                                Href="@_helpUrl" Target="_blank" Rel="noopener noreferrer">@Localizer["Help"]</GcdsButton>
+                </div>
+            }
+        </div>
         @if (IsNew)
         {
             <GcdsSelect Id="storage-provider" Name="storage-provider" Label="@Localizer["Cloud provider"]" Disabled="@Busy"

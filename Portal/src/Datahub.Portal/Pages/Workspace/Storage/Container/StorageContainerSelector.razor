@@ -1,56 +1,54 @@
 @using Datahub.Core.Storage
 @using GcdsWrapper.Blazor
 
-<section aria-label="@Localizer["Storage selection"]">
-    <GcdsText id="storage-current-container" role="status" aria-live="polite">
-        <strong>@Localizer["Current Container"]: </strong>
-        @if (SelectedContainer is not null)
-        {
-            @Localizer[SelectedContainer.CloudStorageProvider.ToString()] <text> - @SelectedContainer.AccountName - @SelectedContainer.ContainerName</text>
-        }
-    </GcdsText>
-    <div class="d-flex flex-wrap gap-4 align-start">
-        @if (Accounts.Count > 1)
-        {
-            <GcdsSelect Id="storage-account-select" Name="storage-account-select" Label="@Localizer["Storage account"]"
-                        Disabled="@Disabled" @bind-Value:get="_accountKey" @bind-Value:set="ChangeAccountAsync">
-                @foreach (var account in Accounts)
-                {
-                    <option value="@AccountKey(account)">@Localizer[account.CloudStorageProvider.ToString()] — @account.AccountName</option>
-                }
-            </GcdsSelect>
-        }
-        @if (CurrentAccount is not null)
-        {
-            <GcdsSelect Id="storage-container-select" Name="storage-container-select" Label="@Localizer["Container"]"
-                        Disabled="@(Disabled || !AccountContainers.Any(container => container.Enabled))"
-                        DefaultValue="@Localizer["Please Select"]" @bind-Value:get="ContainerValue" @bind-Value:set="ChangeContainerAsync">
-                @foreach (var container in AccountContainers)
-                {
-                    <option value="@container.ContainerName" disabled="@(!container.Enabled)">@container.ContainerName</option>
-                }
-            </GcdsSelect>
-        }
-    </div>
-    <DatahubAuthView AuthLevel="DatahubAuthView.AuthLevels.WorkspaceAdmin" ProjectAcronym="@ProjectAcronymParam">
-        <div class="d-flex flex-wrap gap-4 mt-4">
-            @if (AllowBringYourOwn)
+<section style="min-width: 0; overflow-wrap: anywhere;" aria-label="@Localizer["Storage selection"]">
+    <GcdsDetails id="storage-selector-details" DetailsTitle="@CurrentContainerLabel">
+        <div class="d-flex flex-wrap gap-4 align-start">
+            @if (Accounts.Count > 1)
             {
-                <GcdsButton Id="storage-add-button" Type="GcdsButtonType.Button" Disabled="@Disabled"
-                            aria-expanded="@(FormOpen ? "true" : "false")" aria-controls="storage-configuration-form"
-                            OnClick="AddAsync">@Localizer["Add storage container"]</GcdsButton>
+                <GcdsSelect Id="storage-account-select" Name="storage-account-select" Label="@Localizer["Storage account"]"
+                            Disabled="@Disabled" @bind-Value:get="_accountKey" @bind-Value:set="ChangeAccountAsync">
+                    @foreach (var account in Accounts)
+                    {
+                        <option value="@AccountKey(account)">@Localizer[account.CloudStorageProvider.ToString()] — @account.AccountName</option>
+                    }
+                </GcdsSelect>
             }
-            @if (CurrentAccount?.Id is int id)
+            @if (CurrentAccount is not null)
             {
-                <GcdsButton Id="storage-edit-button" Type="GcdsButtonType.Button" Role="GcdsButtonRole.Secondary" Disabled="@Disabled"
-                            aria-expanded="@(FormOpen ? "true" : "false")" aria-controls="storage-configuration-form"
-                            OnClick="@(() => OnEditProviderClicked.InvokeAsync(id))">@Localizer["Edit account"]</GcdsButton>
-                <GcdsButton Id="storage-remove-button" Type="GcdsButtonType.Button" Role="GcdsButtonRole.Danger" Disabled="@Disabled"
-                            aria-expanded="@(RemovalOpen ? "true" : "false")" aria-controls="storage-removal-confirmation"
-                            OnClick="@(() => OnRemoveProviderClicked.InvokeAsync(id))">@Localizer["Remove account"]</GcdsButton>
+                <GcdsSelect Id="storage-container-select" Name="storage-container-select" Label="@Localizer["Container"]"
+                            Disabled="@(Disabled || !AccountContainers.Any(container => container.Enabled))"
+                            DefaultValue="@Localizer["Please Select"]" @bind-Value:get="ContainerValue" @bind-Value:set="ChangeContainerAsync">
+                    @foreach (var container in AccountContainers)
+                    {
+                        <option value="@container.ContainerName" disabled="@(!container.Enabled)">@container.ContainerName</option>
+                    }
+                </GcdsSelect>
             }
         </div>
-    </DatahubAuthView>
+        <DatahubAuthView AuthLevel="DatahubAuthView.AuthLevels.WorkspaceAdmin" ProjectAcronym="@ProjectAcronymParam">
+            <div class="d-flex flex-wrap gap-4 mt-4">
+                @if (AllowBringYourOwn)
+                {
+                    <GcdsButton Id="storage-add-button" Type="GcdsButtonType.Button" Disabled="@Disabled"
+                                aria-expanded="@(FormOpen ? "true" : "false")" aria-controls="storage-configuration-form"
+                                OnClick="AddAsync">@Localizer["Add storage container"]</GcdsButton>
+                }
+                @if (CurrentAccount?.Id is int id)
+                {
+                    <GcdsButton Id="storage-edit-button" Type="GcdsButtonType.Button" Role="GcdsButtonRole.Secondary" Disabled="@Disabled"
+                                aria-expanded="@(FormOpen ? "true" : "false")" aria-controls="storage-configuration-form"
+                                OnClick="@(() => OnEditProviderClicked.InvokeAsync(id))">@Localizer["Edit account"]</GcdsButton>
+                    <GcdsButton Id="storage-remove-button" Type="GcdsButtonType.Button" Role="GcdsButtonRole.Danger" Disabled="@Disabled"
+                                aria-expanded="@(RemovalOpen ? "true" : "false")" aria-controls="storage-removal-confirmation"
+                                OnClick="@(() => OnRemoveProviderClicked.InvokeAsync(id))">@Localizer["Remove account"]</GcdsButton>
+                }
+            </div>
+        </DatahubAuthView>
+    </GcdsDetails>
+    <GcdsSrOnly id="storage-current-container" role="status" aria-live="polite" aria-atomic="true">
+        @CurrentContainerLabel
+    </GcdsSrOnly>
 </section>
 
 @code {
@@ -65,6 +63,10 @@
     [Parameter] public EventCallback<CloudStorageProviderType> OnAddProviderClicked { get; set; }
     [Parameter] public EventCallback<int> OnEditProviderClicked { get; set; }
     [Parameter] public EventCallback<int> OnRemoveProviderClicked { get; set; }
+
+    private string CurrentContainerLabel => SelectedContainer is null
+        ? Localizer["Current Container"].Value
+        : $"{Localizer["Current Container"]}: {Localizer[SelectedContainer.CloudStorageProvider.ToString()]} \u2014 {SelectedContainer.AccountName} \u2014 {SelectedContainer.ContainerName}";
 
     private string? _accountKey;
     private CloudStorageContainer? _lastSelectedContainer;
