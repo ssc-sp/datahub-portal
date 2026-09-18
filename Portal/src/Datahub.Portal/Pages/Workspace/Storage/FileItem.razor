@@ -1,4 +1,5 @@
 @using ByteSizeLib
+@using Datahub.Infrastructure.Services.Storage
 @using Datahub.Core.Storage;
 @implements IAsyncDisposable
 @inject IJSRuntime _jsRuntime
@@ -36,7 +37,7 @@
         </span>
         @Name
     </MudText>
-    <MudText class="file-item-size">@(ByteSize ?? "") @(!Folder && !String.IsNullOrEmpty(StorageTier) ? $"({StorageTier})" : "")</MudText>
+    <MudText class="file-item-size">@(ByteSize ?? "") @(!Folder && !String.IsNullOrEmpty(StorageTier) ? $"({Localizer[AWSCloudStorageManager.GetStorageClassLabel(StorageTier)]})" : "")</MudText>
     <MudText class="file-item-modified">@(Modified?.ToString("r") ?? "")</MudText>
 </div>
 
@@ -73,7 +74,7 @@
     public EventCallback<MouseEventArgs> OnDblClick { get; set; }
 
     [Parameter]
-    public string StorageTier { get; set; } = "Hot";
+    public string StorageTier { get; set; } = "";
 
     private string ByteSize
     {

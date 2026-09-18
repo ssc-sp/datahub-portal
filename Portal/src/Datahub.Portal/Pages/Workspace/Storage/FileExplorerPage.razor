@@ -1,4 +1,5 @@
 @using Azure.Core
+@implements IAsyncDisposable
 @using Datahub.Application.Services;
 @using Datahub.Application.Services.Storage
 @using Datahub.Core.Model.CloudStorage;
@@ -10,7 +11,6 @@
 @using Datahub.Infrastructure.Services.Security
 @using Datahub.Infrastructure.Services.Storage
 @using Datahub.Metadata.Model
-@using Datahub.Portal.Components.Dialogs
 @using Datahub.Portal.Pages.Workspace.Storage.Container
 @using Datahub.Portal.Pages.Workspace.Storage.ResourcePages
 @using Microsoft.Extensions.Options
@@ -19,14 +19,16 @@
 @using Microsoft.Identity.Client
 @using Microsoft.Identity.Web;
 @using System.Security.Claims
+@using GcdsWrapper.Blazor
+@using Microsoft.JSInterop
 @using System.Threading
 
+@inject IJSRuntime StorageJsRuntime
 @inject MicrosoftIdentityConsentAndConditionalAccessHandler _consentHandler
 @inject IDbContextFactory<DatahubProjectDBContext> _dbFactoryProject
 @inject IUserInformationService _userInformationService
 @inject IUserTokenCredentialService _userTokenCredentialService
 @inject IProjectStorageConfigurationService _projectStorageConfigService
-@inject IDialogService _dialogService
 @inject ILogger<FileExplorerPage> _logger
 @inject CloudStorageManagerFactory _cloudStorageManagerFactory
 @inject DatahubPortalConfiguration _datahubPortalConfiguration
@@ -52,20 +54,39 @@
         <CascadingValue Value="@WorkspaceAcronym" Name="ProjectAcronym">
             <CascadingValue Value="@_project" Name="Project">
                 <CascadingValue Value="_user" Name="PortalUser">
-                    @if (ShouldShowContainerDropdown && !_failedToLoadContainers)
+                    @if (!_failedToLoadContainers)
                     {
-                        <MudStack Style="border-bottom: 1px solid var(--mud-palette-lines-default);" Class="my-6">
-                            <MudStack Row Justify=@Justify.FlexStart AlignItems=@AlignItems.Center>
-                                <MudText Typo="Typo.h3">@Localizer["Current Container"]</MudText>
-                                <StorageContainerSelector @bind-SelectedContainer=@SelectedContainer
-                                                          CloudContainers="_cloudContainers"
-                                                          AllowBringYourOwn="@(_classification != ClassificationType.ProtectedB)"
-                                                          OnAddProviderClicked=@AddCloudStorageAccount
-                                                          OnEditProviderClicked=@EditCloudStorageAccount
-                                                          OnRemoveProviderClicked=@RemoveCloudStorageAccount />
-                            </MudStack>
+                        <MudStack Class="my-2">
+                            <StorageContainerSelector SelectedContainer="_selectedContainer"
+                                                      SelectedContainerChanged="SelectContainerAsync"
+                                                      CloudContainers="_cloudContainers"
+                                                      AllowBringYourOwn="@(_classification != ClassificationType.ProtectedB)"
+                                                      Disabled="@(_storageSettings is not null || _removalAccount is not null)"
+                                                      FormOpen="@(_storageSettings is not null)"
+                                                      RemovalOpen="@(_removalAccount is not null)"
+                                                      OnAddProviderClicked="AddCloudStorageAccount"
+                                                      OnEditProviderClicked="EditCloudStorageAccount"
+                                                      OnRemoveProviderClicked="RemoveCloudStorageAccount" />
                         </MudStack>
                     }
+                    <div role="status" aria-live="polite">
+                        @if (!string.IsNullOrEmpty(_storageStatus))
+                        {
+                            <GcdsText>@_storageStatus</GcdsText>
+                        }
+                    </div>
+                    <DatahubAuthView AuthLevel="DatahubAuthView.AuthLevels.WorkspaceAdmin" ProjectAcronym="@WorkspaceAcronym">
+                        @if (_storageSettings is not null)
+                        {
+                            <StorageConfigurationForm @key="_storageSettings" ProjectCloudStorage="_storageSettings"
+                                                      CloudProvider="_storageProvider" WorkspaceAcronym="@WorkspaceAcronym"
+                                                      OnSaved="SaveCloudStorageAccountAsync" OnCancelled="CloseStorageFormAsync" />
+                        }
+                        @if (_removalAccount is not null)
+                        {
+                            <StorageAccountRemovalForm AccountName="@_removalAccount.AccountName" OnConfirmed="ConfirmRemoveStorageAsync" OnCancelled="CloseStorageFormAsync" />
+                        }
+                    </DatahubAuthView>
                     <MudPaper Elevation="0" Class="file-explorer-layout-wrapper py-4 px-6">
                         <MudTabs Elevation="0" ActivePanelIndexChanged="OnActiveTabChanged">
                             <MudTabPanel Text="@(!MultiContainer ? SelectedContainer?.Name : Localizer["Workspace Files"])"
@@ -204,12 +225,19 @@
     private bool _failedToLoadContainers = false;
     private bool MultiContainer => _cloudContainers?.Count > 1;
     private bool _isUserProjectAdmin = false;
-    private bool ShouldShowContainerDropdown => !_loading && (MultiContainer || _isUserProjectAdmin);
+    private ProjectCloudStorage? _storageSettings;
+    private CloudStorageProviderType _storageProvider;
+    private CloudStorageContainer? _removalAccount;
+    private string? _storageStatus;
+    private string _storageTriggerId = "storage-add-button";
+    private string? _storageFocusId;
+    private IJSObjectReference? _storageModule;
     private ClassificationType? _classification;
 
     private string _searchQuery = string.Empty;
     private List<FileSearchResult> _searchResults = new();
     private bool _searchPerformed = false;
+    private int _searchVersion;
     private bool IsLoading { get; set; } = false;
     private bool _isEntraUser = false;
     private bool _uploaderEnabled = false;
@@ -306,6 +334,7 @@
 
     private async Task LoadContainersAsync()
     {
+        var previousContainer = _selectedContainer;
         _cloudContainers = new();
 
         // pick the project storage containers
@@ -356,8 +385,9 @@
         }
         _cloudContainers = _cloudContainers.Where(c => c.ContainerName != IWorkspaceStorageManagementService.AzureExternalUploadContainerName).ToList();
 
-        _selectedContainer = _cloudContainers.FirstOrDefault(c => c.ContainerName == IWorkspaceStorageManagementService.AzureDefaultContainerName);
-        _workspaceContainer = _selectedContainer;
+        _workspaceContainer = _cloudContainers.FirstOrDefault(c => c.Id is null && c.Enabled && c.ContainerName == IWorkspaceStorageManagementService.AzureDefaultContainerName);
+        _selectedContainer = StorageContainerSelection.SelectAfterReload(_cloudContainers, previousContainer, _workspaceContainer);
+        ClearSearch();
     }
 
     private async Task<List<ProjectCloudStorage>> GetCloudStorages()
@@ -366,119 +396,117 @@
         return await ctx.ProjectCloudStorages.AsNoTracking().Where(e => e.ProjectId == _project.Project_ID).ToListAsync();
     }
 
-    private async Task<DialogResult?> ShowCloudStorageDialog(CloudStorageProviderType cloudStorageProvider, ProjectCloudStorage settings)
+    private Task AddCloudStorageAccount(CloudStorageProviderType provider)
     {
-        var dialogOptions = new DialogOptions() { MaxWidth = MaxWidth.Medium, FullWidth = true };
-
-        var dialogParams = new DialogParameters();
-        dialogParams.Add(nameof(StorageConfigurationDialog.CloudProvider), cloudStorageProvider);
-        dialogParams.Add(nameof(StorageConfigurationDialog.ProjectCloudStorage), settings);
-        dialogParams.Add(nameof(StorageConfigurationDialog.WorkspaceAcronym), WorkspaceAcronym);
-
-        var dialogTitle = cloudStorageProvider switch
-        {
-            CloudStorageProviderType.Azure => Localizer["Configure Azure Storage"],
-            CloudStorageProviderType.AWS => Localizer["Configure AWS Storage"],
-            CloudStorageProviderType.GCP => Localizer["Configure GCP Storage"],
-            _ => Localizer["Configure Storage"]
-        };
-
-        var dialog = await _dialogService.ShowAsync<StorageConfigurationDialog>(dialogTitle, dialogParams, dialogOptions);
-        return await dialog.Result;
-    }
-
-    private async Task AddCloudStorageAccount(CloudStorageProviderType cloudStorageProvider)
-    {
-        var result = await ShowCloudStorageDialog(cloudStorageProvider, new ProjectCloudStorage() { Enabled = true, Name = $"{WorkspaceAcronym} Storage {cloudStorageProvider.ToString()}", Provider = cloudStorageProvider.ToString() });
-
-        if (!result.Canceled)
-        {
-            if (result.Data is (ProjectCloudStorage storageSettings, IDictionary<string, string> ConnectionData))
-            {
-                await using var ctx = await _dbFactoryProject.CreateDbContextAsync();
-
-                storageSettings.ProjectId = _projectId.Value;
-                storageSettings.Provider = cloudStorageProvider.ToString();
-
-                ctx.ProjectCloudStorages.Add(storageSettings);
-
-                await ctx.SaveChangesAsync();
-                await _keyVaultUserService.StoreAllSecrets(storageSettings, WorkspaceAcronym, ConnectionData);
-                await LoadContainersAsync();
-                await InvokeAsync(StateHasChanged);
-            }
-        }
+        if (!_isUserProjectAdmin || _classification == ClassificationType.ProtectedB) return Task.CompletedTask;
+        _storageProvider = provider;
+        _storageSettings = new ProjectCloudStorage { Enabled = true, Name = $"{WorkspaceAcronym} Storage {provider}", Provider = provider.ToString() };
+        OpenStorageForm("storage-add-button", "storage-configuration-heading");
+        return Task.CompletedTask;
     }
 
     private async Task EditCloudStorageAccount(int id)
     {
-        var pageCloudProvider = _cloudContainers.FirstOrDefault(c => c.Id == id);
-        if (pageCloudProvider is null)
-        {
-            return;
-        }
-
-        await using var ctx = await _dbFactoryProject.CreateDbContextAsync();
-        var cloudProvider = await ctx.ProjectCloudStorages.FirstOrDefaultAsync(c => c.Id == id);
-        if (cloudProvider is null)
-        {
-            return;
-        }
-
-        var result = await ShowCloudStorageDialog(pageCloudProvider.CloudStorageProvider, cloudProvider);
-
-        if (!result.Canceled)
-        {
-            if (result.Data is (ProjectCloudStorage storageSettings, IDictionary<string, string> ConnectionData))
-            {
-                await _keyVaultUserService.StoreAllSecrets(storageSettings, WorkspaceAcronym, ConnectionData);
-                await ctx.SaveChangesAsync();
-                await LoadContainersAsync();
-                await InvokeAsync(StateHasChanged);
-            }
-        }
+        if (!_isUserProjectAdmin) return;
+        var container = _cloudContainers.FirstOrDefault(c => c.Id == id);
+        if (container is null) return;
+        await using var context = await _dbFactoryProject.CreateDbContextAsync();
+        _storageSettings = await context.ProjectCloudStorages.AsNoTracking().FirstOrDefaultAsync(c => c.Id == id && c.ProjectId == _projectId);
+        if (_storageSettings is null) return;
+        _storageProvider = container.CloudStorageProvider;
+        OpenStorageForm("storage-edit-button", "storage-configuration-heading");
     }
 
-    private async Task RemoveCloudStorageAccount(int id)
+    private void OpenStorageForm(string triggerId, string headingId)
     {
-        var pageCloudProvider = _cloudContainers.FirstOrDefault(c => c.Id == id);
-        if (pageCloudProvider is null)
+        _removalAccount = null;
+        _storageStatus = null;
+        _storageTriggerId = triggerId;
+        _storageFocusId = headingId;
+    }
+
+    private async Task SaveCloudStorageAccountAsync((ProjectCloudStorage Settings, IDictionary<string, string> ConnectionData) result)
+    {
+        if (!_isUserProjectAdmin || _projectId is null) throw new InvalidOperationException("Storage administration is not authorized");
+        var (settings, connectionData) = result;
+        if (settings.Id == 0 && _classification == ClassificationType.ProtectedB) throw new InvalidOperationException("External storage is not permitted");
+        await using var context = await _dbFactoryProject.CreateDbContextAsync();
+        ProjectCloudStorage account;
+        if (settings.Id == 0)
         {
-            return;
+            account = new ProjectCloudStorage { ProjectId = _projectId.Value, Provider = settings.Provider, Name = settings.Name, Enabled = settings.Enabled };
+            context.ProjectCloudStorages.Add(account);
+            await context.SaveChangesAsync();
+            // Retain the ID so a Key Vault failure can be retried without adding a second account.
+            settings.Id = account.Id;
         }
-
-        await using var ctx = await _dbFactoryProject.CreateDbContextAsync();
-        var cloudProvider = await ctx.ProjectCloudStorages.FirstOrDefaultAsync(c => c.Id == id);
-        if (cloudProvider is null)
+        else
         {
-            return;
+            account = await context.ProjectCloudStorages.FirstOrDefaultAsync(c => c.Id == settings.Id && c.ProjectId == _projectId)
+                ?? throw new InvalidOperationException("Storage account no longer exists");
+            account.Name = settings.Name;
+            account.Enabled = settings.Enabled;
         }
+        await _keyVaultUserService.StoreAllSecrets(account, WorkspaceAcronym, connectionData);
+        await context.SaveChangesAsync();
+        await LoadContainersAsync();
+        _storageStatus = Localizer["Storage configuration saved"];
+        await CloseStorageFormAsync();
+    }
 
-        var dialogTitle = Localizer["Remove Storage Account"];
-        var promptText = Localizer["RemoveStorageNamePrompt", pageCloudProvider.AccountName];
+    private Task RemoveCloudStorageAccount(int id)
+    {
+        if (!_isUserProjectAdmin) return Task.CompletedTask;
+        _removalAccount = _cloudContainers.FirstOrDefault(c => c.Id == id);
+        _storageSettings = null;
+        _storageStatus = null;
+        _storageTriggerId = "storage-remove-button";
+        _storageFocusId = "storage-removal-heading";
+        return Task.CompletedTask;
+    }
 
-        var dialogOptions = new DialogOptions() { MaxWidth = MaxWidth.Medium, FullWidth = true };
-
-        var dialogParams = new DialogParameters();
-        dialogParams.Add(nameof(SimpleChoiceDialog.PromptText), promptText.ToString());
-        dialogParams.Add(nameof(SimpleChoiceDialog.ConfirmColour), Color.Error);
-
-        var dialog = await _dialogService.ShowAsync<SimpleChoiceDialog>(dialogTitle, dialogParams, dialogOptions);
-        var result = await dialog.Result;
-
-        if (!result.Canceled)
+    private async Task ConfirmRemoveStorageAsync()
+    {
+        if (!_isUserProjectAdmin || _removalAccount?.Id is not int id) throw new InvalidOperationException("Storage administration is not authorized");
+        await using var context = await _dbFactoryProject.CreateDbContextAsync();
+        var account = await context.ProjectCloudStorages.FirstOrDefaultAsync(c => c.Id == id && c.ProjectId == _projectId);
+        if (account is not null)
         {
-            var confirmDelete = result.Data as bool?;
-            if (confirmDelete.HasValue && confirmDelete.Value)
-            {
-                await _keyVaultUserService.DeleteAllSecrets(cloudProvider, WorkspaceAcronym);
-
-                ctx.ProjectCloudStorages.Remove(cloudProvider);
-                await ctx.SaveChangesAsync();
-                await LoadContainersAsync();
-                await InvokeAsync(StateHasChanged);
-            }
+            await _keyVaultUserService.DeleteAllSecrets(account, WorkspaceAcronym);
+            context.ProjectCloudStorages.Remove(account);
+            await context.SaveChangesAsync();
         }
+        await LoadContainersAsync();
+        _storageStatus = Localizer["Storage account removed"];
+        await CloseStorageFormAsync();
+    }
+
+    private Task CloseStorageFormAsync()
+    {
+        _storageSettings = null;
+        _removalAccount = null;
+        _storageFocusId = _storageTriggerId;
+        return Task.CompletedTask;
+    }
+
+    private Task SelectContainerAsync(CloudStorageContainer container)
+    {
+        _selectedContainer = container;
+        ClearSearch();
+        return Task.CompletedTask;
+    }
+
+    protected override async Task OnAfterRenderAsync(bool firstRender)
+    {
+        if (_storageFocusId is null) return;
+        var focusId = _storageFocusId;
+        _storageFocusId = null;
+        try
+        {
+            _storageModule ??= await StorageJsRuntime.InvokeAsync<IJSObjectReference>("import", "./Pages/Workspace/Storage/FileExplorerPage.razor.js");
+            await _storageModule.InvokeVoidAsync("focusStorageElement", focusId);
+        }
+        catch (JSDisconnectedException) { }
     }
 
     private async Task<bool> IsProjectKeyEnabled()
@@ -486,9 +514,9 @@
         return await _keyVaultUserService.IsKeyEnabled(WorkspaceAcronym, _datahubPortalConfiguration.KeyVault.ProjectKey);
     }
 
-    public CloudStorageContainer SelectedContainer
+    public CloudStorageContainer? SelectedContainer
     {
-        get => _selectedContainer ?? throw new InvalidOperationException("No container selected");
+        get => _selectedContainer;
         set => _selectedContainer = value;
     }
 
@@ -500,6 +528,7 @@
             return;
         }
 
+        ClearSearch();
         _selectedContainer = index switch
         {
             1 => SharedContainer ?? _selectedContainer,
@@ -510,6 +539,8 @@
 
     private void ClearSearch()
     {
+        _searchVersion++;
+        IsLoading = false;
         _searchQuery = string.Empty;
         _searchResults = new();
         _searchPerformed = false;
@@ -517,7 +548,9 @@
 
     private async Task SearchFiles()
     {
-        if (string.IsNullOrWhiteSpace(_searchQuery))
+        var container = SelectedContainer;
+        var searchVersion = ++_searchVersion;
+        if (container is null || string.IsNullOrWhiteSpace(_searchQuery))
         {
             _searchResults = new();
             _searchPerformed = true;
@@ -527,13 +560,14 @@
         IsLoading = true;
         try
         {
-            var results = await SelectedContainer.StorageManager.SearchFilesAsync(
-                SelectedContainer.ContainerName,
+            var results = await container.StorageManager.SearchFilesAsync(
+                container.ContainerName,
                 string.Empty,
                 _searchQuery,
                 _searchCancellationTokenSource.Token,
                 false);
 
+            if (searchVersion != _searchVersion) return;
             _searchResults = results
                 .Select(file => new FileSearchResult
                 {
@@ -549,20 +583,27 @@
         catch (Exception ex)
         {
             _logger.LogError(ex, "Error searching files");
-            _searchResults = new();
+            if (searchVersion == _searchVersion) _searchResults = new();
         }
         finally
         {
-            IsLoading = false;
-            _searchPerformed = true;
-            await InvokeAsync(StateHasChanged);
+            if (searchVersion == _searchVersion)
+            {
+                IsLoading = false;
+                _searchPerformed = true;
+                await InvokeAsync(StateHasChanged);
+            }
         }
     }
 
-    public ValueTask DisposeAsync()
+    public async ValueTask DisposeAsync()
     {
         _searchCancellationTokenSource.Cancel();
         _searchCancellationTokenSource.Dispose();
-        return ValueTask.CompletedTask;
+        if (_storageModule is not null)
+        {
+            try { await _storageModule.DisposeAsync(); }
+            catch (JSDisconnectedException) { }
+        }
     }
 }

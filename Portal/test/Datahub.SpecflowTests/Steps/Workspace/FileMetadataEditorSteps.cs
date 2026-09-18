@@ -21,7 +21,7 @@ public class FileMetadataEditorSteps : BunitTestSteps
     private const string ContainerName = "container";
     private const string FileName = "folder/file.csv";
 
-    private readonly ICloudStorageManager _storageManager = Substitute.For<ICloudStorageManager>();
+    private ICloudStorageManager _storageManager = Substitute.For<ICloudStorageManager>();
     private IRenderedComponent<FileMetadataEditor>? _component;
     private IDictionary<string, string> _metadata = new Dictionary<string, string>();
 
@@ -79,6 +79,16 @@ public class FileMetadataEditorSteps : BunitTestSteps
     {
         _storageManager.GetFileStorageTierAsync(ContainerName, FileName)
             .Returns<Task<string>>(_ => throw new NotImplementedException());
+    }
+
+    [Given("AWS metadata archive status cannot be read")]
+    public void GivenAwsMetadataArchiveStatusCannotBeRead()
+    {
+        _storageManager = Substitute.For<ICloudStorageManager>();
+        _storageManager.ProviderType.Returns(CloudStorageProviderType.AWS);
+        _storageManager.GetFileMetadataAsync(ContainerName, FileName).Returns(_metadata);
+        _storageManager.GetFileArchiveStatusAsync(ContainerName, FileName)
+            .Returns(Task.FromException<CloudStorageArchiveStatus>(new InvalidOperationException("Service unavailable")));
     }
 
     [When("the file metadata editor is rendered for editing")]

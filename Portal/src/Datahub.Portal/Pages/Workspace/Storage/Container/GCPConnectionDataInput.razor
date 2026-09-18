@@ -1,17 +1,17 @@
-﻿@* GCPConnectionDataInput.razor *@
+@using GcdsWrapper.Blazor
+@* GCPConnectionDataInput.razor *@
 @using Datahub.Infrastructure.Services.Storage;
 @using static Datahub.Infrastructure.Services.Storage.CloudStorageHelpers;
 @using System.Text.Json;
 
-<MudTextField @bind-Value=@GCPConnectionJson
-              Label=@Localizer["Service Account Credentials (JSON)"]
-              Variant=@Variant.Outlined
-              Lines=10
-              Immediate
-              Adornment=@Adornment.End
-              AdornmentIcon=@Icons.Material.Filled.ContentPaste />
+<GcdsTextarea Id="storage-gcp-credentials" Name="storage-gcp-credentials"
+              Label="@Localizer["Service Account Credentials (JSON)"]" Required Disabled="@Disabled"
+              rows="10" @bind-Value="GCPConnectionJson" />
 
 @code {
+    [Parameter]
+    public bool Disabled { get; set; }
+
 
     [Parameter]
     public IDictionary<string, string> ConnectionData { get; set; }
