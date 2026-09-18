@@ -186,9 +186,51 @@ public class AWSCloudStorageManager : ICloudStorageManager
 	}
 
     public async Task<Dictionary<string, int>> ListFoldersAsync(string container, string prefix = "")
-	{
-		throw new NotImplementedException();
-	}
+    {
+        using var s3Client = GetClient();
+        return await ListFoldersAsync(s3Client, prefix);
+    }
+
+    internal async Task<Dictionary<string, int>> ListFoldersAsync(IAmazonS3 s3Client, string prefix)
+    {
+        var folderPrefix = IsRoot(prefix) ? "" : ToAWSFolder(prefix);
+        var folders = new Dictionary<string, int>(StringComparer.Ordinal)
+        {
+            [folderPrefix] = 0
+        };
+        var request = new ListObjectsV2Request
+        {
+            BucketName = _bucketName,
+            Prefix = folderPrefix
+        };
+
+        ListObjectsV2Response response;
+        do
+        {
+            response = await s3Client.ListObjectsV2Async(request);
+            foreach (var entry in response.S3Objects ?? new List<S3Object>())
+            {
+                var key = entry.Key;
+                // S3 folders may exist only as prefixes of objects, without a marker object.
+                for (var index = key.IndexOf('/', folderPrefix.Length); index >= 0;
+                     index = key.IndexOf('/', index + 1))
+                {
+                    folders.TryAdd(key[..(index + 1)], 0);
+                }
+
+                // Objects ending in a slash represent folders, not files.
+                if (!key.EndsWith('/'))
+                {
+                    var parent = key[..(key.LastIndexOf('/') + 1)];
+                    folders[parent]++;
+                }
+            }
+
+            request.ContinuationToken = response.NextContinuationToken;
+        } while (response.IsTruncated == true);
+
+        return folders;
+    }
 
 	public Task<List<FileMetadata>> SearchFilesAsync(string container, string folderPath, string searchTerm, CancellationToken cancellationToken, bool searchInContent = false)
 	{
