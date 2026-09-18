@@ -179,7 +179,7 @@
         {
             Logger.LogError(e, "Error connecting to cloud storage");
             _settings.Enabled = false;
-            _error = Localizer["DataHub was unable to successfully connect to the storage provider. Please verify that your connection credentials are correct and all necessary permissions are properly set on the storage account."];
+            _error = Localizer["Unable to successfully connect to the storage provider. Please verify that your connection credentials are correct and all necessary permissions are properly set on the storage account."];
         }
         finally { _testing = false; }
     }

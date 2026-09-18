@@ -2693,5 +2693,6 @@
   "This file is available for download and storage class changes.": "This file is available for download and storage class changes.",
   "The restored copy is available until {0} (UTC).": "The restored copy is available until {0} (UTC).",
   "Refresh archive status": "Refresh archive status",
-  "Unable to read AWS archive status. Please try again.": "Unable to read AWS archive status. Please try again."
+  "Unable to read AWS archive status. Please try again.": "Unable to read AWS archive status. Please try again.",
+  "Unable to successfully connect to the storage provider. Please verify that your connection credentials are correct and all necessary permissions are properly set on the storage account.": "Unable to successfully connect to the storage provider. Please verify that your connection credentials are correct and all necessary permissions are properly set on the storage account."
 }

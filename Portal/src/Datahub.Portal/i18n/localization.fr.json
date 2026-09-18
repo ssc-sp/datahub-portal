@@ -3657,5 +3657,6 @@
   "This file is available for download and storage class changes.": "Ce fichier peut être téléchargé et sa classe de stockage peut être changée.",
   "The restored copy is available until {0} (UTC).": "La copie restaurée est disponible jusqu’au {0} (UTC).",
   "Refresh archive status": "Actualiser l’état d’archivage",
-  "Unable to read AWS archive status. Please try again.": "Impossible de lire l’état d’archivage AWS. Veuillez réessayer."
+  "Unable to read AWS archive status. Please try again.": "Impossible de lire l’état d’archivage AWS. Veuillez réessayer.",
+  "Unable to successfully connect to the storage provider. Please verify that your connection credentials are correct and all necessary permissions are properly set on the storage account.": "Impossible de se connecter avec succès au fournisseur de stockage. Veuillez vérifier que vos informations d'identification de connexion sont correctes et que toutes les autorisations nécessaires sont correctement définies sur le compte de stockage."
 }
