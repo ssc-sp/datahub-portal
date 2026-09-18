@@ -158,6 +158,8 @@ public partial class FileExplorer
         var targetFile = _files.FirstOrDefault(f => f.name == currentFileName);
         if (targetFile is not null)
             targetFile.name = fileRename;
+        _selectedItems = new HashSet<string> { fileRename };
+        await HandleStorageTierChanged("");
     }
 
     private async Task HandleDeleteFolder()

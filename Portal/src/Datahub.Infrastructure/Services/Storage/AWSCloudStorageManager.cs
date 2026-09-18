@@ -238,11 +238,64 @@ public class AWSCloudStorageManager : ICloudStorageManager
 		throw new NotImplementedException();
 	}
 
-    public Task<bool> RenameFileAsync(string container, string oldFilePath, string newFilePath)
-	{
-		// not supported for now..
-		return Task.FromResult(false);
-	}
+    public async Task<bool> RenameFileAsync(string container, string oldFilePath, string newFilePath)
+    {
+        using var s3Client = GetClient();
+        return await RenameFileAsync(s3Client, oldFilePath, newFilePath);
+    }
+
+    internal async Task<bool> RenameFileAsync(IAmazonS3 s3Client, string oldFilePath, string newFilePath)
+    {
+        if (string.IsNullOrWhiteSpace(oldFilePath) || string.IsNullOrWhiteSpace(newFilePath))
+            return false;
+        if (string.Equals(oldFilePath, newFilePath, StringComparison.Ordinal))
+            return true;
+
+        try
+        {
+            var metadata = await s3Client.GetObjectMetadataAsync(new GetObjectMetadataRequest
+            {
+                BucketName = _bucketName,
+                Key = oldFilePath
+            });
+            // Renaming uses the same single-copy limit and archive availability rules as class changes.
+            if (metadata.ContentLength > 5L * 1024 * 1024 * 1024
+                || !string.IsNullOrEmpty(metadata.ServerSideEncryptionCustomerMethod?.Value)
+                || string.IsNullOrEmpty(metadata.ETag))
+                return false;
+            EnsureAvailable(GetArchiveStatus(metadata));
+
+            await s3Client.CopyObjectAsync(new CopyObjectRequest
+            {
+                SourceBucket = _bucketName,
+                SourceKey = oldFilePath,
+                DestinationBucket = _bucketName,
+                DestinationKey = newFilePath,
+                SourceVersionId = metadata.VersionId,
+                ETagToMatch = metadata.ETag,
+                StorageClass = metadata.StorageClass ?? S3StorageClass.Standard,
+                MetadataDirective = S3MetadataDirective.COPY,
+                TaggingDirective = TaggingDirective.COPY,
+                ServerSideEncryptionMethod = metadata.ServerSideEncryptionMethod,
+                ServerSideEncryptionKeyManagementServiceKeyId = metadata.ServerSideEncryptionKeyManagementServiceKeyId,
+                BucketKeyEnabled = metadata.BucketKeyEnabled
+            });
+
+            // Delete only after a successful copy, and only if the source content is unchanged.
+            await s3Client.DeleteObjectAsync(new DeleteObjectRequest
+            {
+                BucketName = _bucketName,
+                Key = oldFilePath,
+                IfMatch = metadata.ETag
+            });
+            return true;
+        }
+        catch
+        {
+            // Keep the source (and any completed copy) when either operation fails.
+            return false;
+        }
+    }
 
 	public bool AzCopyEnabled => false;
 	public bool DatabrickEnabled => true;
