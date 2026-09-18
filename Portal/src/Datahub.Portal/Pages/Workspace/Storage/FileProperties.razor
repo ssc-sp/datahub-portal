@@ -10,6 +10,7 @@
 @using Datahub.Infrastructure.Services.Storage
 @using Datahub.Portal.Components.User
 @using Datahub.Shared.Entities
+@using GcdsWrapper.Blazor
 
 @inject CommonAzureServices _commonAzureServices;
 @inject MudBlazor.IDialogService DialogService;
@@ -27,11 +28,10 @@
 
         @if (StorageTier == AccessTier.Archive.ToString())
         {
-            <DHAlert Severity="Severity.Info">
-                <MudText Typo="Typo.h5">@Localizer["Archived Storage"]</MudText>
-                <MudText Class="my-3">@Localizer["This file is currently in an archive storage tier for long-term storage."]</MudText>
-                <MudText>@Localizer["To download or edit this file, you must first change the storage tier. This can take several hours to process."]</MudText>
-            </DHAlert>
+            <GcdsNotice NoticeRole="info" NoticeTitle="@Localizer["Archived Storage"]" NoticeTitleTag="h3">
+                <GcdsText>@Localizer["This file is currently in an archive storage tier for long-term storage."]</GcdsText>
+                <GcdsText>@Localizer["To download or edit this file, you must first change the storage tier. This can take several hours to process."]</GcdsText>
+            </GcdsNotice>
         }
 
         @if (StorageManager.ProviderType == CloudStorageProviderType.AWS)
@@ -39,21 +39,20 @@
             <div role="status" aria-live="polite">
                 @if (_archiveStatus != null && (_archiveStatus.State != CloudStorageArchiveState.Available || StorageTier is "GLACIER" or "DEEP_ARCHIVE"))
                 {
-                    <DHAlert Severity="Severity.Info">
-                        <MudText Typo="Typo.h5">@Localizer["Archived Storage"]</MudText>
-                        <MudText Class="my-3">@Localizer["This file is currently in an archive storage tier for long-term storage."]</MudText>
-                        <MudText>@Localizer[_archiveStatus.State switch
+                    <GcdsNotice NoticeRole="info" NoticeTitle="@Localizer["Archived Storage"]" NoticeTitleTag="h3">
+                        <GcdsText>@Localizer["This file is currently in an archive storage tier for long-term storage."]</GcdsText>
+                        <GcdsText>@Localizer[_archiveStatus.State switch
                         {
                             CloudStorageArchiveState.RestoreRequired => "Restore this file through AWS tooling before downloading it or changing its storage class.",
                             CloudStorageArchiveState.Restoring => "Restoration is in progress. Refresh the status after AWS completes the restoration.",
                             _ => "This file is available for download and storage class changes."
-                        }]</MudText>
+                        }]</GcdsText>
                         @if (_archiveStatus.RestoredCopyExpiry is DateTime expiry)
                         {
-                            <MudText>@Localizer["The restored copy is available until {0} (UTC).", expiry.ToUniversalTime().ToString("u")]</MudText>
+                            <GcdsText>@Localizer["The restored copy is available until {0} (UTC).", expiry.ToUniversalTime().ToString("u")]</GcdsText>
                         }
                         <GcdsButton Type="GcdsButtonType.Button" Role="GcdsButtonRole.Secondary" Disabled="@_refreshingArchive" OnClick="RefreshArchiveStatusAsync">@Localizer["Refresh archive status"]</GcdsButton>
-                    </DHAlert>
+                    </GcdsNotice>
                 }
             </div>
             @if (_archiveError != null)
