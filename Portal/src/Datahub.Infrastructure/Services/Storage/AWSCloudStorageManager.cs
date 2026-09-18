@@ -256,13 +256,17 @@ public class AWSCloudStorageManager : ICloudStorageManager
 	public async Task<bool> UploadFileAsync(string container, PortalFileMetadata file, Action<long> progess)
 	{
 		using var s3Client = GetClient();
+        using var transferUtility = new TransferUtility(s3Client);
+        return await UploadFileAsync(transferUtility, file);
+    }
+
+    internal async Task<bool> UploadFileAsync(ITransferUtility transferUtility, PortalFileMetadata file)
+    {
 		try
 		{
-			var stream = file.BrowserFile.OpenReadStream(MaxFileSize);
-
-			var transferUtility = new TransferUtility(s3Client);
-
-			var fullPath = IsRoot(file.folderpath) ? file.filename : $"{file.folderpath}{file.filename}";
+            await using var stream = file.BrowserFile.OpenReadStream(MaxFileSize);
+            var folder = file.folderpath.Replace('\\', '/').Trim('/');
+            var fullPath = string.IsNullOrEmpty(folder) ? file.filename : $"{folder}/{file.filename}";
 			await transferUtility.UploadAsync(stream, _bucketName, fullPath);
 
 			return true;
