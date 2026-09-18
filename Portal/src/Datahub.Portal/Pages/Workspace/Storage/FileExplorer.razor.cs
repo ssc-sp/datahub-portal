@@ -20,14 +20,26 @@ public partial class FileExplorer
     private async Task RefreshStoragePageAsync()
     {
         _lastContainer = Container;
+        _downloadError = null;
         _loading = true;
+        _fileTiers.Clear();
+        _selectedStorageTier = "";
+        ++_tierRefreshVersion;
+        var refreshVersion = ++_storagePageRefreshVersion;
+        var container = Container;
+        var folder = _currentFolder;
         StateHasChanged();
 
-        var dfsPage = await StorageManager.GetDfsPagesAsync(Container.Name, _currentFolder, _continuationToken);
+        var dfsPage = await container.StorageManager.GetDfsPagesAsync(container.Name, folder, _continuationToken);
+        if (refreshVersion != _storagePageRefreshVersion || container != Container || folder != _currentFolder)
+            return;
 
         _continuationToken = dfsPage.ContinuationToken;
         _files = dfsPage.Files;
         _folders = dfsPage.Folders;
+        await PopulateFileTiersAsync();
+        if (refreshVersion != _storagePageRefreshVersion)
+            return;
 
         _loading = false;
 
@@ -285,8 +297,14 @@ public partial class FileExplorer
 
     private async Task HandleFileDownload(string filename)
     {
-        var uri = await StorageManager!.DownloadFileAsync(ContainerName, JoinPath(_currentFolder, filename), PortalUser.Email, FileTokenService);
-        await _module.InvokeVoidAsync("downloadFile", uri.ToString());
+        _downloadError = null;
+        try
+        {
+            var uri = await StorageManager!.DownloadFileAsync(ContainerName, JoinPath(_currentFolder, filename), PortalUser.Email, FileTokenService);
+            await _module.InvokeVoidAsync("downloadFile", uri.ToString());
+        }
+        catch (StorageTierChangeException ex) { _downloadError = Localizer[ex.Message]; }
+        catch { _downloadError = Localizer["Unable to download file. Please try again."]; }
     }
 
     private async Task HandlePublishFiles(IEnumerable<FileMetadata> files)

@@ -34,6 +34,38 @@
             </DHAlert>
         }
 
+        @if (StorageManager.ProviderType == CloudStorageProviderType.AWS)
+        {
+            <div role="status" aria-live="polite">
+                @if (_archiveStatus != null && (_archiveStatus.State != CloudStorageArchiveState.Available || StorageTier is "GLACIER" or "DEEP_ARCHIVE"))
+                {
+                    <DHAlert Severity="Severity.Info">
+                        <MudText Typo="Typo.h5">@Localizer["Archived Storage"]</MudText>
+                        <MudText Class="my-3">@Localizer["This file is currently in an archive storage tier for long-term storage."]</MudText>
+                        <MudText>@Localizer[_archiveStatus.State switch
+                        {
+                            CloudStorageArchiveState.RestoreRequired => "Restore this file through AWS tooling before downloading it or changing its storage class.",
+                            CloudStorageArchiveState.Restoring => "Restoration is in progress. Refresh the status after AWS completes the restoration.",
+                            _ => "This file is available for download and storage class changes."
+                        }]</MudText>
+                        @if (_archiveStatus.RestoredCopyExpiry is DateTime expiry)
+                        {
+                            <MudText>@Localizer["The restored copy is available until {0} (UTC).", expiry.ToUniversalTime().ToString("u")]</MudText>
+                        }
+                        <GcdsButton Type="GcdsButtonType.Button" Role="GcdsButtonRole.Secondary" Disabled="@_refreshingArchive" OnClick="RefreshArchiveStatusAsync">@Localizer["Refresh archive status"]</GcdsButton>
+                    </DHAlert>
+                }
+            </div>
+            @if (_archiveError != null)
+            {
+                <div role="alert"><GcdsText>@_archiveError</GcdsText></div>
+            }
+            @if (_archiveError != null)
+            {
+                <GcdsButton Type="GcdsButtonType.Button" Role="GcdsButtonRole.Secondary" Disabled="@_refreshingArchive" OnClick="RefreshArchiveStatusAsync">@Localizer["Refresh archive status"]</GcdsButton>
+            }
+        }
+
         @if (_workspaceStorageMetadataEnabled)
         {
             <FileMetadataEditor
@@ -51,7 +83,7 @@
                 @Localizer["Storage Tier"]
                 <MudIconButton Icon="@Icons.Material.Filled.Help" Size="Size.Small" Class="ml-1" Href="@Localizer["http://documentation.sds.canada.ca/en/storage/Storage-Tiers.html"]" Target="_blank" />
             </MudText>
-            <MudText class="text">@StorageTier</MudText>
+            <MudText class="text">@Localizer[AWSCloudStorageManager.GetStorageClassLabel(StorageTier)]</MudText>
             @foreach (var (key, value) in _properties)
             {
                 if (!string.IsNullOrEmpty(value) && value != "[]")
@@ -106,6 +138,54 @@
     [Parameter]
     public ICloudStorageManager StorageManager { get; set; }
 
+    [Parameter]
+    public EventCallback OnArchiveStatusChanged { get; set; }
+
+    private CloudStorageArchiveStatus? _archiveStatus;
+    private string? _archiveError;
+    private bool _refreshingArchive;
+    private ICloudStorageManager? _archiveManager;
+    private string? _archivePath;
+    private string? _archiveTier;
+    private string? _archiveContainer;
+    private int _archiveRefreshVersion;
+
+    private async Task RefreshArchiveStatusAsync()
+    {
+        if (_refreshingArchive) return;
+        await LoadArchiveStatusAsync();
+        await OnArchiveStatusChanged.InvokeAsync();
+    }
+
+    private async Task LoadArchiveStatusAsync()
+    {
+        if (StorageManager.ProviderType != CloudStorageProviderType.AWS)
+            return;
+        var manager = StorageManager;
+        var path = _fullFileName.TrimStart('/');
+        var container = ContainerName;
+        var version = ++_archiveRefreshVersion;
+        _refreshingArchive = true;
+        _archiveError = null;
+        _archiveStatus = null;
+        try
+        {
+            var status = await manager.GetFileArchiveStatusAsync(container, path);
+            if (ReferenceEquals(manager, StorageManager) && path == _fullFileName.TrimStart('/')
+                && container == ContainerName && version == _archiveRefreshVersion)
+                _archiveStatus = status;
+        }
+        catch
+        {
+            if (version == _archiveRefreshVersion)
+                _archiveError = Localizer["Unable to read AWS archive status. Please try again."];
+        }
+        finally
+        {
+            if (version == _archiveRefreshVersion) _refreshingArchive = false;
+        }
+    }
+
     private List<(string, string)> _properties;
     private string _powerBiPasteText;
     private string _fileLinkUrl;
@@ -115,7 +195,7 @@
     private bool _workspaceStorageMetadataEnabled;
 
     [Parameter]
-    public string StorageTier { get; set; } = "Hot";
+    public string StorageTier { get; set; } = "";
 
     protected override async Task OnInitializedAsync()
     {
@@ -150,7 +230,19 @@
             _databricksPasteText = $"/mnt/fsdh-dbk-main-mount/{fullFilePath}";
         }
         _classification = Project.Data_Sensitivity;
-        _fullFileName = $"{File.folderpath}/{File.filename}";
+        var fileFolder = StorageManager.ProviderType == CloudStorageProviderType.AWS && FolderName != null
+            ? FolderName : File.folderpath;
+        _fullFileName = $"{fileFolder?.TrimEnd('/')}/{File.filename}".TrimStart('/');
+        if (!ReferenceEquals(_archiveManager, StorageManager) || _archivePath != _fullFileName
+            || _archiveTier != StorageTier || _archiveContainer != ContainerName)
+        {
+            _archiveManager = StorageManager;
+            _archivePath = _fullFileName;
+            _archiveTier = StorageTier;
+            _archiveContainer = ContainerName;
+            _archiveStatus = null;
+            await LoadArchiveStatusAsync();
+        }
     }
 
     private string GenerateEffectiveFolderPath()

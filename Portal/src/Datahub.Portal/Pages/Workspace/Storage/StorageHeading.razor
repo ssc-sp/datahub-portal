@@ -41,13 +41,13 @@
                            Value="@SelectedStorageTier"
                            ValueChanged="@(async (string v) => await HandleTierChange(v))"
                            Label="@Localizer["Storage Tier"]"
-                           Disabled="@GetDisabled(action)"
+                           Disabled="@(GetDisabled(action) || _changingTier)"
                            FitContent="true"
                            Margin="Margin.Dense"
-                           aria-label="Storage tier">
+                           aria-label="@Localizer["Storage Tier"]">
                     @foreach (string s in _storageTiers)
                     {
-                        <MudSelectItem T="string" Value="@s">@s</MudSelectItem>
+                        <MudSelectItem T="string" Value="@s">@Localizer[AWSCloudStorageManager.GetStorageClassLabel(s)]</MudSelectItem>
                     }
                 </MudSelect>
             }
@@ -168,10 +168,10 @@
     };
 
     // private string _storageTier;
-    private List<string> _storageTiers = new List<string> { "Hot", "Cool", "Cold", "Archive" };
+    private List<string> _storageTiers = [];
 
     [Parameter]
-    public string SelectedStorageTier { get; set; } = "Hot";
+    public string SelectedStorageTier { get; set; } = "";
 
     [Parameter]
     public EventCallback<string> OnStorageTierChanged { get; set; }
@@ -194,7 +194,6 @@
         
         // Check if publishing is blocked for this workspace
         _isPublishingBlockedForWorkspace = await _openDataPublishingService.IsPublishingBlockedForWorkspaceAsync(ProjectAcronym);
-        _storageTiers = StorageManager.GetFileStorageTiersList();
     }
 
     protected override async Task OnAfterRenderAsync(bool firstRender)
@@ -212,6 +211,8 @@
     protected override async Task OnParametersSetAsync()
     {
         await base.OnParametersSetAsync();
+
+        RefreshStorageTierOptions();
 
         _selectedFiles = Files?
             .Where(f => SelectedItems != null && SelectedItems.Contains(f.name))

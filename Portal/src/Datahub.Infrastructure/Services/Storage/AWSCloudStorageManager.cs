@@ -131,9 +131,10 @@ public class AWSCloudStorageManager : ICloudStorageManager
 		return DeleteObjectAsync(ToAWSFolder(folderPath));
 	}
 
-	public Task<Uri> DownloadFileAsync(string container, string filePath, string userName, IFileTokenService? fileTokenService = null)
+	public async Task<Uri> DownloadFileAsync(string container, string filePath, string userName, IFileTokenService? fileTokenService = null)
 	{
 		using var s3Client = GetClient();
+        EnsureAvailable(await GetFileArchiveStatusAsync(s3Client, filePath));
 
 		var urlRequest = new GetPreSignedUrlRequest
 		{
@@ -146,7 +147,7 @@ public class AWSCloudStorageManager : ICloudStorageManager
 		var url = s3Client.GetPreSignedURL(urlRequest);
 		Uri uri = new Uri(url);
 
-		return Task.FromResult(uri);
+		return uri;
 	}
 
 	public async Task<bool> FileExistsAsync(string container, string filePath)
@@ -346,6 +347,11 @@ public class AWSCloudStorageManager : ICloudStorageManager
     public async Task<string> GetFileStorageTierAsync(string container, string file)
     {
         using var s3Client = GetClient();
+        return await GetFileStorageTierAsync(s3Client, file);
+    }
+
+    internal async Task<string> GetFileStorageTierAsync(IAmazonS3 s3Client, string file)
+    {
         try
         {
             var response = await s3Client.GetObjectMetadataAsync(new GetObjectMetadataRequest()
@@ -353,7 +359,7 @@ public class AWSCloudStorageManager : ICloudStorageManager
                 BucketName = _bucketName,
                 Key = file
             });
-            return response.StorageClass?.Value ?? "Unknown";
+            return response.StorageClass?.Value ?? "STANDARD";
         }
         catch (Amazon.S3.AmazonS3Exception ex)
         {
@@ -367,13 +373,109 @@ public class AWSCloudStorageManager : ICloudStorageManager
     public async Task<bool> SetFileStorageTierAsync(string container, string file, string newTier)
     {
         using var s3Client = GetClient();
+        return await SetFileStorageTierAsync(s3Client, file, newTier);
+    }
 
-        return false; // Not implemented yet for AWS
+    internal async Task<bool> SetFileStorageTierAsync(IAmazonS3 s3Client, string file, string newTier)
+    {
+        if (!GetFileStorageTiersList().Contains(newTier, StringComparer.Ordinal))
+            throw new StorageTierChangeException("Unsupported AWS storage class.");
+
+        GetObjectMetadataResponse metadata;
+        try
+        {
+            metadata = await s3Client.GetObjectMetadataAsync(new GetObjectMetadataRequest
+            {
+                BucketName = _bucketName,
+                Key = file
+            });
+        }
+        catch (AmazonS3Exception ex) when (ex.ErrorCode == "InvalidRequest")
+        {
+            throw new StorageTierChangeException("Unable to read this object's encryption settings. Customer-provided encryption keys are not supported.");
+        }
+
+        if (!string.IsNullOrEmpty(metadata.ServerSideEncryptionCustomerMethod?.Value))
+            throw new StorageTierChangeException("Customer-provided encryption keys are not supported for storage class changes.");
+        if ((metadata.StorageClass?.Value ?? "STANDARD") == newTier)
+            return true;
+        if (metadata.ContentLength > 5L * 1024 * 1024 * 1024)
+            throw new StorageTierChangeException("Files larger than 5 GB must have their storage class changed using AWS tooling.");
+        EnsureAvailable(GetArchiveStatus(metadata));
+        var hasVersion = !string.IsNullOrEmpty(metadata.VersionId) && metadata.VersionId != "null";
+        if (!hasVersion && string.IsNullOrEmpty(metadata.ETag))
+            throw new StorageTierChangeException("Unable to verify the source file. Refresh the file list and try again.");
+
+        var request = new CopyObjectRequest
+        {
+            SourceBucket = _bucketName,
+            SourceKey = file,
+            DestinationBucket = _bucketName,
+            DestinationKey = file,
+            StorageClass = S3StorageClass.FindValue(newTier),
+            MetadataDirective = S3MetadataDirective.COPY,
+            TaggingDirective = TaggingDirective.COPY,
+            SourceVersionId = metadata.VersionId,
+            ETagToMatch = hasVersion ? null : metadata.ETag,
+            ServerSideEncryptionMethod = metadata.ServerSideEncryptionMethod,
+            ServerSideEncryptionKeyManagementServiceKeyId = metadata.ServerSideEncryptionKeyManagementServiceKeyId,
+            BucketKeyEnabled = metadata.BucketKeyEnabled
+        };
+        await s3Client.CopyObjectAsync(request);
+        return true;
     }
 
     public List<string> GetFileStorageTiersList()
     {
-        return new List<string> { "STANDARD", "REDUCED_REDUNDANCY", "STANDARD_IA", "ONEZONE_IA", "INTELLIGENT_TIERING", "GLACIER", "DEEP_ARCHIVE" };
+        return new List<string> { "STANDARD", "STANDARD_IA", "ONEZONE_IA", "INTELLIGENT_TIERING", "GLACIER_IR", "GLACIER", "DEEP_ARCHIVE" };
+    }
+
+    public static string GetStorageClassLabel(string tier) => tier switch
+    {
+        "STANDARD" => "Standard",
+        "STANDARD_IA" => "Standard - Infrequent Access",
+        "ONEZONE_IA" => "One Zone - Infrequent Access",
+        "INTELLIGENT_TIERING" => "Intelligent-Tiering",
+        "GLACIER_IR" => "Glacier Instant Retrieval",
+        "GLACIER" => "Glacier Flexible Retrieval",
+        "DEEP_ARCHIVE" => "Glacier Deep Archive",
+        "REDUCED_REDUNDANCY" => "Reduced Redundancy",
+        _ => tier
+    };
+
+    public async Task<CloudStorageArchiveStatus> GetFileArchiveStatusAsync(string container, string file)
+    {
+        using var s3Client = GetClient();
+        return await GetFileArchiveStatusAsync(s3Client, file);
+    }
+
+    internal async Task<CloudStorageArchiveStatus> GetFileArchiveStatusAsync(IAmazonS3 s3Client, string file)
+    {
+        var metadata = await s3Client.GetObjectMetadataAsync(new GetObjectMetadataRequest
+        {
+            BucketName = _bucketName,
+            Key = file
+        });
+        return GetArchiveStatus(metadata);
+    }
+
+    internal static CloudStorageArchiveStatus GetArchiveStatus(GetObjectMetadataResponse metadata)
+    {
+        if (metadata.RestoreInProgress == true)
+            return new(CloudStorageArchiveState.Restoring);
+        var archived = metadata.StorageClass?.Value is "GLACIER" or "DEEP_ARCHIVE"
+            || metadata.ArchiveStatus?.Value is "ARCHIVE_ACCESS" or "DEEP_ARCHIVE_ACCESS";
+        if (!archived)
+            return new(CloudStorageArchiveState.Available);
+        if (metadata.RestoreExpiration > DateTime.UtcNow)
+            return new(CloudStorageArchiveState.Available, metadata.RestoreExpiration);
+        return new(CloudStorageArchiveState.RestoreRequired);
+    }
+
+    private static void EnsureAvailable(CloudStorageArchiveStatus status)
+    {
+        if (status.State != CloudStorageArchiveState.Available)
+            throw new StorageTierChangeException("This file must be restored using AWS tooling before it can be downloaded or its storage class changed.");
     }
 
     public async Task<IDictionary<string, string>> GetFileMetadataAsync(string container, string file)
