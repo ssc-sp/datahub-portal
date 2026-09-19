@@ -74,6 +74,7 @@ public sealed class AzureDevopsAutocompletePullRequestSteps(
     [Then(@"an AutoApproveIncompleteException should be thrown")]
     public void ThenAnAutoApproveIncompleteExceptionShouldBeThrown()
     {
+        Assert.True(scenarioContext.ContainsKey("exception"), "Expected an exception to be thrown, but none was found in the scenario context.");
         var exception = scenarioContext["exception"] as Exception;
         Assert.NotNull(exception);
         Assert.IsType<AutoApproveIncompleteException>(exception);

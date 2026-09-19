@@ -1,18 +1,13 @@
-using System.Text.Json;
 using Azure.Messaging.ServiceBus;
 using Datahub.Application.Commands;
 using Datahub.Application.Services;
 using Datahub.Application.Services.Notification;
 using Datahub.Core.Model.Context;
-using Datahub.Core.Model.Datahub;
 using Datahub.Core.Model.Projects;
 using Datahub.Functions.Extensions;
 using Datahub.Functions.Providers;
-using Datahub.Functions.Services;
 using Datahub.Functions.Validators;
-using Datahub.Infrastructure.Extensions;
 using Datahub.Infrastructure.Queues.Messages;
-using Datahub.Infrastructure.Services;
 using Datahub.Shared.Configuration;
 using MassTransit;
 using Microsoft.Azure.Functions.Worker;
@@ -49,13 +44,12 @@ namespace Datahub.Functions
             var message = await serviceBusReceivedMessage
                 .DeserializeAndUnwrapMessageAsync<UserInactivityNotificationMessage>();
 
-            _logger.LogInformation($"Received user notification check for ID: {message.UserId}");
-
-            // verify message 
             if (message is null)
             {
                 throw new Exception($"Invalid queue message:\n{serviceBusReceivedMessage.Body}");
             }
+
+            _logger.LogInformation("Received user notification check for ID: {UserId}", message.UserId);
 
             using var ctx = await dbContextFactory.CreateDbContextAsync(ct);
             var user = await ctx.PortalUsers
@@ -66,9 +60,7 @@ namespace Datahub.Functions
                 user.DisplayName);
 
             var lastLoginDate = user.LastLoginDateTime ?? user.FirstLoginDateTime;
-            int daysSinceLastLogin = (int)(dateProvider.Today - lastLoginDate)?.Days;
-            int daysUntilLocked = (int)(dateProvider.UserInactivityLockedDay() - daysSinceLastLogin);
-            int daysUntilDeleted = (int)(dateProvider.UserInactivityDeletionDay() - daysSinceLastLogin);
+            var (daysSinceLastLogin, daysUntilLocked, daysUntilDeleted) = CalculateInactivityMetrics(lastLoginDate);
             _logger.LogInformation(
                 "User {UserDisplayName} has been inactive for {DaysSinceLastLogin} days. They will be locked in {DaysUntilLocked} days and deleted in {DaysUntilDeleted} days.",
                 user.DisplayName, daysSinceLastLogin, daysUntilLocked, daysUntilDeleted);
@@ -76,7 +68,7 @@ namespace Datahub.Functions
             if (lastLoginDate != null && EmailValidator.IsValidEmail(user.Email))
             {
                 _logger.LogInformation("Checking if the user needs to be notified at this time...");
-                var email = await CheckIfUserToBeNotified(daysSinceLastLogin, daysUntilLocked, daysUntilDeleted, user.Email);
+                var email = CheckIfUserToBeNotified(daysSinceLastLogin, daysUntilLocked, daysUntilDeleted, user.Email);
 
                 if (email)
                 {
@@ -127,7 +119,16 @@ namespace Datahub.Functions
 
         }
 
-        public async Task<bool> CheckIfUserToBeNotified(int daysSinceLastLogin, int daysUntilLocked, int daysUntilDeleted, string email)
+        internal (int daysSinceLastLogin, int daysUntilLocked, int daysUntilDeleted) CalculateInactivityMetrics(DateTime? lastLoginDate)
+        {
+            var effectiveLastLoginDate = lastLoginDate ?? dateProvider.Today;
+            var daysSinceLastLogin = (int)Math.Max(0, (dateProvider.Today - effectiveLastLoginDate).TotalDays);
+            var daysUntilLocked = dateProvider.UserInactivityLockedDay() - daysSinceLastLogin;
+            var daysUntilDeleted = dateProvider.UserInactivityDeletionDay() - daysSinceLastLogin;
+            return (daysSinceLastLogin, daysUntilLocked, daysUntilDeleted);
+        }
+
+        public bool CheckIfUserToBeNotified(int daysSinceLastLogin, int daysUntilLocked, int daysUntilDeleted, string email)
         {
             if (dateProvider.UserInactivityNotificationDays().Contains(daysUntilLocked))
             {

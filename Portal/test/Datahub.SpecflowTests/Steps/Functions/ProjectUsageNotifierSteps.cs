@@ -43,7 +43,6 @@ public class ProjectUsageNotifierSteps(
         var resourceTypes = new[]
         {
             "terraform:new-project-template",
-            "terraform:azure-storage-blob",
             "terraform:azure-databricks",
             "terraform:azure-app-service",
             "terraform:azure-postgres",

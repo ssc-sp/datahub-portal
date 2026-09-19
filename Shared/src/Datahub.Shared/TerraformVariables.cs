@@ -53,6 +53,7 @@ public static class TerraformVariables
     // Service Bus Information
     public const string ServiceBusNamespace = "service_bus_namespace";
     public const string ServiceBusObjectId = "service_bus_objectid";
+    public const string ServiceBusId = "service_bus_id";
 
     // Workspace related variables
     public const string ProjectAcronym = "project_cd";

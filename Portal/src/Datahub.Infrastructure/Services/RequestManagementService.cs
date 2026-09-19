@@ -133,12 +133,6 @@ public class RequestManagementService(
                 {
                     await ProcessRequest(project, requestingUser, terraformTemplate);
 
-                    var preCreatedTemplates = TerraformTemplate.GetPreCreatedResources(terraformTemplate.Name, TerraformStatus.Completed);
-                    foreach (var template in preCreatedTemplates)
-                    {
-                        await ProcessRequest(project, requestingUser, template);
-                    }
-
                     foreach (var template in dependencyTemplates)
                     {
                         await ProcessRequest(project, requestingUser, template);

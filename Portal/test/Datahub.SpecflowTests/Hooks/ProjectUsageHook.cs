@@ -1,4 +1,4 @@
-﻿using System.Text.Json;
+using System.Text.Json;
 using Azure.Core;
 using Datahub.Application.Configuration;
 using Datahub.Application.Services;
@@ -84,6 +84,7 @@ namespace Datahub.SpecflowTests.Hooks
             configuration.Bind(datahubPortalConfiguration);
 
             var loggerFactory = new LoggerFactory();
+            var logger = loggerFactory.CreateLogger<ProjectUsageScheduler>();
 
             var workspaceCostsManagementService = Substitute.For<IWorkspaceCostManagementService>();
             var workspaceBudgetManagementService = Substitute.For<IWorkspaceBudgetManagementService>();
@@ -154,7 +155,7 @@ namespace Datahub.SpecflowTests.Hooks
                 GetWorkspaceResourceGroupsIdentifiersAsync(Arg.Any<string>())
                 .Returns(new List<ResourceIdentifier> ());
 
-            var projectUsageScheduler = new ProjectUsageScheduler(loggerFactory, dbContextFactory, sendEndpointProvider,
+            var projectUsageScheduler = new ProjectUsageScheduler(logger, dbContextFactory, sendEndpointProvider,
                 workspaceCostsManagementService, workspaceStorageManagementService, workspaceRgManagementService,
                 configuration);
             projectUsageScheduler.Mock = true;
@@ -227,7 +228,6 @@ namespace Datahub.SpecflowTests.Hooks
             var resourceTypes = new List<string>
             {
                 TerraformTemplate.GetTerraformServiceType(TerraformTemplate.NewProjectTemplate),
-                TerraformTemplate.GetTerraformServiceType(TerraformTemplate.AzureStorageBlob),
                 TerraformTemplate.GetTerraformServiceType(TerraformTemplate.AzureDatabricks),
             };
             var projectResources = new List<Project_Resources2>();

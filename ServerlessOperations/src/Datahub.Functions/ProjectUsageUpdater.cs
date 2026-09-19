@@ -10,7 +10,6 @@ using Datahub.Functions.Extensions;
 using Datahub.Functions.Validators;
 using Datahub.Infrastructure.Extensions;
 using Datahub.Infrastructure.Queues.Messages;
-using Datahub.Infrastructure.Services;
 using Datahub.Shared.Configuration;
 using FluentValidation;
 using MassTransit;
@@ -55,7 +54,7 @@ public class ProjectUsageUpdater(
         catch (Exception e)
         {
             _logger.LogError("Error updating usage: {Error}", e.Message);
-            throw new Exception(e.Message);
+            throw;
         }
         finally
         {
@@ -79,7 +78,7 @@ public class ProjectUsageUpdater(
         catch (Exception e)
         {
             _logger.LogError("Error updating capacity: {Error}", e.Message);
-            throw new Exception(e.Message);
+            throw;
         }
         finally
         {

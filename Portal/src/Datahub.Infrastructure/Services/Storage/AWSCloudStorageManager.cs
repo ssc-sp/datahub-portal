@@ -299,5 +299,48 @@ public class AWSCloudStorageManager : ICloudStorageManager
 			(ResourceSubstitutions.AWSAccessKeySecret, KeyVaultUserService.GetSecretNameForStorage(container.Id.Value, CloudStorageHelpers.AWS_AccessKeySecret)),
 			(ResourceSubstitutions.AWSRegion, KeyVaultUserService.GetSecretNameForStorage(container.Id.Value, CloudStorageHelpers.AWS_Region))
 		};
-	}
+    }
+
+    public async Task<string> GetFileStorageTierAsync(string container, string file)
+    {
+        using var s3Client = GetClient();
+        try
+        {
+            var response = await s3Client.GetObjectMetadataAsync(new GetObjectMetadataRequest()
+            {
+                BucketName = _bucketName,
+                Key = file
+            });
+            return response.StorageClass?.Value ?? "Unknown";
+        }
+        catch (Amazon.S3.AmazonS3Exception ex)
+        {
+            if (ex.StatusCode == System.Net.HttpStatusCode.NotFound)
+                return "Not Found";
+            //status wasn't not found, so throw the exception
+            throw;
+        }
+    }
+
+    public async Task<bool> SetFileStorageTierAsync(string container, string file, string newTier)
+    {
+        using var s3Client = GetClient();
+
+        return false; // Not implemented yet for AWS
+    }
+
+    public List<string> GetFileStorageTiersList()
+    {
+        return new List<string> { "STANDARD", "REDUCED_REDUNDANCY", "STANDARD_IA", "ONEZONE_IA", "INTELLIGENT_TIERING", "GLACIER", "DEEP_ARCHIVE" };
+    }
+
+    public async Task<IDictionary<string, string>> GetFileMetadataAsync(string container, string file)
+    {
+        throw new NotImplementedException();
+    }
+
+    public async Task SetFileMetadataAsync(string container, string file, Dictionary<string, string> metadata)
+    {
+        throw new NotImplementedException();
+    }
 }

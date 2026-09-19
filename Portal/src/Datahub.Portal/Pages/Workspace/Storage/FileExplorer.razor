@@ -40,7 +40,12 @@
                             OnFileRename="HandleFileRename"
                             ShowMntHierarchy="@(string.Equals(Container?.Name, "datahub", StringComparison.OrdinalIgnoreCase))"
                             OnDeleteFolder="HandleDeleteFolder"
-                            CanDeleteFolder="CanDeleteFolder" />
+                            CanDeleteFolder="CanDeleteFolder"
+                            StorageManager="@StorageManager"
+                            ContainerName="@ContainerName"
+                            SelectedStorageTier="@_selectedStorageTier"
+                            OnStorageTierChanged="HandleStorageTierChanged"
+                            IsStorageTierDisabled="@_isStorageTierDisabled"/>
 
             <div class="file-list">
                 <div class="file-list-header">
@@ -87,7 +92,7 @@
                             @foreach (var folderName in _folders
                                                  .Where(f => f?.Contains(_filterValue) ?? false)
                                                  .OrderBy(f => f.ToLower()))
-                            {
+                                {
                                 <DropZone OnFilesDrop="async (e) => await UploadFiles(e, folderName)"
                                           OnFileItemDrop="async filename => await HandleFileItemDrop(folderName, filename)">
                                     <FileItem Name="@GetFileName(folderName)"
@@ -104,13 +109,14 @@
                             @foreach (var file in _files
                                                  .Where(f => f?.name?.Contains(_filterValue) ?? false)
                                                  .OrderBy(f => f.name.ToLower()))
-                            {
+                                {
                                 <FileItem Name="@GetFileName(file.name)"
                                           Modified="@file.Modified"
                                           Size="@file.filesize"
-                                          @onclick="@(() => _selectedItems = new HashSet<string> { file.name })"
+                                          @onclick="@(() => HandleClickingFileItem(file.name))"
                                           OnSelectionClick="() => HandleFileSelectionClick(file.name)"
-                                          Highlighted="_selectedItems.Contains(file.name)">
+                                          Highlighted="_selectedItems.Contains(file.name)"
+                                          StorageTier="@GetStorageTierFor(file.name)">
                                     <Icon>
                                         <i class="@DatahubTools.GetFileTypeIcon(file.fileformat)"></i>
                                     </Icon>
@@ -133,8 +139,10 @@
                             <FileProperties @key=@_selectedItem
                                             ProjectId=@ProjectId
                                             File=@file
-                                            Readonly="!OwnsFile(file)"
-                                            OnMetadataChanged=@HandleMetadataChanged />
+                                            OnMetadataChanged=@HandleMetadataChanged
+                                            StorageTier="@(file is null ? _selectedStorageTier : GetStorageTierFor(file.name))"
+                                            StorageManager=@StorageManager
+                                            ContainerName="@ContainerName"/>
                         }
                     </div>
                 </div>
@@ -180,6 +188,8 @@ else
 
     private string _userId = null!;
 
+    private bool _isStorageTierDisabled = false;
+
     private bool _loading = true;
     private bool _failed = false;
     private List<PortalFileMetadata> _uploadingFiles = [];
@@ -199,6 +209,60 @@ else
     private IJSObjectReference _module = null!;
 
     private Dictionary<string, int> _folderList = null!;
+    private string _selectedStorageTier = "Hot";
+    private Dictionary<string, string> _fileTiers = new();
+
+    private async Task HandleStorageTierChanged(string newTier)
+    {
+        _selectedStorageTier = newTier ?? _selectedStorageTier;
+
+        // Apply visual change only to selected file items in the UI
+        if (_selectedItems != null && _selectedItems.Any())
+        {
+            foreach (var sel in _selectedItems)
+            {
+                // only update if this selection corresponds to a file
+                if (_files.Any(f => f.name == sel))
+                {
+                    _fileTiers[sel] = _selectedStorageTier;
+                }
+            }
+        }
+
+        await InvokeAsync(StateHasChanged);
+    }
+
+    private async Task PopulateFileTiersAsync()
+    {
+        if (StorageManager == null || _files == null)
+            return;
+
+        var tasks = _files.Select(async f =>
+        {
+            try
+            {
+                var tier = await StorageManager.GetFileStorageTierAsync(ContainerName, f.name);
+                _fileTiers[f.name] = tier ?? "Hot";
+            }
+            catch (NotImplementedException)
+            {
+                _fileTiers[f.name] = "";
+                _isStorageTierDisabled = true;
+            }
+            catch
+            {
+                _fileTiers[f.name] = "Hot";
+            }
+        });
+
+        await Task.WhenAll(tasks);
+        await InvokeAsync(StateHasChanged);
+    }
+
+    private string GetStorageTierFor(string filename)
+    {
+        return _fileTiers.TryGetValue(filename, out var t) ? t : "Hot";
+    }
 
     protected override async Task OnAfterRenderAsync(bool firstRender)
     {
@@ -209,6 +273,7 @@ else
             {
                 StorageAccountMetadata = await StorageManager.GetStorageMetadataAsync(ContainerName);
                 _folderList = await GetFileCountAsync(_currentFolder);
+                await PopulateFileTiersAsync();
                 StateHasChanged();
             }
         }

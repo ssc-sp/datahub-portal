@@ -25,5 +25,10 @@ namespace Datahub.Infrastructure.Offline
         {
             throw new NotImplementedException();
         }
+
+        public Task<string> UploadVirusScanEvidenceAsync(string workspaceAcronym, string containerName, string blobName, Stream fileStream, CancellationToken cancellationToken = default)
+        {
+            throw new NotImplementedException();
+        }
     }
 }

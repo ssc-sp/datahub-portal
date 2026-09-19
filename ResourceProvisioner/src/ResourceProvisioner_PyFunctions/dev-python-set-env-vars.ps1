@@ -36,6 +36,9 @@ $env:AzureTenantId = "8c1a4d93-d828-4d0e-9303-fd3bd611c822"
 $env:AzureSubscriptionId = (Read-VaultSecret "fsdh-key-dev" "datahub-portal-subscription-id")
 $env:DatahubServiceBus = (Read-VaultSecret "fsdh-key-dev" "service-bus-connection-string")
 $env:DataHub_ENVNAME = "dev"
+$env:AzureWebJobsStorage = (Read-VaultSecret "fsdh-key-dev" "datahub-storage-queue-conn-str")
+$env:AzureWebJobsDashboard = $env:AzureWebJobsStorage
+$env:AzureWebJobsAzureStorageQueueConnectionString = $env:AzureWebJobsStorage
 
 Write-Output "Environment variables set - service bus is $($env:DatahubServiceBus)"
 Write-Output "Logging to ACR"

@@ -1,4 +1,4 @@
-﻿using Datahub.Infrastructure.Queues.Messages;
+using Datahub.Infrastructure.Queues.Messages;
 using MassTransit;
 using System.Text.Json;
 

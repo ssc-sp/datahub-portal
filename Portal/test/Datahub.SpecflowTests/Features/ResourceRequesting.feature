@@ -14,7 +14,6 @@ Tests around the workspace resource requesting and its functionality for the use
       | resource_name      | number_of_messages |
       | AzureAppService    | 1                  |
       | AzureDatabricks    | 1                  |
-      | AzureStorageBlob   | 1                  |
       | AzurePostgres      | 1                  |
 
     @queue

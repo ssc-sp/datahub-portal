@@ -12,7 +12,6 @@
 @inject IJSRuntime _jsRuntime
 @inject IPortalUserTelemetryService _telemetryService
 @inject IDialogService _dialogService
-@inject IFileScanService FileScanService
 @inject ILogger<ExternalUserFileExplorer> _logger;
 @inject NavigationManager _navManager;
 @inject DatahubPortalConfiguration _config;
@@ -35,7 +34,6 @@
                 MetadataSignature=@_metadataSignature
                 SetCurrentFolder="SetCurrentFolder"
                 OnFileDelete="HandleFilesDelete"
-                OnFileDownload="HandleFileDownloadWithScanCheck"
                 OnFileRename="HandleFileRename"
                 ShowNewFolder="false"
                 ShowDeleteFolder="false"
@@ -67,7 +65,6 @@
                     <MudText>@Localizer["Name"]</MudText>
                     <MudText>@Localizer["Size"]</MudText>
                     <MudText>@Localizer["Last Modified"]</MudText>
-                    <MudText>@Localizer["Scan Result"]</MudText>
                 </div>
 
                 @if (_loading)
@@ -121,13 +118,10 @@
                                               .OrderBy(f => (f.name ?? string.Empty).ToLower()))
                             {
                                 var fileName = file.name ?? string.Empty;
-                                var scanResult = GetFileScanResult(fileName);
                                 <ExternalUserFileItem
                                     Name="@GetFileName(fileName)"
                                     Modified="@file.Modified"
                                     Size="@file.filesize"
-                                    ScanStatus="@scanResult?.Status"
-                                    OnScanErrorClick="@(() => ShowScanErrorDialog(fileName, scanResult))"
                                     @onclick="@(() => _selectedItems = new HashSet<string> { fileName })"
                                     OnSelectionClick="() => HandleFileSelectionClick(fileName)"
                                     Highlighted="_selectedItems.Contains(fileName)">
@@ -211,8 +205,6 @@ else
     private List<PortalFileMetadata> _files = new();
     private string _filterValue = string.Empty;
 
-    private Dictionary<string, FileScanResult> _fileScanResults = new();
-
     private bool _showingContainers = false;
     private List<string> _availableContainers = new();
     private string? _selectedContainerName;
@@ -223,7 +215,6 @@ else
 
     protected override async Task OnAfterRenderAsync(bool firstRender)
     {
-        await base.OnAfterRenderAsync(firstRender);
         if (firstRender)
         {
             _module = await _jsRuntime.InvokeAsync<IJSObjectReference>("import", "./Pages/Workspace/Storage/FileExplorer.razor.js");
@@ -239,8 +230,8 @@ else
 
     protected override async Task OnInitializedAsync()
     {
-        await base.OnInitializedAsync();
         _uploadingFiles = new List<PortalFileMetadata>();
+        virusScanStatusConsumer.OnVirusScanStatusReceived += OnVirusScanStatusReceived;
     }
 
     private Guid _metadataSignature = Guid.NewGuid();
@@ -259,46 +250,6 @@ else
             folders = await StorageManager.ListFoldersAsync(containerName, folderPath);
         }
         return folders;
-    }
-
-    private FileScanResult? GetFileScanResult(string fileName)
-    {
-        if (_fileScanResults.TryGetValue(fileName, out var result))
-        {
-            return result;
-        }
-        return null;
-    }
-
-    private async Task ShowScanErrorDialog(string fileName, FileScanResult? scanResult)
-    {
-        if (scanResult == null || scanResult.Status != FileScanStatus.Error)
-            return;
-
-        var dialogParams = new DialogParameters
-        {
-            { "FileName", fileName },
-            { "ErrorMessage", scanResult.ErrorMessage ?? Localizer["An error occurred while scanning the file."] }
-        };
-
-        var options = new DialogOptions { MaxWidth = MaxWidth.Small, FullWidth = true };
-        var dialog = await _dialogService.ShowAsync<FileScanErrorDialog>(Localizer["Scan Error"], dialogParams, options);
-        await dialog.Result;
-    }
-
-    private async Task HandleFileDownloadWithScanCheck(string filename)
-    {
-        var scanResult = GetFileScanResult(filename);
-        if (scanResult != null && scanResult.Status != FileScanStatus.Succeeded)
-        {
-            await _dialogService.ShowMessageBoxAsync(
-                Localizer["Access Denied"],
-                Localizer["File cannot be accessed until scan is successful."],
-                Localizer["OK"]);
-            return;
-        }
-
-        await HandleFileDownload(filename);
     }
 
     public async ValueTask DisposeAsync()

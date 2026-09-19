@@ -1,8 +1,9 @@
-﻿@using Datahub.Core.Services.Notification
+@using Datahub.Core.Services.Notification
 @using Datahub.Infrastructure.Queues.Messages
 @using MediatR
 @using Datahub.Application.Services.UserManagement
 @using Datahub.Application.Services.Notification
+@using Datahub.Core
 @inject IJSRuntime JSRuntime
 @inject NavigationManager _navigationManager
 @inject IUserInformationService _userInformationService
@@ -18,7 +19,7 @@
         </CardHeaderContent>
         <CardHeaderActions>
             <MudTooltip Text="@Localizer["Error"]">
-                <MudIconButton Icon="@Icons.Material.Filled.Error" Color="Color.Default"/>
+                <MudIconButton Icon="@Icons.Material.Filled.Error" Color="Color.Default" />
             </MudTooltip>
         </CardHeaderActions>
     </MudCardHeader>
@@ -32,7 +33,8 @@
                 <MudText>@SupportContact() <MudLink Underline="Underline.Always" OnClick="NavigateToSupport">@Localizer["FSDH Support Request Form"]</MudLink></MudText>
             </MudItem>
             <DatahubAuthView AuthLevel="DatahubAuthView.AuthLevels.DatahubSupport">
-                <environment include="Development">
+                @if (_isDevEnvironment)
+                {
                     <MudItem>
                         <MudText Typo="Typo.h6">AppInsights Query</MudText>
                         <pre>
@@ -53,32 +55,33 @@
                             @Exception?.StackTrace
                         </pre>
                     </MudItem>
-                </environment>
+                }
             </DatahubAuthView>
         </MudStack>
-    </MudCardContent>    
+    </MudCardContent>
 </MudCard>
 
 @code {
 
     [Parameter]
-    public string User { get; set; }
+    public required string User { get; set; } 
 
     [Parameter]
-    public string CorrelationId { get; set; }
+    public required string CorrelationId { get; set; }
 
     [Parameter]
-    public Exception Exception { get; set; }
+    public required Exception Exception { get; set; } 
 
     private bool _emailSent;
 
     private string _supportLink;
 
+    private bool _isDevEnvironment => DevTools.IsDevelopment();
 
     private MarkupString GetGeneralErrorText()
     {
         var template = Localizer["An application error has occurred on the DataHub server. The error has been recorded with Correlation ID {0}. To avoid network issues, if you are currently on the VPN, please try to disconnect the VPN and retry your actions."].ToString();
-        return new MarkupString(string.Format(template, $"<strong>{CorrelationId}</strong>"));        
+        return new MarkupString(string.Format(template, $"<strong>{CorrelationId}</strong>"));
     }
     private void NavigateToSupport()
     {

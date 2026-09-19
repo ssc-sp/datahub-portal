@@ -322,7 +322,7 @@ public static class TerraformVariableExtraction
     /// <returns>The Azure Storage Account name, or null if not found.</returns>
     public static string? ExtractAzureStorageAccountName(Datahub_Project? workspace)
     {
-        var storageAccountTemplateName = TerraformTemplate.GetTerraformServiceType(TerraformTemplate.AzureStorageBlob);
+        var storageAccountTemplateName = TerraformTemplate.GetTerraformServiceType(TerraformTemplate.NewProjectTemplate);
         return ExtractStringVariable(
             workspace?.Resources?.FirstOrDefault(r => r.ResourceType == storageAccountTemplateName)?.JsonContent,
             "storage_account");

@@ -1,4 +1,4 @@
-﻿using System;
+using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Text;
@@ -37,6 +37,11 @@ namespace Datahub.Core
                 "qc" => TopBarEnvironments.QualityControl,
                 _ => TopBarEnvironments.Development
             };
+        }
+
+        public static bool IsInMemoryServiceBus()
+        {
+            return IsDevelopment() && string.Equals(Environment.GetEnvironmentVariable("USE_IN_MEMORY_SERVICE_BUS") ?? "false", "true", StringComparison.OrdinalIgnoreCase);
         }
     }
 }

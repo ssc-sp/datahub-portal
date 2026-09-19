@@ -160,6 +160,20 @@ public partial class RepositoryService(
             var pullRequestValueObject =
                 await CreateInfrastructurePullRequest(workspaceDefinition.Workspace.Acronym!);
 
+            if (resourceProvisionerConfiguration.Value.InfrastructureRepository.EnablePullRequestAutoComplete)
+            {
+                await AutoApproveInfrastructurePullRequest(
+                    pullRequestValueObject.PullRequestId,
+                    pullRequestValueObject.WorkspaceAcronym,
+                    pullRequestValueObject.CreatedById);
+            }
+            else
+            {
+                logger.LogInformation(
+                    "Auto-complete is disabled for pull request {PullRequestId}",
+                    pullRequestValueObject.PullRequestId);
+            }
+
             var pullRequestMessage = new PullRequestUpdateMessage
             {
                 PullRequestValueObject = pullRequestValueObject,
@@ -175,7 +189,7 @@ public partial class RepositoryService(
             pullRequestMessage.Events
                 .Where(x => x.StatusCode == MessageStatusCode.Error)
                 .ToList()
-                .ForEach(x => logger.LogError(x.Message, x));
+                .ForEach(x => logger.LogError($"Error in resource run: {x.Message}", x));
             throw new Exception("Error while handling resource run request");
         }
         finally
@@ -293,14 +307,30 @@ public partial class RepositoryService(
         logger.LogInformation("Checking out branch {WorkspaceName} in {Path}", workspaceName, repositoryPath);
         using var repo = new Repository(repositoryPath);
         var branch = repo.Branches[workspaceName];
+        bool isNewBranch = false;
         if (branch == null)
         {
             logger.LogInformation("Branch {WorkspaceName} does not exist in {Path}, creating it now", workspaceName,
                 repositoryPath);
             branch = repo.CreateBranch(workspaceName);
+            isNewBranch = true;
         }
 
         Commands.Checkout(repo, branch);
+        if (!isNewBranch)
+        {
+            var mainBranchName = resourceProvisionerConfiguration.Value.InfrastructureRepository.MainBranch;
+            var mainBranch = repo.Branches[mainBranchName];
+            if (mainBranch is null)
+            {
+                logger.LogWarning("Main branch {MainBranchName} does not exist in {Path}; skipping rebranch", mainBranchName, repositoryPath);
+            }
+            else
+            {
+                logger.LogInformation("Resetting {WorkspaceName} to {MainBranchName}", workspaceName, mainBranchName);
+                repo.Reset(ResetMode.Hard, mainBranch.Tip);
+            }
+        }
 
         logger.LogInformation("Branch {WorkspaceName} checked out in {Path}", workspaceName, repositoryPath);
 
@@ -382,7 +412,7 @@ public partial class RepositoryService(
         logger.LogInformation("Pushing changes in {LocalPath} to {Branch} branch", repositoryPath,
             branch.CanonicalName);
 
-        await Task.Run(() => repo.Network.Push(repo.Branches[workspaceAcronym], options));
+        repo.Network.Push(repo.Branches[workspaceAcronym], options);
 
         logger.LogInformation("Changes pushed in {LocalPath} to {Branch} branch", repositoryPath,
             branch.CanonicalName);
@@ -428,16 +458,21 @@ public async Task<PullRequestValueObject> CreateInfrastructurePullRequest(string
 
         if (string.IsNullOrWhiteSpace(autoCompleteIdentityId))
         {
-            autoCompleteIdentityId = Guid.NewGuid().ToString();
+            throw new Exception($"Could not get pull request creator id for {workspaceAcronym}");
         }
 
         var pullRequestUrl = BuildPullRequestUrl(pullRequestId);
         logger.LogInformation("Infrastructure pull request url is {PullRequestUrl}", pullRequestUrl);
 
-        await AutoApproveInfrastructurePullRequest(int.Parse(pullRequestId), workspaceAcronym, autoCompleteIdentityId);
-
-        return new PullRequestValueObject(workspaceAcronym, pullRequestUrl, int.Parse(pullRequestId));
+        return new PullRequestValueObject(
+            workspaceAcronym,
+            pullRequestUrl,
+            int.Parse(pullRequestId),
+            autoCompleteIdentityId);
     }
+
+
+
 
     public async Task AutoApproveInfrastructurePullRequest(int pullRequestId, string workspaceAcronym,string autoCompleteIdentityId)
     {
@@ -506,7 +541,7 @@ public async Task<PullRequestValueObject> CreateInfrastructurePullRequest(string
             },
             ["completionOptions"] = new JsonObject
             {
-                ["deleteSourceBranch"] = false,
+                ["deleteSourceBranch"] = true,
                 ["bypassPolicy"] = false,
                 ["mergeCommitMessage"] =
                     $"[{workspaceAcronym}] Auto-merged by ResourceProvisioner"

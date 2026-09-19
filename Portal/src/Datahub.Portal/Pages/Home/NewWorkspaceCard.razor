@@ -1,4 +1,4 @@
-﻿@using Datahub.Shared.Entities
+@using Datahub.Shared.Entities
 <MudPaper Outlined Elevation="0" Class="pa-4">
     <MudStack Spacing="2">
         <MudText Typo="Typo.h3">
@@ -42,7 +42,7 @@
         "report",
         "manage",
         "share",
-        TerraformTemplate.AzureStorageBlob,
+        TerraformTemplate.NewProjectTemplate,
         TerraformTemplate.AzureDatabricks,
         TerraformTemplate.AzurePostgres,
         TerraformTemplate.AzureAppService
@@ -56,7 +56,7 @@
             "report" => Localizer["Cost and usage report"],
             "manage" => Localizer["Resource management"],
             "share" => Localizer["Data and content sharing"],
-            TerraformTemplate.AzureStorageBlob => Localizer["Blob storage"],
+            TerraformTemplate.NewProjectTemplate => Localizer["Blob storage"],
             TerraformTemplate.AzureDatabricks => Localizer["Databricks"],
             TerraformTemplate.AzurePostgres => Localizer["PostgreSQL"],
             TerraformTemplate.AzureAppService => Localizer["Web app"],
@@ -72,7 +72,7 @@
             "report" => "fa-light fa-chart-line",
             "manage" => "fa-light fa-cogs",
             "share" => "fa-light fa-share-alt",
-            TerraformTemplate.AzureStorageBlob => SidebarIcons.Storage,
+            TerraformTemplate.NewProjectTemplate => SidebarIcons.Storage,
             TerraformTemplate.AzureDatabricks => SidebarIcons.Databricks,
             TerraformTemplate.AzurePostgres => SidebarIcons.SqlDatabase,
             TerraformTemplate.AzureAppService => SidebarIcons.WebApp,

@@ -126,20 +126,20 @@ public class ExternalUserInvitationServiceSteps(
 
     #endregion
 
-    #region When – IsInvitationTokenValidAsync
+    #region When – IsInvitationTokenExpired
 
     [When(@"the invitation token validity is checked")]
     public async Task WhenTheInvitationTokenValidityIsChecked()
     {
         var invitation = (WorkspaceInvitation)scenarioContext[InvitationKey];
-        var result = await service.IsInvitationTokenValidAsync(invitation.InvitationToken);
+        var result = await service.IsInvitationTokenExpired(invitation.InvitationToken);
         scenarioContext[TokenValidKey] = result;
     }
 
     [When(@"the invitation token validity is checked with an empty Guid")]
     public async Task WhenTheInvitationTokenValidityIsCheckedWithAnEmptyGuid()
     {
-        var result = await service.IsInvitationTokenValidAsync(Guid.Empty);
+        var result = await service.IsInvitationTokenExpired(Guid.Empty);
         scenarioContext[TokenValidKey] = result;
     }
 

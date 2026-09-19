@@ -100,17 +100,19 @@ public static class ConfigureServices
             services.AddScoped<IHealthCheckResultConsumer, HealthCheckResultConsumer>();
             services.AddHostedService<LocalMessageReaderService>();
         }
-        services.AddSingleton<IVirusScanStatusConsumer, VirusScanStatusConsumer>();
+        services.AddSingleton<IVirusScanStatusListener, VirusScanStatusListener>();
         services.AddMassTransit(x =>
         {
-            if (DevTools.IsDevelopment())
+            x.AddConsumer<VirusScanStatusConsumer>();
+            x.AddConsumer<HealthCheckConsumer>();            
+            x.AddConsumer<HealthCheckResultConsumer>();
+
+            if (DevTools.IsInMemoryServiceBus())
             {
                 x.UsingInMemory((context, cfg) =>
                 {
                     cfg.ConfigureEndpoints(context);
-                    cfg.ReceiveEndpoint("infrastructure-health-check",
-                        endpoint => { endpoint.Consumer<HealthCheckConsumer>(); });
-                    cfg.ReceiveEndpoint("infrastructure-health-check-results",
+                    cfg.ReceiveEndpoint(QueueConstants.InfrastructureHealthCheckResultsQueueName,
                         endpoint => { endpoint.Consumer<HealthCheckResultConsumer>(); });
                 });
             }
@@ -122,13 +124,18 @@ public static class ConfigureServices
                         hc => hc.TransportType = Azure.Messaging.ServiceBus.ServiceBusTransportType.AmqpWebSockets);
                     cfg.PrefetchCount = 1;
                     cfg.ConfigureEndpoints(context);
-                    cfg.ReceiveEndpoint(QueueConstants.VirusScanStatusQueueName, endpoint => { endpoint.Consumer<VirusScanStatusConsumer>(); });
+                    cfg.ReceiveEndpoint(QueueConstants.VirusScanStatusQueueName, endpoint => { endpoint.Consumer<VirusScanStatusConsumer>(context); });
+                    //cfg.ReceiveEndpoint(QueueConstants.InfrastructureHealthCheckQueueName,
+                    //    endpoint => { endpoint.Consumer<HealthCheckConsumer>(); });
+                    cfg.ReceiveEndpoint(QueueConstants.InfrastructureHealthCheckResultsQueueName,
+                        endpoint => { endpoint.Consumer<HealthCheckResultConsumer>(); });
                 });
             }
         });
 
         return services;
     }
+    
 
     public static IServiceCollection AddFunctionsInfrastructureServices(this IServiceCollection services)
     {
@@ -153,7 +160,7 @@ public static class ConfigureServices
         services.AddSingleton<IWorkspaceCostManagementService, WorkspaceCostManagementService>();
         services.AddSingleton<IWorkspaceResourceGroupsManagementService, WorkspaceResourceGroupsManagementService>();
         services.AddSingleton<IWorkspaceStorageManagementService, WorkspaceStorageManagementService>();
-        services.AddSingleton<IServiceBusConfiguration, NoServiceBusConfiguration>();        
+        services.AddSingleton<IServiceBusConfiguration, NoServiceBusConfiguration>();
 
         services.AddScoped<HealthCheckHelper>();
         return services;

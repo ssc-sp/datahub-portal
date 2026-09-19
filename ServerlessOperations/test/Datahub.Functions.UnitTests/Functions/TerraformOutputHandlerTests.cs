@@ -83,7 +83,7 @@ public class TerraformOutputHandlerTests
             {
                 Project = project,
                 RequestedBy = currentPortalUser,
-                ResourceType = TerraformTemplate.GetTerraformServiceType(TerraformTemplate.AzureStorageBlob),
+                ResourceType = TerraformTemplate.GetTerraformServiceType(TerraformTemplate.NewProjectTemplate),
                 RequestedAt = laterequest,
                 Status = TerraformStatus.CreateRequested
             },
@@ -154,7 +154,7 @@ public class TerraformOutputHandlerTests
         {
             Project = project,
             RequestedBy = currentPortalUser,
-            ResourceType = TerraformTemplate.GetTerraformServiceType(TerraformTemplate.AzureStorageBlob)
+            ResourceType = TerraformTemplate.GetTerraformServiceType(TerraformTemplate.NewProjectTemplate)
         };
 
         _context.Project_Resources2.Add(storageResource);

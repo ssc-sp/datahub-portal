@@ -3,6 +3,67 @@
 <!-- markdownlint-disable MD024 -->
 # Changelog
 
+## [10.2.0](https://github.com/ssc-sp/datahub-portal/compare/v10.1.0...v10.2.0) (2026-08-28)
+
+
+### Features
+
+* Storage metadata editing in Storage Explorer ([#2102](https://github.com/ssc-sp/datahub-portal/issues/2102)) ([3d1ba8d](https://github.com/ssc-sp/datahub-portal/commit/3d1ba8d6a6c10483881da925e296ab6af528cb02))
+* Storage tiers in the storage explorer ([#2098](https://github.com/ssc-sp/datahub-portal/issues/2098)) ([e890b25](https://github.com/ssc-sp/datahub-portal/commit/e890b256467c2cded6af3f4398d4fb6e26e8e19f))
+
+
+### Bug Fixes
+
+* Admin settings icon colour fix ([#2109](https://github.com/ssc-sp/datahub-portal/issues/2109)) ([39c0266](https://github.com/ssc-sp/datahub-portal/commit/39c02662bef1920905c1ce0cfc08a6eaf2e1625c))
+* Fix for synchronization for `new-project-template` and sync container permissions ([#2111](https://github.com/ssc-sp/datahub-portal/issues/2111)) ([41ec889](https://github.com/ssc-sp/datahub-portal/commit/41ec889f7453997e054817296ced70b7c43be661))
+* Removing an extra fieldset tag causing a11y issues ([#2107](https://github.com/ssc-sp/datahub-portal/issues/2107)) ([dbc28c1](https://github.com/ssc-sp/datahub-portal/commit/dbc28c1aa6c3b22dae8c06a0b22482ad40d14fa8))
+
+## [10.1.0](https://github.com/ssc-sp/datahub-portal/compare/v10.0.0...v10.1.0) (2026-08-21)
+
+
+### Features
+
+* remove workspace feature branches on merge  ([#2073](https://github.com/ssc-sp/datahub-portal/issues/2073)) ([53328ce](https://github.com/ssc-sp/datahub-portal/commit/53328ceea810bbc46331d6846fcd91818fdc2355))
+* Separating IsInvitationTokenValidAsync and new InviteExpired page ([#2099](https://github.com/ssc-sp/datahub-portal/issues/2099)) ([5645e6c](https://github.com/ssc-sp/datahub-portal/commit/5645e6cc2acea463bde03f3e307845abad985996))
+
+
+### Bug Fixes
+
+* added service bus id ([#2101](https://github.com/ssc-sp/datahub-portal/issues/2101)) ([035e2d1](https://github.com/ssc-sp/datahub-portal/commit/035e2d1816caa339502c31b195d69ba7a3e19677))
+* **deps:** update .net core & extensions to 10.0.10 ([#2078](https://github.com/ssc-sp/datahub-portal/issues/2078)) ([6a0b33c](https://github.com/ssc-sp/datahub-portal/commit/6a0b33cba937f4bae77d6a80a59eb4add1ffa72c))
+* **deps:** update dependency mudblazor to 9.7.0 ([#2079](https://github.com/ssc-sp/datahub-portal/issues/2079)) ([63a5d86](https://github.com/ssc-sp/datahub-portal/commit/63a5d86291f4a89af73ab37152c05ee68b6ca3cd))
+* **deps:** update microsoft identity ([#2080](https://github.com/ssc-sp/datahub-portal/issues/2080)) ([3dc6ba6](https://github.com/ssc-sp/datahub-portal/commit/3dc6ba6f76ed91526056dd3f6b514569a7ce7996))
+* fixed metadata db initialization and historical migrations ([#2100](https://github.com/ssc-sp/datahub-portal/issues/2100)) ([706c0f3](https://github.com/ssc-sp/datahub-portal/commit/706c0f371a3f050e21fb516ac655102e4f80239e))
+* Logging and other fixes on dotnet function ([#2088](https://github.com/ssc-sp/datahub-portal/issues/2088)) ([c2e7cef](https://github.com/ssc-sp/datahub-portal/commit/c2e7cef618cf4e415b9977e72f31a1144ea1badd))
+* misc small fixes for external users ([#2086](https://github.com/ssc-sp/datahub-portal/issues/2086)) ([8bfdf9b](https://github.com/ssc-sp/datahub-portal/commit/8bfdf9b085153c5b1c1e7960fb76480d42f20716))
+* more function fixes ([#2089](https://github.com/ssc-sp/datahub-portal/issues/2089)) ([af4d1fd](https://github.com/ssc-sp/datahub-portal/commit/af4d1fd5f99eb43ab286b9297361f2722cf1df4d))
+* **tests:** preserve main branch ([#2082](https://github.com/ssc-sp/datahub-portal/issues/2082)) ([83113ca](https://github.com/ssc-sp/datahub-portal/commit/83113ca32e022cb5947ab44bcc4ec8b3eedf4ed2))
+
+## [10.0.0](https://github.com/ssc-sp/datahub-portal/compare/v9.0.1...v10.0.0) (2026-07-29)
+
+
+### ⚠ BREAKING CHANGES
+
+* reorg storage containers and UI for external users ([#2036](https://github.com/ssc-sp/datahub-portal/issues/2036))
+
+### Features
+
+* Adding note and link between User and External User pages ([#2061](https://github.com/ssc-sp/datahub-portal/issues/2061)) ([9362cd3](https://github.com/ssc-sp/datahub-portal/commit/9362cd38db8fa414f06d0710743744fd4864ea82))
+* Changes to the help page to clearly communicate ticket status to users ([#2066](https://github.com/ssc-sp/datahub-portal/issues/2066)) ([5ffd364](https://github.com/ssc-sp/datahub-portal/commit/5ffd364b9055715483a1100a8004ca476faabf00))
+* completed flows for AV scans ([#2062](https://github.com/ssc-sp/datahub-portal/issues/2062)) ([48f2f2d](https://github.com/ssc-sp/datahub-portal/commit/48f2f2dbcdc9637567cd1241a73c2847a7e2d656))
+* reorg storage containers and UI for external users ([#2036](https://github.com/ssc-sp/datahub-portal/issues/2036)) ([c517bdd](https://github.com/ssc-sp/datahub-portal/commit/c517bdd6a06b33dab51eaa1c6ed6040f58c9759c))
+* Updating the external users page to let a lead copy/paste the activation code ([#2067](https://github.com/ssc-sp/datahub-portal/issues/2067)) ([6373af2](https://github.com/ssc-sp/datahub-portal/commit/6373af2ff014e054f905fb1db2019bddb56bf19e))
+
+
+### Bug Fixes
+
+* **deps:** update azure sdks ([#2040](https://github.com/ssc-sp/datahub-portal/issues/2040)) ([a837e18](https://github.com/ssc-sp/datahub-portal/commit/a837e18b36a882a914902c6fb44c4ef2c4445969))
+* **deps:** update microsoft identity ([#2041](https://github.com/ssc-sp/datahub-portal/issues/2041)) ([81b8c53](https://github.com/ssc-sp/datahub-portal/commit/81b8c530febf3a21da98cebb587bb101a1d84326))
+* Displaying activation link and pending status for external users in multiple workspaces ([#2065](https://github.com/ssc-sp/datahub-portal/issues/2065)) ([feed00a](https://github.com/ssc-sp/datahub-portal/commit/feed00ab5b0ee197e7c1ac00716af63e61878e72))
+* fixed refresh on file upload for external users ([#2068](https://github.com/ssc-sp/datahub-portal/issues/2068)) ([592e3d0](https://github.com/ssc-sp/datahub-portal/commit/592e3d01811e73f06f0006c251177da5a7a3d337))
+* Fixing the not found page currently using the old public layout ([#2060](https://github.com/ssc-sp/datahub-portal/issues/2060)) ([96a4db6](https://github.com/ssc-sp/datahub-portal/commit/96a4db6183b9d0dd0bd5bde929470ca14ca966f2))
+* Letting workspace leads re-send invites after expiry ([#2070](https://github.com/ssc-sp/datahub-portal/issues/2070)) ([cee2755](https://github.com/ssc-sp/datahub-portal/commit/cee27551f65337608266c8b369e1f7b05ad4ffd6))
+
 ## [9.0.1](https://github.com/ssc-sp/datahub-portal/compare/v9.0.0...v9.0.1) (2026-07-14)
 
 
