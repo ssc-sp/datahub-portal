@@ -18,6 +18,7 @@ using Datahub.Portal.Pages.Workspace.Storage;
 using Datahub.Portal.Pages.Workspace.Storage.Container;
 using Datahub.SpecflowTests.Utils;
 using FluentAssertions;
+using Microsoft.AspNetCore.Components;
 using Microsoft.AspNetCore.Hosting;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Caching.Memory;
@@ -44,7 +45,12 @@ namespace Datahub.SpecflowTests.Steps.Workspace
         private string _action = string.Empty;
 
         [Given("the storage explorer is ready for an administrator")]
-        public void RenderExplorer()
+        public void RenderExplorer() => RenderExplorer(CloudStorageProviderType.Azure);
+
+        [Given("the storage explorer is ready with (.*) storage selected")]
+        public void RenderExplorer(string provider) => RenderExplorer(Enum.Parse<CloudStorageProviderType>(provider));
+
+        private void RenderExplorer(CloudStorageProviderType provider)
         {
             JSInterop.Mode = JSRuntimeMode.Loose;
             _module = JSInterop.SetupModule(ModulePath);
@@ -83,8 +89,14 @@ namespace Datahub.SpecflowTests.Steps.Workspace
             ComponentFactories.AddStub<DHMainContentTitle>();
             ComponentFactories.AddStub<WorkspaceAlerts>();
             ComponentFactories.AddStub<FileExplorer>();
-            _page = Render<LoadedStorageExplorer>(parameters => parameters.Add(page => page.WorkspaceAcronym, "TEST"));
+            _page = Render<LoadedStorageExplorer>(parameters => parameters
+                .Add(page => page.WorkspaceAcronym, "TEST")
+                .Add(page => page.StorageProvider, provider));
         }
+
+        [Then("the storage search box is (.*)")]
+        public void SearchVisibility(string visibility) => _page.FindAll("input[placeholder='Search files or folders']")
+            .Count.Should().Be(visibility == "shown" ? 1 : 0);
 
         [Then("the storage explorer has not requested focus")]
         public void NoFocus() => _module.Invocations.Where(call => call.Identifier == "focusStorageElement").Should().BeEmpty();
@@ -137,12 +149,14 @@ namespace Datahub.SpecflowTests.Steps.Workspace
 
         public class LoadedStorageExplorer : FileExplorerPage
         {
+            [Parameter] public CloudStorageProviderType StorageProvider { get; set; }
+
             protected override Task OnInitializedAsync()
             {
                 // Seed an already-loaded page without contacting cloud storage during these component tests.
                 // Reflection confines private page-state setup to this test fixture.
                 var manager = Substitute.For<ICloudStorageManager>();
-                var container = new CloudStorageContainer("External account", "files", CloudStorageProviderType.Azure, manager, 1);
+                var container = new CloudStorageContainer("External account", "files", StorageProvider, manager, 1);
                 SetPageField("_loading", false);
                 SetPageField("_isProjectKeyEnabled", true);
                 SetPageField("_isUserProjectAdmin", true);

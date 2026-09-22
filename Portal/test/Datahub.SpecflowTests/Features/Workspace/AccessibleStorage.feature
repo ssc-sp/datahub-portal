@@ -29,6 +29,15 @@ Feature: Accessible storage configuration and selection
     Then the storage explorer requests focus on "storage-configuration-heading"
     And the active storage explorer form is outside the disclosure
 
+  Scenario Outline: Search is available only for Azure storage
+    Given the storage explorer is ready with <provider> storage selected
+    Then the storage search box is <visibility>
+    Examples:
+      | provider | visibility |
+      | Azure    | shown      |
+      | AWS      | hidden     |
+      | GCP      | hidden     |
+
   Scenario: The storage selector starts as one compact disclosure
     Given the accessible storage selector is rendered for an administrator
     Then the storage disclosure starts collapsed
