@@ -454,11 +454,15 @@ public class AWSCloudStorageManager : ICloudStorageManager
 
         if (!string.IsNullOrEmpty(metadata.ServerSideEncryptionCustomerMethod?.Value))
             throw new StorageTierChangeException("Customer-provided encryption keys are not supported for storage class changes.");
+        
         if ((metadata.StorageClass?.Value ?? "STANDARD") == newTier)
             return true;
+        
         if (metadata.ContentLength > 5L * 1024 * 1024 * 1024)
             throw new StorageTierChangeException("Files larger than 5 GB must have their storage class changed using AWS tooling.");
+        
         EnsureAvailable(GetArchiveStatus(metadata));
+
         var hasVersion = !string.IsNullOrEmpty(metadata.VersionId) && metadata.VersionId != "null";
         if (!hasVersion && string.IsNullOrEmpty(metadata.ETag))
             throw new StorageTierChangeException("Unable to verify the source file. Refresh the file list and try again.");

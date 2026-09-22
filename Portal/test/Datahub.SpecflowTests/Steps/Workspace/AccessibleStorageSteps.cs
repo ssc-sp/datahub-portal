@@ -295,7 +295,7 @@ namespace Datahub.SpecflowTests.Steps.Workspace
         public Task TestConnection() => _form!.InvokeAsync(() => Button("Test Connection").Instance.OnClick.InvokeAsync());
 
         [Then("the storage connection error appears inline")]
-        public void ConnectionError() => _form!.Find("[role='alert']").TextContent.Should().Contain("unable to successfully connect");
+        public void ConnectionError() => _form!.Find("[role='alert']").TextContent.Should().Contain("Unable to successfully connect");
 
         [Given("storage persistence will fail")]
         public void FailSave() => _failSave = true;
