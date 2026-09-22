@@ -36,6 +36,10 @@ Feature: Accessible storage configuration and selection
     And storage selection announcements are visually hidden
     And storage controls are inside the disclosure
 
+  Scenario: The default FSDH storage does not display a container selector
+    Given the accessible storage selector is rendered with default FSDH storage selected
+    Then the default FSDH container selector is hidden
+
   Scenario: Select containers from distinct accounts with the same name
     Given the accessible storage selector is rendered for an administrator
     Then the storage selector displays the current provider account and container

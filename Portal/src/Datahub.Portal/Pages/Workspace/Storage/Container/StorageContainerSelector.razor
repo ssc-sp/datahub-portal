@@ -14,7 +14,7 @@
                     }
                 </GcdsSelect>
             }
-            @if (CurrentAccount is not null)
+            @if (CurrentAccount?.Id is not null)
             {
                 <GcdsSelect Id="storage-container-select" Name="storage-container-select" Label="@Localizer["Container"]"
                             Disabled="@(Disabled || !AccountContainers.Any(container => container.Enabled))"

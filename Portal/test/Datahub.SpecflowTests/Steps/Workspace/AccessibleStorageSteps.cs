@@ -83,6 +83,18 @@ namespace Datahub.SpecflowTests.Steps.Workspace
                 .Add(component => component.OnEditProviderClicked, id => _editedId = id));
         }
 
+        [Given("the accessible storage selector is rendered with default FSDH storage selected")]
+        public void RenderDefaultStorageSelector()
+        {
+            RenderSelector("administrator");
+            var defaultContainer = new CloudStorageContainer("FSDH storage", "default", CloudStorageProviderType.Azure, Substitute.For<ICloudStorageManager>());
+            _containers.Insert(0, defaultContainer);
+            _selected = defaultContainer;
+            _selector!.Render(parameters => parameters
+                .Add(component => component.CloudContainers, _containers)
+                .Add(component => component.SelectedContainer, defaultContainer));
+        }
+
         private void SelectContainer(CloudStorageContainer container)
         {
             _selected = container;
@@ -120,6 +132,13 @@ namespace Datahub.SpecflowTests.Steps.Workspace
         {
             _selector!.FindAll("gcds-details gcds-select").Should().HaveCount(2);
             _selector.FindAll("gcds-details gcds-button").Should().HaveCount(3);
+        }
+
+        [Then("the default FSDH container selector is hidden")]
+        public void DefaultContainerSelectorHidden()
+        {
+            _selector!.FindAll("[select-id='storage-account-select']").Should().ContainSingle();
+            _selector.FindAll("[select-id='storage-container-select']").Should().BeEmpty();
         }
 
         [When("I expand the storage disclosure")]
