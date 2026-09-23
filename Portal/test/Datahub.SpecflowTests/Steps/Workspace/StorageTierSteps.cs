@@ -282,10 +282,29 @@ public class StorageTierSteps : BunitTestSteps
         await InvokeHeadingMethod("HandleTierChange", tier);
     }
 
+    [When("the heading checks selected files for tier {string}")]
+    public async Task WhenTheHeadingChecksSelectedFilesForTier(string tier)
+    {
+        var method = typeof(StorageHeading).GetMethod(
+            "CheckIfAnyFilesInTiers",
+            BindingFlags.Instance | BindingFlags.NonPublic,
+            binder: null,
+            types: [typeof(List<PortalFileMetadata>), typeof(List<string>)],
+            modifiers: null)!;
+
+        await (Task<bool>)method.Invoke(_heading, [_metadataFiles, new List<string> { tier }])!;
+    }
+
     [Then("tier {string} should be persisted for path {string}")]
     public async Task ThenTierShouldBePersistedForPath(string tier, string path)
     {
         await _storageManager.Received(1).SetFileStorageTierAsync(ContainerName, path, tier);
+    }
+
+    [Then("storage tiers should be requested for paths")]
+    public void ThenStorageTiersShouldBeRequestedForPaths(Table table)
+    {
+        _requestedPaths.Should().Equal(table.Rows.Select(row => row["Path"]));
     }
 
     [Then("the storage tier change callback should receive {string}")]
@@ -340,6 +359,7 @@ public class StorageTierSteps : BunitTestSteps
         List<PortalFileMetadata> files,
         HashSet<string> selectedItems)
     {
+        _metadataFiles = files;
         _heading = new StorageHeading
         {
             CurrentFolder = folder,
