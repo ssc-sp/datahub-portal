@@ -2655,5 +2655,16 @@
   "Workspace files connected to the workspace tools and only accessible with departmental accounts": "Workspace files connected to the workspace tools and only accessible with departmental accounts",
   "Scanning uploaded file(s) for viruses... This can take a few minutes. {0} file(s) pending.": "Scanning uploaded file(s) for viruses... This can take a few minutes. {0} file(s) pending.",
   "No external users in this workspace.": "No external users in this workspace.",
-  "Only the workspace lead can invite external users": "Only the workspace lead can invite external users"
+  "Only the workspace lead can invite external users": "Only the workspace lead can invite external users",
+  "Choose a workspace name and acronym": "Choose a workspace name and acronym",
+  "Choose a CBR and assign a budget": "Choose a CBR and assign a budget",
+  "Select optional feature interests": "Select optional feature interests",
+  "A unique alphanumeric acronym to identify the workspace.": "A unique alphanumeric acronym to identify the workspace.",
+  "Other feature interests (optional)": "Other feature interests (optional)",
+  "Characters remaining: {0}": "Characters remaining: {0}",
+  "Enter a valid workspace budget": "Enter a valid workspace budget",
+  "Feature interests must be 128 characters or less": "Feature interests must be 128 characters or less",
+  "Creating workspace…": "Creating workspace…",
+  "An error occurred while generating the workspace acronym": "An error occurred while generating the workspace acronym",
+  "An error occurred while validating the workspace": "An error occurred while validating the workspace"
 }
