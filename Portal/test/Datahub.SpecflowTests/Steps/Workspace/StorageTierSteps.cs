@@ -158,8 +158,11 @@ public class StorageTierSteps : BunitTestSteps
     public void GivenFilePropertiesWithTier(string tier)
     {
         _itemTier = tier;
-        _storageManager.ProviderType.Returns(AWSCloudStorageManager.GetStorageClassLabel(tier) != tier
-            ? CloudStorageProviderType.AWS : CloudStorageProviderType.Azure);
+        _storageManager.ProviderType.Returns(tier is "NEARLINE" or "COLDLINE" or "ARCHIVE"
+            ? CloudStorageProviderType.GCP
+            : AWSCloudStorageManager.GetStorageClassLabel(tier) != tier
+                ? CloudStorageProviderType.AWS
+                : CloudStorageProviderType.Azure);
     }
 
     [When("the file properties are rendered")]
@@ -321,6 +324,15 @@ public class StorageTierSteps : BunitTestSteps
             Severity.Success);
     }
 
+    [Then("a successful tier change to {string} should be reported")]
+    public void ThenASuccessfulTierChangeToShouldBeReported(string label)
+    {
+        _snackbar.Received().Add(
+            Arg.Is<string>(message => message.Contains(label, StringComparison.Ordinal)
+                && message.Contains("successfully", StringComparison.Ordinal)),
+            Severity.Success);
+    }
+
     [Then("only the selected files should be changed to tier {string}")]
     public async Task ThenOnlyTheSelectedFilesShouldBeChangedToTier(string tier)
     {
@@ -392,6 +404,13 @@ public class StorageTierSteps : BunitTestSteps
             new AWSCloudStorageManager("account", "key", "secret", "ca-central-1", "bucket").GetFileStorageTiersList());
     }
 
+    [Given("the heading uses GCP storage")]
+    public void GivenTheHeadingUsesGcpStorage()
+    {
+        _storageManager.ProviderType.Returns(CloudStorageProviderType.GCP);
+        _storageManager.GetFileStorageTiersList().Returns(["STANDARD", "NEARLINE", "COLDLINE", "ARCHIVE"]);
+    }
+
     [When("storage class options are refreshed")]
     public void WhenStorageClassOptionsAreRefreshed() => InvokeHeadingVoid("RefreshStorageTierOptions");
 
@@ -417,6 +436,24 @@ public class StorageTierSteps : BunitTestSteps
     public void ThenTheHeadingOffersAzureTiers()
     {
         GetHeadingField<List<string>>("_storageTiers").Should().Equal("Hot", "Cool", "Cold", "Archive");
+        _heading!.SelectedStorageTier.Should().BeEmpty();
+    }
+
+    [When("the heading switches to a GCP container")]
+    public void WhenTheHeadingSwitchesToGcp()
+    {
+        var gcp = Substitute.For<ICloudStorageManager>();
+        gcp.ProviderType.Returns(CloudStorageProviderType.GCP);
+        gcp.GetFileStorageTiersList().Returns(["STANDARD", "NEARLINE", "COLDLINE", "ARCHIVE"]);
+        _heading!.StorageManager = gcp;
+        _heading.ContainerName = "gcp-container";
+        InvokeHeadingVoid("RefreshStorageTierOptions");
+    }
+
+    [Then("the heading offers GCP classes with no selected AWS class")]
+    public void ThenTheHeadingOffersGcpClasses()
+    {
+        GetHeadingField<List<string>>("_storageTiers").Should().Equal("STANDARD", "NEARLINE", "COLDLINE", "ARCHIVE");
         _heading!.SelectedStorageTier.Should().BeEmpty();
     }
 

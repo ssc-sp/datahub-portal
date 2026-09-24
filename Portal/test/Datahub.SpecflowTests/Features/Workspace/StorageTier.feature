@@ -54,6 +54,21 @@ The workspace storage interface displays file tiers and enforces tier-specific b
           | DEEP_ARCHIVE       | Glacier Deep Archive         |
           | REDUCED_REDUNDANCY | Reduced Redundancy            |
 
+    Scenario Outline: GCP classes use readable names in file rows and properties
+        Given a file item with tier "<Class>"
+        When the file item is rendered
+        Then the file item should display "(<Label>)"
+        Given file properties with tier "<Class>"
+        When the file properties are rendered
+        Then the file properties should display storage tier "<Label>"
+
+        Examples:
+          | Class    | Label    |
+          | STANDARD | Standard |
+          | NEARLINE | Nearline |
+          | COLDLINE | Coldline |
+          | ARCHIVE  | Archive  |
+
     Scenario: Online AWS properties omit the archive notice
         Given file properties with tier "STANDARD"
         When the file properties are rendered
@@ -82,6 +97,62 @@ The workspace storage interface displays file tiers and enforces tier-specific b
         Then a failed tier change should be reported
         And the explorer should display the persisted AWS classes after the partial failure
 
+    Scenario Outline: GCP downloads with retrieval charges use the existing cost confirmation
+        Given a storage heading in folder "nested/" with selected file "report.csv"
+        And the heading uses GCP storage
+        And the following file tiers
+          | Path              | Tier    |
+          | nested/report.csv | <Class> |
+        And the archive warning is cancelled
+        When the heading downloads the selected files
+        Then the retrieval cost confirmation should be requested once
+        And no selected file should be downloaded
+
+        Examples:
+          | Class    |
+          | NEARLINE |
+          | COLDLINE |
+          | ARCHIVE  |
+
+    Scenario Outline: Online GCP changes apply directly using canonical file paths
+        Given a storage heading in folder "nested/" with selected file "report.csv"
+        And the heading uses GCP storage
+        When the heading changes the tier to "<Class>"
+        Then tier "<Class>" should be persisted for path "nested/report.csv"
+        And a successful tier change to "<Label>" should be reported
+        And no archive confirmation should be requested
+
+        Examples:
+          | Class    | Label    |
+          | STANDARD | Standard |
+          | NEARLINE | Nearline |
+          | COLDLINE | Coldline |
+
+    Scenario: GCP Archive changes use the archive confirmation
+        Given a storage heading in folder "nested/" with selected file "report.csv"
+        And the heading uses GCP storage
+        And the archive warning is confirmed
+        When the heading changes the tier to "ARCHIVE"
+        Then the archive warning should be requested once
+        And tier "ARCHIVE" should be persisted for path "nested/report.csv"
+
+    Scenario: Cancelling a GCP Archive change does not persist
+        Given a storage heading in folder "/" with selected file "report.csv"
+        And the heading uses GCP storage
+        And the archive warning is cancelled
+        When the heading changes the tier to "ARCHIVE"
+        Then no file tier should be changed
+        And no storage tier change callback should be emitted
+
+    Scenario: GCP Archive objects remain immediately available
+        Given a storage heading in folder "nested/" with selected file "report.csv"
+        And the heading uses GCP storage
+        And the following file tiers
+          | Path              | Tier    |
+          | nested/report.csv | ARCHIVE |
+        When download availability is checked
+        Then the selected file should be available for download
+
     Scenario: Switching providers refreshes class options and clears the selected class
         Given a storage heading in folder "/" with selected file "report.csv"
         And the heading uses AWS storage
@@ -89,6 +160,13 @@ The workspace storage interface displays file tiers and enforces tier-specific b
         Then the heading offers AWS classes without Azure or legacy destinations
         When the heading switches to an Azure container
         Then the heading offers Azure tiers with no selected AWS class
+
+    Scenario: Switching to GCP refreshes class options and clears the selected class
+        Given a storage heading in folder "/" with selected file "report.csv"
+        And the heading uses AWS storage
+        When storage class options are refreshed
+        And the heading switches to a GCP container
+        Then the heading offers GCP classes with no selected AWS class
 
     Scenario Outline: Online AWS changes apply directly using canonical file paths
         Given a storage heading in folder "nested/" with selected file "report.csv"
