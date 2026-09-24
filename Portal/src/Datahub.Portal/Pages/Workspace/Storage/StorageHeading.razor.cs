@@ -139,9 +139,12 @@ public partial class StorageHeading
         if (await IsActionDisabled(ButtonAction.Download))
             return;
 
-        List<string> tiers = StorageManager.ProviderType == CloudStorageProviderType.AWS
-            ? ["STANDARD_IA", "ONEZONE_IA", "GLACIER_IR"]
-            : [AccessTier.Cool.ToString(), AccessTier.Cold.ToString()];
+        List<string> tiers = StorageManager.ProviderType switch
+        {
+            CloudStorageProviderType.AWS => ["STANDARD_IA", "ONEZONE_IA", "GLACIER_IR"],
+            CloudStorageProviderType.GCP => ["NEARLINE", "COLDLINE", "ARCHIVE"],
+            _ => [AccessTier.Cool.ToString(), AccessTier.Cold.ToString()]
+        };
 
         var downloads = SelectedItems?
             .Where(selectedItem => Files?.Any(f => f.name == selectedItem) ?? false);
@@ -286,11 +289,15 @@ public partial class StorageHeading
         try
         {
             if (newTier == AccessTier.Archive.ToString() ||
-                (StorageManager.ProviderType == CloudStorageProviderType.AWS && newTier is "GLACIER" or "DEEP_ARCHIVE"))
+                (StorageManager.ProviderType == CloudStorageProviderType.AWS && newTier is "GLACIER" or "DEEP_ARCHIVE") ||
+                (StorageManager.ProviderType == CloudStorageProviderType.GCP && newTier == "ARCHIVE"))
             {
-                var message = StorageManager.ProviderType == CloudStorageProviderType.AWS
-                    ? Localizer["Are you sure you want to change the file(s) to archive tier? To access them again, restore them using AWS tooling. This can take several hours."]
-                    : Localizer["Are you sure you want to change the file(s) to archive tier? If you need to access them, it will take time to re-hydrate."];
+                var message = StorageManager.ProviderType switch
+                {
+                    CloudStorageProviderType.AWS => Localizer["Are you sure you want to change the file(s) to archive tier? To access them again, restore them using AWS tooling. This can take several hours."],
+                    CloudStorageProviderType.GCP => Localizer["Are you sure you want to change the file(s) to Archive storage? Retrieval and early deletion charges may apply."],
+                    _ => Localizer["Are you sure you want to change the file(s) to archive tier? If you need to access them, it will take time to re-hydrate."]
+                };
                 bool confirm = await _module.InvokeAsync<bool>("confirmStorageTierChange", message.ToString());
                 if (!confirm) return;
             }
@@ -328,7 +335,7 @@ public partial class StorageHeading
         _tierStatus = null;
         if (errors.Count == 0)
         {
-            var label = Localizer[AWSCloudStorageManager.GetStorageClassLabel(newTier)].ToString();
+            var label = Localizer[CloudStorageHelpers.GetStorageClassLabel(newTier)].ToString();
             _tierStatus = Localizer["Storage tier changed to {0} successfully", label];
             _snackbar.Add(Localizer["Storage tier changed to {0} successfully", label], Severity.Success);
         }

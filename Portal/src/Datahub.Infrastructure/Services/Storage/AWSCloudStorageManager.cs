@@ -491,18 +491,7 @@ public class AWSCloudStorageManager : ICloudStorageManager
         return new List<string> { "STANDARD", "STANDARD_IA", "ONEZONE_IA", "INTELLIGENT_TIERING", "GLACIER_IR", "GLACIER", "DEEP_ARCHIVE" };
     }
 
-    public static string GetStorageClassLabel(string tier) => tier switch
-    {
-        "STANDARD" => "Standard",
-        "STANDARD_IA" => "Standard - Infrequent Access",
-        "ONEZONE_IA" => "One Zone - Infrequent Access",
-        "INTELLIGENT_TIERING" => "Intelligent-Tiering",
-        "GLACIER_IR" => "Glacier Instant Retrieval",
-        "GLACIER" => "Glacier Flexible Retrieval",
-        "DEEP_ARCHIVE" => "Glacier Deep Archive",
-        "REDUCED_REDUNDANCY" => "Reduced Redundancy",
-        _ => tier
-    };
+    public static string GetStorageClassLabel(string tier) => CloudStorageHelpers.GetStorageClassLabel(tier);
 
     public async Task<CloudStorageArchiveStatus> GetFileArchiveStatusAsync(string container, string file)
     {

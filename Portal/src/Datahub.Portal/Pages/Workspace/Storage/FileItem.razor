@@ -37,7 +37,7 @@
         </span>
         @Name
     </MudText>
-    <MudText class="file-item-size">@(ByteSize ?? "") @(!Folder && !String.IsNullOrEmpty(StorageTier) ? $"({Localizer[AWSCloudStorageManager.GetStorageClassLabel(StorageTier)]})" : "")</MudText>
+    <MudText class="file-item-size">@(ByteSize ?? "") @(!Folder && !String.IsNullOrEmpty(StorageTier) ? $"({Localizer[CloudStorageHelpers.GetStorageClassLabel(StorageTier)]})" : "")</MudText>
     <MudText class="file-item-modified">@(Modified?.ToString("r") ?? "")</MudText>
 </div>
 

@@ -317,17 +317,22 @@ namespace Datahub.Infrastructure.Services.Storage
         public async Task<string> GetFileStorageTierAsync(string container, string file)
         {
             using var client = await CreateStorageClientAsync();
+            return await GetFileStorageTierAsync(client, container, file);
+        }
+
+        internal async Task<string> GetFileStorageTierAsync(StorageClient client, string container, string file)
+        {
             var options = new GetObjectOptions();
             try
             {
                 var obj = await client.GetObjectAsync(container, file, options);
-                return await Task.FromResult(obj.StorageClass);
+                return obj.StorageClass ?? "STANDARD";
             }
             catch (GoogleApiException ex)
             {
                 if (ex.HttpStatusCode == System.Net.HttpStatusCode.NotFound)
                 {
-                    return await Task.FromResult(string.Empty);
+                    return string.Empty;
                 }
                 else
                 {
@@ -339,7 +344,28 @@ namespace Datahub.Infrastructure.Services.Storage
 
         public async Task<bool> SetFileStorageTierAsync(string container, string file, string newTier)
         {
-            return false; // Not implemented yet for GCP
+            using var client = await CreateStorageClientAsync();
+            return await SetFileStorageTierAsync(client, container, file, newTier);
+        }
+
+        internal async Task<bool> SetFileStorageTierAsync(StorageClient client, string container, string file, string newTier)
+        {
+            if (!GetFileStorageTiersList().Contains(newTier, StringComparer.Ordinal))
+                throw new StorageTierChangeException("Unsupported Google Cloud storage class.");
+
+            var obj = await client.GetObjectAsync(container, file, new GetObjectOptions());
+            if (string.Equals(obj.StorageClass ?? "STANDARD", newTier, StringComparison.Ordinal))
+                return true;
+
+            var options = new CopyObjectOptions
+            {
+                ExtraMetadata = new GObject { StorageClass = newTier },
+                IfSourceGenerationMatch = obj.Generation,
+                IfGenerationMatch = obj.Generation,
+                KmsKeyName = obj.KmsKeyName
+            };
+            await client.CopyObjectAsync(container, file, container, file, options);
+            return true;
         }
 
         public List<string> GetFileStorageTiersList()

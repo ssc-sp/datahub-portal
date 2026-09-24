@@ -82,7 +82,7 @@
                 @Localizer["Storage Tier"]
                 <MudIconButton Icon="@Icons.Material.Filled.Help" Size="Size.Small" Class="ml-1" Href="@Localizer["http://documentation.sds.canada.ca/en/storage/Storage-Tiers.html"]" Target="_blank" />
             </MudText>
-            <MudText class="text">@Localizer[AWSCloudStorageManager.GetStorageClassLabel(StorageTier)]</MudText>
+            <MudText class="text">@Localizer[CloudStorageHelpers.GetStorageClassLabel(StorageTier)]</MudText>
             @foreach (var (key, value) in _properties)
             {
                 if (!string.IsNullOrEmpty(value) && value != "[]")

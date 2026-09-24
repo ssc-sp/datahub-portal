@@ -47,7 +47,7 @@
                            aria-label="@Localizer["Storage Tier"]">
                     @foreach (string s in _storageTiers)
                     {
-                        <MudSelectItem T="string" Value="@s">@Localizer[AWSCloudStorageManager.GetStorageClassLabel(s)]</MudSelectItem>
+                        <MudSelectItem T="string" Value="@s">@Localizer[CloudStorageHelpers.GetStorageClassLabel(s)]</MudSelectItem>
                     }
                 </MudSelect>
             }
