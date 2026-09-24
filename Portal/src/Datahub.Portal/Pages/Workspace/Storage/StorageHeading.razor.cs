@@ -361,8 +361,17 @@ public partial class StorageHeading
 
     private async Task<bool> CheckIfAnyFilesInTiers(List<PortalFileMetadata> selectedFiles, List<string> checkTiers)
     {
-        bool result = await CheckIfAnyFilesInTiers(selectedFiles, checkTiers, StorageManager, ContainerName);
+        var filePaths = selectedFiles
+            .Select(file => GetCurrentFolderFilePath(file.name))
+            .ToList();
+
+        bool result = await CheckIfAnyFilesInTiers(filePaths, checkTiers, StorageManager, ContainerName);
         return result;
+    }
+
+    private string GetCurrentFolderFilePath(string fileName)
+    {
+        return $"{CurrentFolder?.TrimEnd('/')}/{fileName.TrimStart('/')}".TrimStart('/');
     }
 
     public static async Task<bool> CheckIfAnyFilesInTiers(List<string> selectedFiles, List<string> checkTiers, ICloudStorageManager storageManager, string containerName)
