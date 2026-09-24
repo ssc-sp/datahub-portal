@@ -50,7 +50,6 @@
 		<PackageReference Include="Microsoft.PowerBI.JavaScript" />
 		<PackageReference Include="MiniProfiler.AspNetCore.Mvc" />
 		<PackageReference Include="MiniProfiler.EntityFrameworkCore" />
-		<PackageReference Include="Octokit" />
 		<PackageReference Include="PSC.Blazor.Components.MarkdownEditor" />
 		<PackageReference Include="MudBlazor" />
 		<PackageReference Include="Toolbelt.Blazor.LocalTimeText.Server" />
