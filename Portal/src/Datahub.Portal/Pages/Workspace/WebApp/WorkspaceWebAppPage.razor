@@ -1,5 +1,4 @@
 @using Datahub.Application.Services.ReverseProxy
-@using Datahub.Portal.Views.Dialogs
 @using Datahub.Portal.Pages.Account
 @using Datahub.Shared.Entities
 @using Datahub.Shared.Entities.WorkspaceToolConfiguration
@@ -9,7 +8,6 @@
 
 @inject IDbContextFactory<DatahubProjectDBContext> _dbContextFactory
 @inject IKeyVaultUserService _keyVaultUserService
-@inject IDialogService _dialogService
 @inject ISnackbar _snackbar
 @inject ILogger<WorkspaceWebAppPage> _logger
 @inject MicrosoftIdentityConsentAndConditionalAccessHandler _consentHandler
@@ -95,13 +93,23 @@
                 </DHButton>
             }
 
-            <DHButton HtmlTag="button" Color="Color.Primary" Size="Size.Small" Variant="Variant.Filled"
+            <DHButton @ref="_configureButton" HtmlTag="button" Color="Color.Primary" Size="Size.Small" Variant="Variant.Filled"
                       StartIcon="@SidebarIcons.Gear"
-                      OnClick="@(async () => await NewWebAppConfiguration())">
+                      Disabled="@(_isLoadingConfiguration || _showConfigurationForm)"
+                      aria-expanded="@(_showConfigurationForm ? "true" : "false")"
+                      aria-controls="web-app-configuration-form"
+                      OnClick="ShowWebAppConfigurationAsync">
                 @Localizer["Configure"]
             </DHButton>
         }
     </MudStack>
+
+    @if (_showConfigurationForm && _configurationToEdit is not null)
+    {
+        <WebAppConfigurationForm Configuration="@_configurationToEdit"
+                                 OnSubmit="HandleConfigurationSubmittedAsync"
+                                 OnCancelled="HideConfigurationFormAsync" />
+    }
 
     <MudText>
         @Localizer["Here you can manage your web application. You can view and edit the configurations of your web application"]
@@ -314,6 +322,12 @@
     private bool _isSaving;
     private bool _isRedeploying;
     private bool _showLogs;
+    private bool _showConfigurationForm;
+    private bool _isLoadingConfiguration;
+    private bool _isSubmittingConfiguration;
+    private bool _focusConfigureButton;
+    private AppServiceConfiguration? _configurationToEdit;
+    private DHButton? _configureButton;
 
     protected override async Task OnInitializedAsync()
     {
@@ -441,40 +455,74 @@
         StateHasChanged();
     }
 
-    private async Task NewWebAppConfiguration()
+    private async Task ShowWebAppConfigurationAsync()
     {
-        using var ctx = await _dbContextFactory.CreateDbContextAsync();
-        var resource = await _webAppMgmtService.GetResource(ctx, WorkspaceAcronym);
-        if (_appConfiguration.IsGitRepoPrivate)
+        if (_isLoadingConfiguration || _showConfigurationForm || _appConfiguration is null)
         {
-            _appConfiguration.GitToken = await _keyVaultUserService.GetSecretAsync(WorkspaceAcronym, _appConfiguration.GitTokenSecretName);
+            return;
         }
 
-        var dialogOptions = new DialogOptions()
+        _isLoadingConfiguration = true;
+        try
         {
-            MaxWidth = MaxWidth.Large,
-            FullWidth = true,
-            CloseButton = true
-        };
-
-        var dialogParameters = new DialogParameters
-        {
-            { "Configuration", _appConfiguration },
-            { "WorkspaceAcronym", WorkspaceAcronym },
-            { "Resource", resource }
-        };
-
-        var dialog = await _dialogService.ShowAsync<AzureAppServiceConfigurationDialog>(Localizer["Configure Web Application"], dialogParameters, dialogOptions);
-        var dialogResult = await dialog.Result;
-
-        if (!dialogResult.Canceled)
-        {
-            var resultConfig = dialogResult.Data as AppServiceConfiguration;
-            if (resultConfig is not null)
+            _configurationToEdit = (AppServiceConfiguration)_appConfiguration.Clone();
+            if (_configurationToEdit.IsGitRepoPrivate)
             {
-                await ConfigureWebApp(resultConfig);
+                _configurationToEdit.GitToken = await _keyVaultUserService.GetSecretAsync(
+                    WorkspaceAcronym,
+                    _configurationToEdit.GitTokenSecretName);
             }
+
+            _showConfigurationForm = true;
         }
+        catch (Exception e)
+        {
+            _logger.LogError(e, "Failed to load web app configuration");
+            _snackbar.Add(Localizer["Web application configuration failed"], Severity.Error);
+        }
+        finally
+        {
+            _isLoadingConfiguration = false;
+            await InvokeAsync(StateHasChanged);
+        }
+    }
+
+    private async Task HandleConfigurationSubmittedAsync(AppServiceConfiguration configuration)
+    {
+        if (_isSubmittingConfiguration)
+        {
+            return;
+        }
+
+        _isSubmittingConfiguration = true;
+        try
+        {
+            await ConfigureWebApp(configuration);
+            await HideConfigurationFormAsync();
+        }
+        finally
+        {
+            _isSubmittingConfiguration = false;
+        }
+    }
+
+    private async Task HideConfigurationFormAsync()
+    {
+        _showConfigurationForm = false;
+        _configurationToEdit = null;
+        _focusConfigureButton = true;
+        await InvokeAsync(StateHasChanged);
+    }
+
+    protected override async Task OnAfterRenderAsync(bool firstRender)
+    {
+        if (_focusConfigureButton && _configureButton is not null)
+        {
+            _focusConfigureButton = false;
+            await _configureButton.FocusAsync();
+        }
+
+        await base.OnAfterRenderAsync(firstRender);
     }
 
     private async Task ConfigureWebApp(AppServiceConfiguration configuration)
