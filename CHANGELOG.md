@@ -3,6 +3,29 @@
 <!-- markdownlint-disable MD024 -->
 # Changelog
 
+## [10.3.0](https://github.com/ssc-sp/datahub-portal/compare/v10.2.0...v10.3.0) (2026-09-24)
+
+
+### Features
+
+* Accessible form for the support request form ([#2127](https://github.com/ssc-sp/datahub-portal/issues/2127)) ([1057c09](https://github.com/ssc-sp/datahub-portal/commit/1057c09d103911f0d399723efa1c47590550a1d8))
+* added repo reset before changes in resource provisioner ([#2087](https://github.com/ssc-sp/datahub-portal/issues/2087)) ([32e0dd5](https://github.com/ssc-sp/datahub-portal/commit/32e0dd547b116ac7f4041352f574ba3493509cad))
+* Docker build for python user provisioner function ([#2128](https://github.com/ssc-sp/datahub-portal/issues/2128)) ([6283d4d](https://github.com/ssc-sp/datahub-portal/commit/6283d4d323e9f10f1f0835c6ed2d6a8854987e7f))
+* Making the add user forms in workspaces accessible ([#2121](https://github.com/ssc-sp/datahub-portal/issues/2121)) ([ad453fc](https://github.com/ssc-sp/datahub-portal/commit/ad453fc6920c263abc260f7db41ea1361fe4031f))
+* Making the create a workspace form accessible ([#2130](https://github.com/ssc-sp/datahub-portal/issues/2130)) ([ab4f9a0](https://github.com/ssc-sp/datahub-portal/commit/ab4f9a04b0bee7da2a404b55d0f1279f902cf0d3))
+* Updating invited FSDH Entra user's display names to match their Entra account ([#2125](https://github.com/ssc-sp/datahub-portal/issues/2125)) ([9659452](https://github.com/ssc-sp/datahub-portal/commit/96594526b25331e72c4279cbfc550cd9f5d7dc15))
+
+
+### Bug Fixes
+
+* **deps:** update azure sdks ([#2090](https://github.com/ssc-sp/datahub-portal/issues/2090)) ([05128e2](https://github.com/ssc-sp/datahub-portal/commit/05128e290f3df16bba202c611d11c03475afe35b))
+* Filtering disabled users out from workspace users page and count ([#2114](https://github.com/ssc-sp/datahub-portal/issues/2114)) ([4d76aa2](https://github.com/ssc-sp/datahub-portal/commit/4d76aa2f8701afcb6561b6ba7873a793f64eabd5))
+* fixed logic for external user changes ([#2113](https://github.com/ssc-sp/datahub-portal/issues/2113)) ([22d88c4](https://github.com/ssc-sp/datahub-portal/commit/22d88c49d3b58631140841386b4590744056645c))
+* Fixing an issue where nested files wrongly cannot be downloaded ([#2126](https://github.com/ssc-sp/datahub-portal/issues/2126)) ([b666758](https://github.com/ssc-sp/datahub-portal/commit/b6667585809199529199b569e83091176b719b37))
+* health check queue is consumed by portal ([#2119](https://github.com/ssc-sp/datahub-portal/issues/2119)) ([27050e9](https://github.com/ssc-sp/datahub-portal/commit/27050e9b0ca80f93b94dda00313ead34e2f4b665))
+* python image build error ([#2129](https://github.com/ssc-sp/datahub-portal/issues/2129)) ([469859b](https://github.com/ssc-sp/datahub-portal/commit/469859be137c2b31c958265954b9370552c33e48))
+* updated settings management to work with new 163ent environment ([#2117](https://github.com/ssc-sp/datahub-portal/issues/2117)) ([260afbc](https://github.com/ssc-sp/datahub-portal/commit/260afbce5ea92fe1a00cce01061cee4ad8264665))
+
 ## [10.2.0](https://github.com/ssc-sp/datahub-portal/compare/v10.1.0...v10.2.0) (2026-08-28)
 
 
