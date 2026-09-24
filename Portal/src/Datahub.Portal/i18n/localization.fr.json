@@ -1,4 +1,9 @@
 {
+  "Nearline": "Nearline",
+  "Coldline": "Coldline",
+  "Archive": "Archive",
+  "Unsupported Google Cloud storage class.": "Classe de stockage Google Cloud non prise en charge.",
+  "Are you sure you want to change the file(s) to Archive storage? Retrieval and early deletion charges may apply.": "Voulez-vous vraiment placer les fichiers dans le stockage Archive? Des frais de récupération et de suppression anticipée peuvent s'appliquer.",
   " ({0})": " ({0})",
   " is the default role and has only read access to all resources within your project.": " est le rôle par défaut et n'a qu'un accès en lecture à toutes les ressources de votre projet.",
   " is the role that you will want to give to most of your colleagues. It gives them read/write access to most of your resources.": " est le rôle que vous voudrez donner à la plupart de vos collègues. Il leur donne un accès en lecture/écriture à la plupart de vos ressources.",

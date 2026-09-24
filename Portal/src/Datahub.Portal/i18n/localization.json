@@ -1,4 +1,9 @@
 {
+  "Nearline": "Nearline",
+  "Coldline": "Coldline",
+  "Archive": "Archive",
+  "Unsupported Google Cloud storage class.": "Unsupported Google Cloud storage class.",
+  "Are you sure you want to change the file(s) to Archive storage? Retrieval and early deletion charges may apply.": "Are you sure you want to change the file(s) to Archive storage? Retrieval and early deletion charges may apply.",
   " ({0})": " ({0})",
   " is the default role and has only read access to all resources within your project.": " is the default role and has only read access to all resources within your project.",
   " is the role that you will want to give to most of your colleagues. It gives them read/write access to most of your resources.": " is the role that you will want to give to most of your colleagues. It gives them read/write access to most of your resources.",
