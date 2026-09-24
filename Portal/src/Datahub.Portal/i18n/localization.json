@@ -2666,5 +2666,11 @@
   "Feature interests must be 128 characters or less": "Feature interests must be 128 characters or less",
   "Creating workspace…": "Creating workspace…",
   "An error occurred while generating the workspace acronym": "An error occurred while generating the workspace acronym",
-  "An error occurred while validating the workspace": "An error occurred while validating the workspace"
+  "An error occurred while validating the workspace": "An error occurred while validating the workspace",
+  "Before you continue": "Before you continue",
+  "Saving configuration...": "Saving configuration...",
+  "Web framework is required": "Web framework is required",
+  "Url cannot be empty": "URL cannot be empty",
+  "Url is not valid": "URL is not valid",
+  "Url must end with .git": "URL must end with .git"
 }

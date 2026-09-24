@@ -3630,5 +3630,11 @@
   "Feature interests must be 128 characters or less": "Les fonctionnalités souhaitées doivent comporter au maximum 128 caractères",
   "Creating workspace…": "Création de l'espace de travail…",
   "An error occurred while generating the workspace acronym": "Une erreur s'est produite lors de la génération de l'acronyme de l'espace de travail",
-  "An error occurred while validating the workspace": "Une erreur s'est produite lors de la validation de l'espace de travail"
+  "An error occurred while validating the workspace": "Une erreur s'est produite lors de la validation de l'espace de travail",
+  "Before you continue": "Avant de continuer",
+  "Saving configuration...": "Enregistrement de la configuration...",
+  "Web framework is required": "Le cadriciel Web est obligatoire",
+  "Url cannot be empty": "L'URL ne peut pas \u00eatre vide",
+  "Url is not valid": "L'URL n'est pas valide",
+  "Url must end with .git": "L'URL doit se terminer par .git"
 }
