@@ -12,8 +12,9 @@
 
         public const string GCP_ProjectId = "GCPProjectId";
         public const string GCP_Json = "GCPJson";
+        public const string GCP_BucketName = "GCPBucketName";
 
-        public readonly static string[] All_Keys = { AZ_AccountName, AZ_AccountKey, AWS_AccesKeyId, AWS_AccessKeySecret, AWS_Region, AWS_BucketName, GCP_Json };
+        public readonly static string[] All_Keys = { AZ_AccountName, AZ_AccountKey, AWS_AccesKeyId, AWS_AccessKeySecret, AWS_Region, AWS_BucketName, GCP_ProjectId, GCP_Json, GCP_BucketName };
 
         public static string GetStorageClassLabel(string tier) => tier switch
         {

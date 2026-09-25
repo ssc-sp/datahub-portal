@@ -460,6 +460,8 @@
   "BSCP": "PCRB",
   "BSMD": "DGSA",
   "Bucket Name": "Nom du compartiment",
+  "Bucket Name (optional)": "Nom du compartiment (facultatif)",
+  "Specify a bucket when the service account cannot list every bucket in the project. Leave blank to discover all accessible buckets.": "Indiquez un compartiment lorsque le compte de service ne peut pas répertorier tous les compartiments du projet. Laissez ce champ vide pour découvrir tous les compartiments accessibles.",
   "Budget": "Budget",
   "Budget & Retention": "Budget et conservation",
   "Budget amount: ": "Montant du budget: ",

@@ -384,6 +384,8 @@
   "Browse by Sector": "Browse by Sector",
   "Browse by Type": "Browse by Type",
   "Bucket Name": "Bucket Name",
+  "Bucket Name (optional)": "Bucket Name (optional)",
+  "Specify a bucket when the service account cannot list every bucket in the project. Leave blank to discover all accessible buckets.": "Specify a bucket when the service account cannot list every bucket in the project. Leave blank to discover all accessible buckets.",
   "Budget": "Budget",
   "Budget & Retention": "Budget & Retention",
   "Budget amount: ": "Budget amount: ",

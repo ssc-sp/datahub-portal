@@ -7,6 +7,7 @@ using Datahub.Application.Services.Security;
 using Datahub.Application.Services.UserManagement;
 using Datahub.Core.Model.CloudStorage;
 using Datahub.Core.Services;
+using Datahub.Core.Storage;
 using Datahub.Infrastructure.Services.Storage;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Logging;
@@ -236,7 +237,14 @@ _datahubPortalConfiguration.Hosting.EnvironmentName));
         {
             foreach (var secretKey in CloudStorageHelpers.All_Keys)
             {
-                if (connectionData.ContainsKey(secretKey) && !string.IsNullOrEmpty(connectionData[secretKey]))
+                if (connectionData.ContainsKey(secretKey)
+                    && secretKey == CloudStorageHelpers.GCP_BucketName
+                    && projectCloudStorage.Provider == CloudStorageProviderType.GCP.ToString()
+                    && string.IsNullOrWhiteSpace(connectionData[secretKey]))
+                {
+                    await TryDeleteSecret(acronym, GetSecretNameForStorage(projectCloudStorage.Id, secretKey));
+                }
+                else if (connectionData.ContainsKey(secretKey) && !string.IsNullOrEmpty(connectionData[secretKey]))
                 {
                     await StoreSecret(acronym, GetSecretNameForStorage(projectCloudStorage.Id, secretKey),
                         connectionData[secretKey]);

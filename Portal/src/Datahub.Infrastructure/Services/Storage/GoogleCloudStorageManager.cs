@@ -9,6 +9,7 @@ using Google.Apis.Auth.OAuth2;
 using Google.Apis.Storage.v1.Data;
 using Google.Cloud.Storage.V1;
 using Microsoft.Extensions.Logging;
+using System.Text.Json;
 using GObject = Google.Apis.Storage.v1.Data.Object;
 
 namespace Datahub.Infrastructure.Services.Storage
@@ -32,13 +33,35 @@ namespace Datahub.Infrastructure.Services.Storage
         private readonly string _projectId;
         private readonly string _jsonCredentials;
         private readonly string _displayName;
+        private readonly string? _bucketName;
 
-        public GoogleCloudStorageManager(ILoggerFactory loggerFactory, string projectId, string jsonCredentials, string displayName)
+        public GoogleCloudStorageManager(ILoggerFactory loggerFactory, string projectId, string jsonCredentials, string displayName, string? bucketName = null)
         {
             _logger = loggerFactory.CreateLogger<GoogleCloudStorageManager>();
-            _projectId = projectId;
+            _projectId = ResolveProjectId(projectId, jsonCredentials);
             _jsonCredentials = jsonCredentials;
             _displayName = displayName;
+            _bucketName = string.IsNullOrWhiteSpace(bucketName) ? null : bucketName.Trim();
+        }
+
+        internal static string ResolveProjectId(string projectId, string jsonCredentials)
+        {
+            if (!string.IsNullOrWhiteSpace(projectId))
+            {
+                return projectId.Trim();
+            }
+
+            try
+            {
+                using var document = JsonDocument.Parse(jsonCredentials);
+                return document.RootElement.TryGetProperty("project_id", out var property)
+                    ? property.GetString()?.Trim() ?? string.Empty
+                    : string.Empty;
+            }
+            catch (JsonException)
+            {
+                return string.Empty;
+            }
         }
 
         private GoogleCredential GetCredential()
@@ -143,6 +166,18 @@ namespace Datahub.Infrastructure.Services.Storage
         public async Task<List<string>> GetContainersAsync()
         {
             using var storageClient = await CreateStorageClientAsync();
+            return await GetContainersAsync(storageClient);
+        }
+
+        internal async Task<List<string>> GetContainersAsync(StorageClient storageClient)
+        {
+            if (_bucketName is not null)
+            {
+                var objectOptions = new ListObjectsOptions { PageSize = 1 };
+                await storageClient.ListObjectsAsync(_bucketName, options: objectOptions).ReadPageAsync(1);
+                return [_bucketName];
+            }
+
             var options = new ListBucketsOptions() { PageSize = PAGE_SIZE };
             var bucketNames = new List<string>();
             Page<Bucket>? buckets = null;
