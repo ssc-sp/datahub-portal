@@ -284,7 +284,44 @@ namespace Datahub.Infrastructure.Services.Storage
 
         public async Task<Dictionary<string, int>> ListFoldersAsync(string container, string prefix = "")
         {
-            throw new NotImplementedException();
+            using var storageClient = await CreateStorageClientAsync();
+            return await ListFoldersAsync(storageClient, container, prefix);
+        }
+
+        internal async Task<Dictionary<string, int>> ListFoldersAsync(StorageClient storageClient, string container, string prefix)
+        {
+            var folderPrefix = NormalizeFolderPath(prefix);
+            var folders = new Dictionary<string, int>(StringComparer.Ordinal)
+            {
+                [folderPrefix] = 0
+            };
+            var options = new ListObjectsOptions { PageSize = PAGE_SIZE };
+            Page<GObject>? objects = null;
+
+            while (objects is null || objects.NextPageToken is not null)
+            {
+                options.PageToken = objects?.NextPageToken;
+                objects = await storageClient.ListObjectsAsync(container, folderPrefix, options).ReadPageAsync(PAGE_SIZE);
+
+                foreach (var obj in objects)
+                {
+                    var objectName = obj.Name;
+                    for (var index = objectName.IndexOf('/', folderPrefix.Length); index >= 0;
+                         index = objectName.IndexOf('/', index + 1))
+                    {
+                        folders.TryAdd(objectName[..(index + 1)], 0);
+                    }
+
+                    // Objects ending in a slash are folder markers, not files.
+                    if (!IsFolder(objectName))
+                    {
+                        var parent = objectName[..(objectName.LastIndexOf('/') + 1)];
+                        folders[parent]++;
+                    }
+                }
+            }
+
+            return folders;
         }
 
         public Task<List<FileMetadata>> SearchFilesAsync(string container, string folderPath, string searchTerm, CancellationToken cancellationToken, bool searchInContent = false)
