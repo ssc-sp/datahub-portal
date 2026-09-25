@@ -95,6 +95,21 @@ Feature: Accessible storage configuration and selection
     Then the AWS credential inputs are shown with masked secrets
     When I choose GCP in the storage form
     Then the GCP credentials use a multiline input
+    And the optional GCP bucket input explains project-wide discovery
+
+  Scenario: A GCP bucket is optional and the project comes from the credentials
+    Given the accessible new storage form is rendered
+    When I choose GCP in the storage form
+    And I enter GCP credentials without a bucket
+    Then the GCP connection can be tested
+    And the GCP project ID is populated from the credentials
+
+  Scenario: Editing a GCP bucket requires connection verification again
+    Given the accessible existing GCP storage form is rendered with a bucket
+    Then the saved GCP bucket is shown
+    When I change the GCP bucket
+    Then the connection must be tested again before saving
+    And the GCP bucket name is trimmed
 
   Scenario: Editing credentials requires connection verification again
     Given the accessible existing storage form is rendered

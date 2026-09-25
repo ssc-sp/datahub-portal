@@ -218,23 +218,35 @@ namespace Datahub.SpecflowTests.Steps.Workspace
         [Given("the accessible existing storage form is rendered")]
         public void RenderExistingForm() => RenderForm(true);
 
-        private void RenderForm(bool existing)
+        [Given("the accessible existing GCP storage form is rendered with a bucket")]
+        public void RenderExistingGcpForm() => RenderForm(true, CloudStorageProviderType.GCP, "restricted-bucket");
+
+        private void RenderForm(bool existing, CloudStorageProviderType provider = CloudStorageProviderType.Azure, string? bucketName = null)
         {
             ConfigureServices();
             var vault = Substitute.For<IKeyVaultUserService>();
             var data = CloudStorageManagerFactory.CreateNewStorageProperties();
-            data[AZ_AccountName] = "testaccount";
-            data[AZ_AccountKey] = "a2V5";
+            if (provider == CloudStorageProviderType.GCP)
+            {
+                data[GCP_Json] = "{\"project_id\":\"saved-project\"}";
+                data[GCP_ProjectId] = "saved-project";
+                data[GCP_BucketName] = bucketName ?? string.Empty;
+            }
+            else
+            {
+                data[AZ_AccountName] = "testaccount";
+                data[AZ_AccountKey] = "a2V5";
+            }
             vault.GetAllSecrets(Arg.Any<ProjectCloudStorage>(), "TEST").Returns(data);
             Services.AddSingleton(new CloudStorageManagerFactory(NullLoggerFactory.Instance, vault));
             Services.AddSingleton(new DocumentationService(new ConfigurationBuilder().Build(), NullLogger<DocumentationService>.Instance,
                 Substitute.For<IHttpClientFactory>(), Substitute.For<IWebHostEnvironment>(), new MemoryCache(new MemoryCacheOptions())));
             Services.AddSingleton(new MicrosoftIdentityConsentAndConditionalAccessHandler(Substitute.For<IServiceProvider>()));
-            _original = new ProjectCloudStorage { Id = existing ? 1 : 0, Provider = "Azure", Name = "Original name", Enabled = true };
+            _original = new ProjectCloudStorage { Id = existing ? 1 : 0, Provider = provider.ToString(), Name = "Original name", Enabled = true };
             _form = Render<StorageConfigurationForm>(parameters => parameters
                 .Add(component => component.ProjectCloudStorage, _original)
                 .Add(component => component.WorkspaceAcronym, "TEST")
-                .Add(component => component.CloudProvider, CloudStorageProviderType.Azure)
+                .Add(component => component.CloudProvider, provider)
                 .Add(component => component.OnCancelled, () => _cancelled = true)
                 .Add(component => component.OnSaved, SaveAsync));
         }
@@ -274,6 +286,40 @@ namespace Datahub.SpecflowTests.Steps.Workspace
 
         [Then("the GCP credentials use a multiline input")]
         public void GcpInputs() => _form!.FindComponent<GcdsTextarea>().Instance.Label.Should().Be("Service Account Credentials (JSON)");
+
+        [Then("the optional GCP bucket input explains project-wide discovery")]
+        public void GcpBucketInput()
+        {
+            var bucket = _form!.FindComponents<GcdsInput>().Single(input => input.Instance.Id == "storage-gcp-bucketname").Instance;
+            bucket.Label.Should().Be("Bucket Name (optional)");
+            bucket.Hint.Should().Contain("Leave blank to discover all accessible buckets");
+        }
+
+        [When("I enter GCP credentials without a bucket")]
+        public Task EnterGcpCredentials() => _form!.InvokeAsync(() =>
+            _form.FindComponent<GcdsTextarea>().Instance.ValueChanged.InvokeAsync("{\"project_id\":\"credential-project\"}"));
+
+        [Then("the GCP connection can be tested")]
+        public void GcpConnectionCanBeTested() => Button("Test Connection").Instance.Disabled.Should().BeFalse();
+
+        [Then("the GCP project ID is populated from the credentials")]
+        public void GcpProjectIdPopulated() => CurrentConnectionData()[GCP_ProjectId].Should().Be("credential-project");
+
+        [Then("the saved GCP bucket is shown")]
+        public void SavedGcpBucketShown() => _form!.FindComponents<GcdsInput>()
+            .Single(input => input.Instance.Id == "storage-gcp-bucketname").Instance.Value.Should().Be("restricted-bucket");
+
+        [When("I change the GCP bucket")]
+        public Task ChangeGcpBucket() => _form!.InvokeAsync(() => _form.FindComponents<GcdsInput>()
+            .Single(input => input.Instance.Id == "storage-gcp-bucketname").Instance.ValueChanged.InvokeAsync("  replacement-bucket  "));
+
+        [Then("the GCP bucket name is trimmed")]
+        public void GcpBucketNameTrimmed() => CurrentConnectionData()[GCP_BucketName].Should().Be("replacement-bucket");
+
+        private IDictionary<string, string> CurrentConnectionData() =>
+            (IDictionary<string, string>)typeof(StorageConfigurationForm)
+                .GetField("_connectionData", System.Reflection.BindingFlags.Instance | System.Reflection.BindingFlags.NonPublic)!
+                .GetValue(_form!.Instance)!;
 
         [Then("the storage provider cannot be changed")]
         public void FixedProvider() => _form!.FindComponents<GcdsSelect>().Should().BeEmpty();

@@ -390,5 +390,25 @@ namespace Datahub.Tests
             // Ensure the two batches have different ids
             Assert.NotEqual(firstBatchIds[0], secondBatchIds[0]);
         }
+
+        [Fact]
+        public void GcpAutoclassDisablesStorageTierChangesAndDisplaysANotice()
+        {
+            var comp = RenderFileExplorerWithMockStorage(out _, out _, (storage, _) =>
+            {
+                storage.Setup(manager => manager.GetStorageMetadataAsync(It.IsAny<string>()))
+                    .ReturnsAsync(new GoogleCloudStorageMetadata { Container = TestContainerName, AutoclassEnabled = true });
+                storage.Setup(manager => manager.GetFileStorageTierAsync(It.IsAny<string>(), It.IsAny<string>()))
+                    .ReturnsAsync("STANDARD");
+            });
+
+            comp.WaitForAssertion(() =>
+            {
+                var heading = comp.FindComponent<StorageHeading>();
+                Assert.True(heading.Instance.IsStorageTierDisabled);
+                Assert.Contains("Autoclass is enabled", heading.Markup);
+                Assert.True(heading.FindComponent<MudSelect<string>>().Instance.Disabled);
+            });
+        }
     }
 }
