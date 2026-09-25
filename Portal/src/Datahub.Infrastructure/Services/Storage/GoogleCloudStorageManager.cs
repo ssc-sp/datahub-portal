@@ -271,15 +271,32 @@ namespace Datahub.Infrastructure.Services.Storage
             return new(folders, files, continuationToken);
         }
 
-        public Task<StorageMetadata> GetStorageMetadataAsync(string container)
+        public async Task<StorageMetadata> GetStorageMetadataAsync(string container)
         {
-            var metadata = new StorageMetadata()
+            using var storageClient = await CreateStorageClientAsync();
+            return await GetStorageMetadataAsync(storageClient, container);
+        }
+
+        internal async Task<StorageMetadata> GetStorageMetadataAsync(StorageClient storageClient, string container)
+        {
+            var metadata = new GoogleCloudStorageMetadata
             {
-                Container = container,
-                //TODO additional fields
+                Container = container
             };
 
-            return Task.FromResult(metadata);
+            try
+            {
+                var bucket = await storageClient.GetBucketAsync(container, new GetBucketOptions());
+                metadata.AutoclassEnabled = bucket.Autoclass?.Enabled;
+            }
+            catch (GoogleApiException ex)
+            {
+                // Bucket-scoped service accounts may be able to use objects without being able to read
+                // bucket configuration. Autoclass detection is optional and must not block the explorer.
+                _logger.LogWarning(ex, "Could not read Autoclass configuration for Google Cloud bucket {Bucket}.", container);
+            }
+
+            return metadata;
         }
 
         public async Task<Dictionary<string, int>> ListFoldersAsync(string container, string prefix = "")
@@ -436,7 +453,15 @@ namespace Datahub.Infrastructure.Services.Storage
                 IfGenerationMatch = obj.Generation,
                 KmsKeyName = obj.KmsKeyName
             };
-            await client.CopyObjectAsync(container, file, container, file, options);
+            var rewrittenObject = await client.CopyObjectAsync(container, file, container, file, options);
+            if (!string.Equals(rewrittenObject.StorageClass, newTier, StringComparison.Ordinal))
+            {
+                _logger.LogWarning(
+                    "Google Cloud did not apply storage class {RequestedStorageClass} to {Bucket}/{Object}. The returned storage class was {ActualStorageClass}.",
+                    newTier, container, file, rewrittenObject.StorageClass);
+                throw new StorageTierChangeException(
+                    "Google Cloud did not apply the requested storage class. The bucket may have Autoclass enabled.");
+            }
             return true;
         }
 

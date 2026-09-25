@@ -45,7 +45,8 @@
                             ContainerName="@ContainerName"
                             SelectedStorageTier="@_selectedStorageTier"
                             OnStorageTierChanged="HandleStorageTierChanged"
-                            IsStorageTierDisabled="@_isStorageTierDisabled"/>
+                            IsStorageTierDisabled="@_isStorageTierDisabled"
+                            StorageTierDisabledNotice="@StorageTierDisabledNotice"/>
             @if (_downloadError != null)
             {
                 <div role="alert">
@@ -189,6 +190,7 @@ else
     private bool _allFilesSelected = false;
 
     private CloudStorageContainer? _lastContainer = null;
+    private CloudStorageContainer? _metadataContainer;
 
     private string ContainerName => Container?.Name ?? "-";
 
@@ -199,6 +201,13 @@ else
     private string _userId = null!;
 
     private bool _isStorageTierDisabled = false;
+
+    private bool IsAutoclassEnabled =>
+        StorageAccountMetadata is GoogleCloudStorageMetadata { AutoclassEnabled: true };
+
+    private string? StorageTierDisabledNotice => IsAutoclassEnabled
+        ? Localizer["Google Cloud Autoclass is enabled for this bucket. Google Cloud manages object storage classes automatically, so manual storage class changes are unavailable."]
+        : null;
 
     private bool _loading = true;
     private bool _failed = false;
@@ -241,7 +250,7 @@ else
         if (StorageManager == null || _files == null)
             return;
 
-        _isStorageTierDisabled = false;
+        _isStorageTierDisabled = IsAutoclassEnabled;
         _fileTiers.Clear();
         var manager = StorageManager;
         var container = ContainerName;
@@ -274,7 +283,7 @@ else
             || folder != _currentFolder || refreshVersion != _tierRefreshVersion)
             return;
         _fileTiers = refreshedTiers.ToDictionary(entry => entry.Key, entry => entry.Value);
-        _isStorageTierDisabled = unsupported;
+        _isStorageTierDisabled = IsAutoclassEnabled || unsupported;
         await InvokeAsync(StateHasChanged);
     }
 
@@ -290,7 +299,6 @@ else
             _module = await _jsRuntime.InvokeAsync<IJSObjectReference>("import", "./Pages/Workspace/Storage/FileExplorer.razor.js");
             if (StorageManager != null)
             {
-                StorageAccountMetadata = await StorageManager.GetStorageMetadataAsync(ContainerName);
                 _folderList = await GetFileCountAsync(_currentFolder);
                 StateHasChanged();
             }

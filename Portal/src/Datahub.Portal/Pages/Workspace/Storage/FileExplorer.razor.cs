@@ -30,6 +30,17 @@ public partial class FileExplorer
         var folder = _currentFolder;
         StateHasChanged();
 
+        if (_metadataContainer != container)
+        {
+            _isStorageTierDisabled = false;
+            var storageMetadata = await container.StorageManager.GetStorageMetadataAsync(container.Name);
+            if (refreshVersion != _storagePageRefreshVersion || container != Container || folder != _currentFolder)
+                return;
+            StorageAccountMetadata = storageMetadata;
+            _metadataContainer = container;
+            _isStorageTierDisabled = IsAutoclassEnabled;
+        }
+
         var dfsPage = await container.StorageManager.GetDfsPagesAsync(container.Name, folder, _continuationToken);
         if (refreshVersion != _storagePageRefreshVersion || container != Container || folder != _currentFolder)
             return;

@@ -9,6 +9,7 @@
 @using Datahub.Infrastructure.Services.Security
 @using Datahub.Infrastructure.Services.Storage
 @using Datahub.Shared.Entities
+@using GcdsWrapper.Blazor
 @using Microsoft.JSInterop
 
 @inject NavigationManager _navigationManager
@@ -24,7 +25,6 @@
 @inject ISnackbar _snackbar
 @implements IAsyncDisposable
 
-    
 <div class="heading">
     <div class="actions">
         @foreach(var action in _buttonActions)
@@ -178,6 +178,9 @@
 
     [Parameter]
     public bool IsStorageTierDisabled { get; set; } = false;
+
+    [Parameter]
+    public string? StorageTierDisabledNotice { get; set; }
 
     private Dictionary<ButtonAction, bool> _actionDisabled = new();
 
