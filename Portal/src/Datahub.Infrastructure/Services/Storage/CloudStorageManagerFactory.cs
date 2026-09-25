@@ -25,12 +25,13 @@ namespace Datahub.Infrastructure.Services.Storage
 
         public async Task<ICloudStorageManager?> CreateCloudStorageManager(string acronym, ProjectCloudStorage stg)
         {
-            var connectionData = await keyVaultUserService.GetAllSecrets(stg, acronym);
-            if (connectionData is null)
+            var storedConnectionData = await keyVaultUserService.GetAllSecrets(stg, acronym);
+            if (storedConnectionData is null)
             {
                 _logger.LogWarning("Could not find connection data for cloud storage provider with id {0}", stg.Id);
                 return null;
             }
+            var connectionData = NormalizeConnectionData(storedConnectionData);
             return CreateCloudStorageManager(stg.Id, stg.Provider, stg.Name, connectionData, stg.Enabled);
         }
 
@@ -55,7 +56,7 @@ namespace Datahub.Infrastructure.Services.Storage
             }
             if (existingSecrets?.Count > 0)
             {
-                return existingSecrets;
+                return NormalizeConnectionData(existingSecrets);
             }
             else
             {
@@ -74,11 +75,20 @@ namespace Datahub.Infrastructure.Services.Storage
             connectionData[AWS_BucketName] = string.Empty;
             connectionData[GCP_ProjectId] = string.Empty;
             connectionData[GCP_Json] = string.Empty;
+            connectionData[GCP_BucketName] = string.Empty;
             return connectionData;
         }
 
+        private static IDictionary<string, string> NormalizeConnectionData(IDictionary<string, string> connectionData)
+        {
+            var normalized = CreateNewStorageProperties();
+            foreach (var entry in connectionData)
+                normalized[entry.Key] = entry.Value;
+            return normalized;
+        }
+
         public ICloudStorageManager? CreateTestCloudStorageManager(CloudStorageProviderType providerType, IDictionary<string, string> connectionData) =>
-            CreateCloudStorageManager(default, providerType.ToString(), "test", connectionData, true);
+            CreateCloudStorageManager(default, providerType.ToString(), "test", NormalizeConnectionData(connectionData), true);
 
         private ICloudStorageManager? CreateCloudStorageManager(int id, string provider, string name, IDictionary<string,string> connectionData, bool enabled)
         {
@@ -110,7 +120,8 @@ namespace Datahub.Infrastructure.Services.Storage
                 var stAccountName = string.IsNullOrEmpty(name) ? connectionData[GCP_ProjectId] : name;
 
                 ICloudStorageManager storageManager = enabled ?
-                    new GoogleCloudStorageManager(_logFactory, connectionData[GCP_ProjectId], connectionData[GCP_Json], stAccountName) :
+                    new GoogleCloudStorageManager(_logFactory, connectionData[GCP_ProjectId], connectionData[GCP_Json], stAccountName,
+                        connectionData[GCP_BucketName]) :
                     new DisabledCloudStorageManager(CloudStorageProviderType.GCP, stAccountName);
                 
                 return storageManager;

@@ -12,7 +12,24 @@
 
         public const string GCP_ProjectId = "GCPProjectId";
         public const string GCP_Json = "GCPJson";
+        public const string GCP_BucketName = "GCPBucketName";
 
-        public readonly static string[] All_Keys = { AZ_AccountName, AZ_AccountKey, AWS_AccesKeyId, AWS_AccessKeySecret, AWS_Region, AWS_BucketName, GCP_Json };
+        public readonly static string[] All_Keys = { AZ_AccountName, AZ_AccountKey, AWS_AccesKeyId, AWS_AccessKeySecret, AWS_Region, AWS_BucketName, GCP_ProjectId, GCP_Json, GCP_BucketName };
+
+        public static string GetStorageClassLabel(string tier) => tier switch
+        {
+            "STANDARD" => "Standard",
+            "STANDARD_IA" => "Standard - Infrequent Access",
+            "ONEZONE_IA" => "One Zone - Infrequent Access",
+            "INTELLIGENT_TIERING" => "Intelligent-Tiering",
+            "GLACIER_IR" => "Glacier Instant Retrieval",
+            "GLACIER" => "Glacier Flexible Retrieval",
+            "DEEP_ARCHIVE" => "Glacier Deep Archive",
+            "REDUCED_REDUNDANCY" => "Reduced Redundancy",
+            "NEARLINE" => "Nearline",
+            "COLDLINE" => "Coldline",
+            "ARCHIVE" => "Archive",
+            _ => tier
+        };
     }
 }

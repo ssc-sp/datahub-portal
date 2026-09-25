@@ -1,37 +1,17 @@
-﻿@* AWSConnectionDataInput.razor *@
+@using GcdsWrapper.Blazor
+@* AWSConnectionDataInput.razor *@
 @using Datahub.Infrastructure.Services.Storage;
 @using static Datahub.Infrastructure.Services.Storage.CloudStorageHelpers;
 
-<MudTextField @bind-Value="AccessKeyId"
-              Label=@Localizer["Access Key ID"]
-              Variant="Variant.Text"
-              InputType="InputType.Password"
-              Adornment=@Adornment.End
-              Immediate
-              AdornmentIcon=@Icons.Material.Filled.ContentPaste />
-<MudTextField @bind-Value="AccessKeySecret"
-              Label=@Localizer["Access Key Secret"]
-              InputType="InputType.Password"
-              Variant="Variant.Text"
-              Adornment=@Adornment.End
-              Immediate
-              AdornmentIcon=@Icons.Material.Filled.ContentPaste />
-<MudTextField @bind-Value="Region"
-              Label=@Localizer["Region"]
-              Variant="Variant.Text"
-              Adornment=@Adornment.End
-              Immediate
-              AdornmentIcon=@Icons.Material.Filled.ContentPaste />
-<MudTextField @bind-Value="BucketName"
-              Label=@Localizer["Bucket Name"]
-              Variant="Variant.Text"
-              Adornment=@Adornment.End
-              Immediate
-              AdornmentIcon=@Icons.Material.Filled.ContentPaste />
-
-
+<GcdsInput Id="storage-aws-accesskeyid" Name="storage-aws-accesskeyid" Label="@Localizer["Access Key ID"]" Required Disabled="@Disabled" Type="GcdsInputType.Password" Autocomplete="off" @bind-Value="AccessKeyId" />
+<GcdsInput Id="storage-aws-accesskeysecret" Name="storage-aws-accesskeysecret" Label="@Localizer["Access Key Secret"]" Required Disabled="@Disabled" Type="GcdsInputType.Password" Autocomplete="off" @bind-Value="AccessKeySecret" />
+<GcdsInput Id="storage-aws-region" Name="storage-aws-region" Label="@Localizer["Region"]" Required Disabled="@Disabled" @bind-Value="Region" />
+<GcdsInput Id="storage-aws-bucketname" Name="storage-aws-bucketname" Label="@Localizer["Bucket Name"]" Required Disabled="@Disabled" @bind-Value="BucketName" />
 
 @code {
+    [Parameter]
+    public bool Disabled { get; set; }
+
     private const string DEFAULT_REGION = "ca-central-1";
 
     [Parameter]
