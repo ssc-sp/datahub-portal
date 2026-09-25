@@ -102,7 +102,7 @@ public partial class RepositoryService(
     {
         FastForwardStrategy = FastForwardStrategy.NoFastForward,
         IgnoreWhitespaceChange = true,
-        MergeFileFavor = MergeFileFavor.Union
+        MergeFileFavor = MergeFileFavor.Ours
     };
 
     private PushOptions CreatePushOptions(string? issuerValidationName,
