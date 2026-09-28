@@ -2681,5 +2681,17 @@
   "Repository URL": "Repository URL",
   "Repository visibility": "Repository visibility",
   "Access token": "Access token",
-  "Please confirm the following. If you see any errors, use the Previous button to change them. Otherwise, click Save to save your configuration.": "Please confirm the following. If you see any errors, use the Previous button to change them. Otherwise, click Save to save your configuration."
+  "Please confirm the following. If you see any errors, use the Previous button to change them. Otherwise, click Save to save your configuration.": "Please confirm the following. If you see any errors, use the Previous button to change them. Otherwise, click Save to save your configuration.",
+  "Manage environment variables": "Manage environment variables",
+  "Select an environment variable to edit": "Select an environment variable to edit",
+  "Edit environment variable": "Edit environment variable",
+  "Environment variable key": "Environment variable key",
+  "Environment variable value": "Environment variable value",
+  "Restart required": "Restart required",
+  "Saving...": "Saving...",
+  "Key cannot be empty": "Key cannot be empty",
+  "Key cannot be longer than 200 characters": "Key cannot be longer than 200 characters",
+  "Key can only contain letters and underscores": "Key can only contain letters and underscores",
+  "Value cannot be empty": "Value cannot be empty",
+  "Value cannot be longer than 200 characters": "Value cannot be longer than 200 characters"
 }

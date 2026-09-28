@@ -5,6 +5,7 @@
 @using Microsoft.Identity.Web
 @using Datahub.Core.Model.Projects
 @using Datahub.Application.Services.WebApp
+@using GcdsWrapper.Blazor
 
 @inject IDbContextFactory<DatahubProjectDBContext> _dbContextFactory
 @inject IKeyVaultUserService _keyVaultUserService
@@ -111,18 +112,17 @@
                                  OnCancelled="HideConfigurationFormAsync" />
     }
 
-    <MudText>
-        @Localizer["Here you can manage your web application. You can view and edit the configurations of your web application"]
-    </MudText>
+    <GcdsText>
+        @Localizer["On this page, you can manage your web application. You can view and edit the configurations of your web application"]
+    </GcdsText>
 
-    <MudAlert Dense="true" Severity="Severity.Info" Variant="Variant.Outlined" Style="color: #000">
-        @Localizer["Restart your application using the 'Restart' button to apply changes to your images or environment variables."]
-        <br/>
-        @Localizer["Redeploy your application using the 'Redeploy' button to apply changes to your docker-compose file."]
-    </MudAlert>
-    @if (_isProvisioned)
+    @if (_isProvisioned && _isConfigured)
     {
-        <MudText Typo="Typo.h2">@Localizer["Quick settings"]</MudText>
+        <GcdsNotice NoticeRole="info" NoticeTitle="@Localizer["Note"]" NoticeTitleTag="h2">
+            <GcdsText>@Localizer["Restart your application using the 'Restart' button to apply changes to your images or environment variables."]</GcdsText>
+            <GcdsText>@Localizer["Redeploy your application using the 'Redeploy' button to apply changes to your docker-compose file."]</GcdsText>
+        </GcdsNotice>
+        <GcdsHeading Tag="h2">@Localizer["Quick settings"]</GcdsHeading>
         <MudPaper Class="pa-4">
             <SettingsField Label=@Localizer["URL rewriting"]
                            Description="@Localizer["The {0} proxy rewrites URL paths which is supported by most web applications who do not configure the base href. However some frameworks (such as python dash) do configure a base url. For these frameworks, the URL rewrite option should be disabled and the proxied URL should be configured inside the application as base url.", Localizer["MainAcronym"]]">
@@ -135,13 +135,10 @@
                     Disabled=@_isSaving/>
             </SettingsField>
         </MudPaper>
-        <MudText Typo="Typo.body1" Style="font-style: italic">
-            @Localizer["Quick settings are applied immediately. No need to restart your web application."]
-        </MudText>
-    }
-
-    @if (_isProvisioned && _isConfigured)
-    {
+        <GcdsText>
+            <em>@Localizer["Quick settings are applied immediately. No need to restart your web application."]</em>
+        </GcdsText>
+        
         <WorkspaceWebAppInfoTable
             @ref=@_webappInfoTable
             WebAppHost="@_webAppHost"
@@ -152,15 +149,15 @@
     }
     else if (_isProvisioned)
     {
-        <MudText>
+        <GcdsText>
             @Localizer["This web application is not configured yet. Please configure it by clicking the 'Configure' button at the top right of the page."]
-        </MudText>
+        </GcdsText>
     }
     else
     {
-        <MudText>
+        <GcdsText>
             @Localizer["This web application is not provisioned yet. Please come back soon."]
-        </MudText>
+        </GcdsText>
     }
     @if (_resource is not null && _isConfigured)
     {
@@ -169,12 +166,12 @@
     }
     @if (_isConfigured)
     {
-        <MudText Typo="Typo.h2">@Localizer["Web application logs"]</MudText>
+        <GcdsHeading Tag="h2">@Localizer["Web application logs"]</GcdsHeading>
         <MudPaper Class="py-4" Elevation="1">
             <MudStack Row Class="px-4" AlignItems="AlignItems.Center">
-                <MudText Typo="Typo.h3">
+                <GcdsHeading Tag="h3">
                     @Localizer["Runtime logs"]
-                </MudText>
+                </GcdsHeading>
                 <MudSpacer/>
                 <DHButton HtmlTag="Button" OnClick="ToggleLogs" IconSize="Size.Large" Variant="Variant.Filled"
                           EndIcon="@(_showLogs ? Icons.Material.Filled.ArrowDropUp : Icons.Material.Filled.ArrowDropDown)">@(_showLogs ? Localizer["Hide"] : Localizer["View"])</DHButton>
@@ -187,110 +184,99 @@
                 </iframe>
             </MudCollapse>
         </MudPaper>
-        <MudText Typo="Typo.body1" Style="font-style: italic">
-            @Localizer["Please note that the logs are only available when the web application is running. Logs may be delayed by a few minutes."]
-        </MudText>
+        <GcdsText>
+            <em>@Localizer["Please note that the logs are only available when the web application is running. Logs may be delayed by a few minutes."]</em>
+        </GcdsText>
     }
     @if (_isProvisioned)
     {
-        <MudText Typo="Typo.h2" Class="mt-6">
-            @Localizer["Additional information"]
-        </MudText>
-        <MudPaper Class="pa-6" Elevation="1">
-            <MudAlert Severity="Severity.Warning">
-                <strong>
-                    @Localizer["Please read before configuration to ensure that you do not run into any issues!"]
-                </strong>
-            </MudAlert>
-            <MudText Typo="Typo.body1" Class="mt-4">
-                @Localizer["Web applications in {0} are deployed and hosted using the ", Localizer["MainAcronym"]]
-                <MudLink
-                    Href="https://azure.microsoft.com/en-ca/products/app-service">@Localizer["Azure App Service. "]</MudLink>
-                @Localizer["For this reason, there are certain limitations you must follow in order to successfully deploy your web application."]
-            </MudText>
-            <MudText Typo="Typo.h3" Class="mt-4">
-                @Localizer["Limitations to docker compose:"]
-            </MudText>
-            <MudText Typo="Typo.body1" Class="mt-4">
-                @Localizer["The following are supported and unsupported docker compose configuration options as per "]
-                <MudLink
-                    Href="https://learn.microsoft.com/en-us/azure/app-service/configure-custom-container?tabs=debian&pivots=container-linux#configure-multi-container-apps">
-                    @Localizer["Microsoft's documentation on multi-container web apps. "]
-                </MudLink>
-            </MudText>
-            <MudText Typo="Typo.h4" Class="mt-4">
-                @Localizer["Supported options:"]
-            </MudText>
-            <MudText Typo="Typo.body1">
-                <ul class="ml-4">
-                    <li style="display: list-item; list-style-type: circle">
-                        <code>command</code>
-                    </li>
-                    <li style="display: list-item; list-style-type: circle">
-                        <code>entrypoint</code>
-                    </li>
-                    <li style="display: list-item; list-style-type: circle">
-                        <code>environment</code>
-                    </li>
-                    <li style="display: list-item; list-style-type: circle">
-                        <code>image</code>
-                    </li>
-                    <li style="display: list-item; list-style-type: circle">
-                        <code>ports</code>
-                    </li>
-                    <li style="display: list-item; list-style-type: circle">
-                        <code>restart</code>
-                    </li>
-                    <li style="display: list-item; list-style-type: circle">
-                        <code>services</code>
-                    </li>
-                    <li style="display: list-item; list-style-type: circle">
-                        <code>volumes</code>, @Localizer["please contact us to set-up volumes as they require more configuration."]
-                    </li>
-                </ul>
-            </MudText>
-            <MudText Typo="Typo.h4" Class="mt-4">
-                @Localizer["Unsupported options:"]
-            </MudText>
-            <MudText>
-                <ul class="ml-4">
-                    <li style="display: list-item; list-style-type: circle">
-                        <code>build</code> @Localizer[", not allowed without "] <code>image</code>.
-                    </li>
-                    <li style="display: list-item; list-style-type: circle">
-                        <code>depends_on</code> @Localizer[", will be ignored."]
-                    </li>
-                    <li style="display: list-item; list-style-type: circle">
-                        <code>networks</code> @Localizer[", will be ignored."]
-                    </li>
-                    <li style="display: list-item; list-style-type: circle">
-                        <code>secrets</code>@Localizer[", will be ignored."]
-                    </li>
-                    <li style="display: list-item; list-style-type: circle">
-                        <code>ports</code>@Localizer[" other than 80 and 8080 will be ignored."]
-                    </li>
-                </ul>
-            </MudText>
-            <MudText Typo="Typo.h4" Class="mt-4">
-                @Localizer["Syntax limitations:"]
-            </MudText>
-            <MudText>
-                <ul class="ml-4">
-                    <li style="display: list-item; list-style-type: circle">
-                        <code>version: "X"</code>@Localizer[" must always be the first YAML statement in the file."]
-                    </li>
-                    <li style="display: list-item; list-style-type: circle">@Localizer["ports section in the YAML must use quoted numbers."]</li>
-                    <li style="display: list-item; list-style-type: circle">@Localizer["image > volume section in the YAML must be quoted and cannot have permissions definitions."]</li>
-                    <li style="display: list-item; list-style-type: circle">@Localizer["volumes section must not have an empty curly brace after the volume name."]</li>
-                </ul>
-            </MudText>
-            <MudText Typo="Typo.h3" Class="mt-4">
-                @Localizer["Limitations to images:"]
-            </MudText>
-            <MudText Typo="Typo.body1" Class="mt-4">
-                @Localizer["We currently only support public images, i.e. images that are available on Docker Hub or other public repositories. In order to deploy private images, please fill a support request."]
-            </MudText>
-        </MudPaper>
+        <GcdsHeading Tag="h2">@Localizer["Additional information"]</GcdsHeading>
+        <GcdsNotice NoticeRole="warning" NoticeTitle="@Localizer["Warning"]" NoticeTitleTag="h2">
+            <GcdsText>@Localizer["Please read the following information before configuring your web application to avoid any issues."]</GcdsText>
+        </GcdsNotice>
+        <GcdsText>
+            @Localizer["Web applications in {0} are deployed and hosted using the ", Localizer["MainAcronym"]]
+            <GcdsLink Href="https://azure.microsoft.com/en-ca/products/app-service">@Localizer["Azure App Service. "]</GcdsLink>
+            @Localizer["For this reason, there are certain limitations you must follow in order to successfully deploy your web application."]
+        </GcdsText>
+        <GcdsText>
+            @Localizer["Limitations to docker compose:"]
+        </GcdsText>
+        <GcdsText>
+            @Localizer["The following are supported and unsupported docker compose configuration options as per "]
+            <GcdsLink
+                Href="https://learn.microsoft.com/en-us/azure/app-service/configure-custom-container?tabs=debian&pivots=container-linux#configure-multi-container-apps">
+                @Localizer["Microsoft's documentation on multi-container web apps. "]
+            </GcdsLink>
+        </GcdsText>
+        <GcdsText>
+            @Localizer["Supported options:"]
+        </GcdsText>
+        <GcdsText>
+            <ul class="ml-4">
+                <li style="display: list-item; list-style-type: circle">
+                    <code>command</code>
+                </li>
+                <li style="display: list-item; list-style-type: circle">
+                    <code>entrypoint</code>
+                </li>
+                <li style="display: list-item; list-style-type: circle">
+                    <code>environment</code>
+                </li>
+                <li style="display: list-item; list-style-type: circle">
+                    <code>image</code>
+                </li>
+                <li style="display: list-item; list-style-type: circle">
+                    <code>ports</code>
+                </li>
+                <li style="display: list-item; list-style-type: circle">
+                    <code>restart</code>
+                </li>
+                <li style="display: list-item; list-style-type: circle">
+                    <code>services</code>
+                </li>
+                <li style="display: list-item; list-style-type: circle">
+                    <code>volumes</code>, @Localizer["please contact us to set-up volumes as they require more configuration."]
+                </li>
+            </ul>
+        </GcdsText>
+        <GcdsText>
+            @Localizer["Unsupported options:"]
+        </GcdsText>
+        <GcdsText>
+            <ul class="ml-4">
+                <li style="display: list-item; list-style-type: circle">
+                    <code>build</code> @Localizer[", not allowed without "] <code>image</code>.
+                </li>
+                <li style="display: list-item; list-style-type: circle">
+                    <code>depends_on</code> @Localizer[", will be ignored."]
+                </li>
+                <li style="display: list-item; list-style-type: circle">
+                    <code>networks</code> @Localizer[", will be ignored."]
+                </li>
+                <li style="display: list-item; list-style-type: circle">
+                    <code>secrets</code>@Localizer[", will be ignored."]
+                </li>
+                <li style="display: list-item; list-style-type: circle">
+                    <code>ports</code>@Localizer[" other than 80 and 8080 will be ignored."]
+                </li>
+            </ul>
+        </GcdsText>
+        <GcdsHeading Tag="h4">@Localizer["Syntax limitations:"]</GcdsHeading>
+        <GcdsText>
+            <ul class="ml-4">
+                <li style="display: list-item; list-style-type: circle">
+                    <code>version: "X"</code>@Localizer[" must always be the first YAML statement in the file."]
+                </li>
+                <li style="display: list-item; list-style-type: circle">@Localizer["ports section in the YAML must use quoted numbers."]</li>
+                <li style="display: list-item; list-style-type: circle">@Localizer["image > volume section in the YAML must be quoted and cannot have permissions definitions."]</li>
+                <li style="display: list-item; list-style-type: circle">@Localizer["volumes section must not have an empty curly brace after the volume name."]</li>
+            </ul>
+        </GcdsText>
+        <GcdsHeading Tag="h3">@Localizer["Limitations to images:"]</GcdsHeading>
+        <GcdsText>
+            @Localizer["We currently only support public images, i.e. images that are available on Docker Hub or other public repositories. In order to deploy private images, please fill a support request."]
+        </GcdsText>
     }
 </MudStack>
 

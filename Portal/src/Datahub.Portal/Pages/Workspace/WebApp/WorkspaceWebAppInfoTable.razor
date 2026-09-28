@@ -1,62 +1,18 @@
-﻿@using Datahub.Application.Services.ReverseProxy
+@using Datahub.Application.Services.ReverseProxy
+@using GcdsWrapper.Blazor
 @inject IReverseProxyConfigService ReverseProxyConfigService
 
-<MudText Typo="Typo.h2" Class="mt-6">
-    @Localizer["Web application information"]
-</MudText>
-<MudSimpleTable Dense Hover Striped Outlined>
-    <thead>
-    <tr>
-        <th><strong>@Localizer["Property"]</strong></th>
-        <th><strong>@Localizer["Value"]</strong></th>
-    </tr>
-    </thead>
-    <tbody>
-    <tr>
-        <td>
-            @Localizer["Share link"]
-        </td>
-        <td>
-            <MudLink Href="@shareLink" Target="_blank">@shareLink</MudLink>
-        </td>
-    </tr>
-    <tr>
-        <td>
-            @Localizer["Proxy URL for development"]
-        </td>
-        <td>
-            <MudLink Href="@_url" Target="_blank">@_url</MudLink>
-        </td>
-    </tr>
-    <tr>
-        <td>
-            @Localizer["Framework"]
-        </td>
-        <td>
-            <code>@Framework</code>
-        </td>
-    </tr>
-    <tr>
-        <td>
-            @Localizer["Git Repo"]
-        </td>
-        <td>
-            <MudLink Href="@GitRepo">@GitRepo</MudLink>
-        </td>
-    </tr>
-    <tr>
-        <td>
-            @Localizer["Path to compose"]
-        </td>
-        <td>
-            <code>@ComposePath</code>
-        </td>
-    </tr>
-    </tbody>
-</MudSimpleTable>
-<MudText Typo="Typo.body1" Style="font-style: italic">
+<GcdsHeading Tag="h2">@Localizer["Web application information"]</GcdsHeading>
+<GcdsTable Columns="@Columns"
+           Data="@Rows"
+           Filter="false"
+           Sort="false"
+           Pagination="false">
+    <span slot="caption" class="sr-only">@Localizer["Web application information"]</span>
+</GcdsTable>
+<GcdsText>
     @Localizer["The share link is used to share the web application with other users in your workspace. The proxy link is a direct access to your web application but may be subject to firewall issues."]
-</MudText>
+</GcdsText>
 
 
 @code {
@@ -74,6 +30,21 @@
 
     private string _url;
 
+    private IReadOnlyCollection<TableColumn> Columns =>
+    [
+        new("property", Localizer["Property"], true),
+        new("value", Localizer["Value"])
+    ];
+
+    private IReadOnlyCollection<IReadOnlyDictionary<string, string>> Rows =>
+    [
+        CreateRow(Localizer["Share link"], shareLink),
+        CreateRow(Localizer["Proxy URL for development"], _url),
+        CreateRow(Localizer["Framework"], Framework),
+        CreateRow(Localizer["Git Repo"], GitRepo),
+        CreateRow(Localizer["Path to compose"], ComposePath)
+    ];
+
     protected override void OnParametersSet()
     {
         RefreshUrl();
@@ -85,4 +56,12 @@
         _url = ReverseProxyConfigService.BuildWebAppURL(WorkspaceAcronym);
     }
 
+    private static IReadOnlyDictionary<string, string> CreateRow(string property, string value) =>
+        new Dictionary<string, string>
+        {
+            ["property"] = property,
+            ["value"] = value
+        };
+
+    private sealed record TableColumn(string Field, string Header, bool RowHeader = false);
 }

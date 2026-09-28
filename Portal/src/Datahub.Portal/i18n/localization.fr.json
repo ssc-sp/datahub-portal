@@ -3644,5 +3644,17 @@
   "Repository URL": "URL du dépôt",
   "Repository visibility": "Visibilité du dépôt",
   "Access token": "Jeton d'accès",
-  "Please confirm the following. If you see any errors, use the Previous button to change them. Otherwise, click Save to save your configuration.": "Veuillez confirmer les renseignements suivants. Si vous voyez des erreurs, utilisez le bouton Précédent pour les modifier. Sinon, cliquez sur Enregistrer pour enregistrer votre configuration."
+  "Please confirm the following. If you see any errors, use the Previous button to change them. Otherwise, click Save to save your configuration.": "Veuillez confirmer les renseignements suivants. Si vous voyez des erreurs, utilisez le bouton Précédent pour les modifier. Sinon, cliquez sur Enregistrer pour enregistrer votre configuration.",
+  "Manage environment variables": "Gérer les variables d'environnement",
+  "Select an environment variable to edit": "Sélectionnez une variable d'environnement à modifier",
+  "Edit environment variable": "Modifier la variable d'environnement",
+  "Environment variable key": "Clé de la variable d'environnement",
+  "Environment variable value": "Valeur de la variable d'environnement",
+  "Restart required": "Redémarrage requis",
+  "Saving...": "Enregistrement...",
+  "Key cannot be empty": "La clé ne peut pas être vide",
+  "Key cannot be longer than 200 characters": "La clé ne peut pas dépasser 200 caractères",
+  "Key can only contain letters and underscores": "La clé ne peut contenir que des lettres et des traits de soulignement",
+  "Value cannot be empty": "La valeur ne peut pas être vide",
+  "Value cannot be longer than 200 characters": "La valeur ne peut pas dépasser 200 caractères"
 }
