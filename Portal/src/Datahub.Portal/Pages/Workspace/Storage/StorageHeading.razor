@@ -25,6 +25,13 @@
 @inject ISnackbar _snackbar
 @implements IAsyncDisposable
 
+@if (!string.IsNullOrWhiteSpace(StorageTierDisabledNotice))
+{
+    <GcdsNotice NoticeRole="info" NoticeTitle="@Localizer["Automatic storage classes"]" NoticeTitleTag="h3">
+        <GcdsText>@StorageTierDisabledNotice</GcdsText>
+    </GcdsNotice>
+}
+
 <div class="heading">
     <div class="actions">
         @foreach(var action in _buttonActions)
