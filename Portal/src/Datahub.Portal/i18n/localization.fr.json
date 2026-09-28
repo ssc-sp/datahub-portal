@@ -3636,5 +3636,13 @@
   "Web framework is required": "Le cadriciel Web est obligatoire",
   "Url cannot be empty": "L'URL ne peut pas \u00eatre vide",
   "Url is not valid": "L'URL n'est pas valide",
-  "Url must end with .git": "L'URL doit se terminer par .git"
+  "Url must end with .git": "L'URL doit se terminer par .git",
+  "Git repository options": "Options du dépôt Git",
+  "Docker Compose file path": "Chemin du fichier Docker Compose",
+  "Review your input": "Vérifiez vos renseignements",
+  "Web framework": "Cadriciel Web",
+  "Repository URL": "URL du dépôt",
+  "Repository visibility": "Visibilité du dépôt",
+  "Access token": "Jeton d'accès",
+  "Please confirm the following. If you see any errors, use the Previous button to change them. Otherwise, click Save to save your configuration.": "Veuillez confirmer les renseignements suivants. Si vous voyez des erreurs, utilisez le bouton Précédent pour les modifier. Sinon, cliquez sur Enregistrer pour enregistrer votre configuration."
 }

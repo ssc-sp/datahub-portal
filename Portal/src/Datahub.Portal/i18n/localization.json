@@ -2672,5 +2672,14 @@
   "Web framework is required": "Web framework is required",
   "Url cannot be empty": "URL cannot be empty",
   "Url is not valid": "URL is not valid",
-  "Url must end with .git": "URL must end with .git"
+  "Url must end with .git": "URL must end with .git",
+  "Additional Information": "Additional Information",
+  "Git repository options": "Git repository options",
+  "Docker Compose file path": "Docker Compose file path",
+  "Review your input": "Review your input",
+  "Web framework": "Web framework",
+  "Repository URL": "Repository URL",
+  "Repository visibility": "Repository visibility",
+  "Access token": "Access token",
+  "Please confirm the following. If you see any errors, use the Previous button to change them. Otherwise, click Save to save your configuration.": "Please confirm the following. If you see any errors, use the Previous button to change them. Otherwise, click Save to save your configuration."
 }

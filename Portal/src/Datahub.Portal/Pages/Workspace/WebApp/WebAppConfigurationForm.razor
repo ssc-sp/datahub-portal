@@ -1,6 +1,7 @@
 @using Datahub.Application.Validators
 @using Datahub.Shared.Entities.WorkspaceToolConfiguration
 @using GcdsWrapper.Blazor
+@inject ICultureService _cultureService
 
 <section id="web-app-configuration-form" role="region" aria-labelledby="web-app-configuration-heading">
     <MudPaper Elevation="0" Outlined Class="px-6 pb-6">
@@ -9,32 +10,42 @@
                 @Localizer["Configure Web Application"]
             </GcdsHeading>
         </div>
-        <GcdsText>
-            @Localizer["Select a framework from the list, which will be used to generate a template app service configuration. If you want to deploy a custom web application, select 'Docker compose' and provide the git repo URL and the path to the docker compose file."]
-        </GcdsText>
-        <GcdsNotice NoticeRole="warning"
-                    NoticeTitle="@Localizer["Before you continue"]"
-                    NoticeTitleTag="h3">
+        <div tabindex="-1" @ref="_stepHeading">
+            <GcdsStepper CurrentStep="@_currentStep" TotalSteps="@TotalSteps" Tag="h3" lang="@Language">
+                @StepHeading
+            </GcdsStepper>
+        </div>
+
+        @if (_currentStep == AdditionalInformationStep)
+        {
+            <GcdsNotice NoticeRole="warning"
+                        NoticeTitle="@Localizer["Before you continue"]"
+                        NoticeTitleTag="h4">
+                <GcdsText>
+                    @Localizer["Please read the Additional Information section before proceeding to ensure that you do not run into any issues!"]
+                </GcdsText>
+            </GcdsNotice>
+        }
+        else if (_currentStep == FrameworkStep)
+        {
             <GcdsText>
-                @Localizer["Please read the Additional Information section before proceeding to ensure that you do not run into any issues!"]
+                @Localizer["Select a framework from the list, which will be used to generate a template app service configuration. If you want to deploy a custom web application, select 'Docker compose' and provide the git repo URL and the path to the docker compose file."]
             </GcdsText>
-        </GcdsNotice>
-
-        <GcdsSelect Id="web-app-framework"
-                    Name="web-app-framework"
-                    Label="@Localizer["Select a web framework"]"
-                    DefaultValue="@Localizer["Please Select"]"
-                    Required
-                    ErrorMessage="@_frameworkError"
-                    Disabled="@_isSubmitting"
-                    @bind-Value="SelectedFramework">
-            @foreach (var framework in AppServiceTemplates.TEMPLATES)
-            {
-                <option value="@framework">@framework</option>
-            }
-        </GcdsSelect>
-
-        @if (_selectedFramework == AppServiceTemplates.CUSTOM)
+            <GcdsSelect Id="web-app-framework"
+                        Name="web-app-framework"
+                        Label="@Localizer["Select a web framework"]"
+                        DefaultValue="@Localizer["Please Select"]"
+                        Required
+                        ErrorMessage="@_frameworkError"
+                        Disabled="@_isSubmitting"
+                        @bind-Value="SelectedFramework">
+                @foreach (var framework in AppServiceTemplates.TEMPLATES)
+                {
+                    <option value="@framework">@framework</option>
+                }
+            </GcdsSelect>
+        }
+        else if (_currentStep == GitOptionsStep)
         {
             <GcdsInput Id="web-app-git-repository"
                        Name="web-app-git-repository"
@@ -66,7 +77,9 @@
                            Disabled="@_isSubmitting"
                            @bind-Value="AccessToken" />
             }
-
+        }
+        else if (_currentStep == ComposePathStep)
+        {
             <GcdsInput Id="web-app-compose-path"
                        Name="web-app-compose-path"
                        Label="@Localizer["Enter Docker compose file path"]"
@@ -77,27 +90,71 @@
                        Disabled="@_isSubmitting"
                        @bind-Value="ComposePath" />
         }
+        else
+        {
+            <GcdsText>
+                @Localizer["Please confirm the following. If you see any errors, use the Previous button to change them. Otherwise, click Save to save your configuration."]
+            </GcdsText>
+            <GcdsText>
+                <ul>
+                    <li><strong>@Localizer["Web framework"]:</strong> @_selectedFramework</li>
+                    <li><strong>@Localizer["Repository URL"]:</strong> @_gitRepoUrl</li>
+                    <li><strong>@Localizer["Repository visibility"]:</strong> @RepositoryVisibilityLabel</li>
+                    <li><strong>@Localizer["Access token"]:</strong> @ReviewAccessToken</li>
+                    <li><strong>@Localizer["Docker Compose file path"]:</strong> @_composePath</li>
+                </ul>
+            </GcdsText>
+            <GcdsText>
+                @Localizer["Saving the configuration will overwrite the current configurations and will restart your web application."]
+            </GcdsText>
+        }
 
-        <GcdsText>
-            @Localizer["Saving the configuration will overwrite the current configurations and will restart your web application."]
-        </GcdsText>
         <div class="d-flex justify-space-between mt-4">
             <GcdsButton Type="GcdsButtonType.Button"
-                        Role="GcdsButtonRole.Secondary"
+                        Role="GcdsButtonRole.Danger"
                         Disabled="@_isSubmitting"
                         OnClick="CancelAsync">
                 @Localizer["Cancel"]
             </GcdsButton>
-            <GcdsButton Type="GcdsButtonType.Button"
-                        Disabled="@_isSubmitting"
-                        OnClick="SubmitAsync">
-                @Localizer[_isSubmitting ? "Saving configuration..." : "Save"]
-            </GcdsButton>
+            <div class="d-flex ga-2">
+                @if (_currentStep > AdditionalInformationStep)
+                {
+                    <GcdsButton Type="GcdsButtonType.Button"
+                                Role="GcdsButtonRole.Secondary"
+                                Disabled="@_isSubmitting"
+                                OnClick="PreviousAsync">
+                        @Localizer["Previous"]
+                    </GcdsButton>
+                }
+                @if (_currentStep < ReviewStep)
+                {
+                    <GcdsButton Type="GcdsButtonType.Button"
+                                Disabled="@_isSubmitting"
+                                OnClick="NextAsync">
+                        @Localizer["Next"]
+                    </GcdsButton>
+                }
+                else
+                {
+                    <GcdsButton Type="GcdsButtonType.Button"
+                                Disabled="@_isSubmitting"
+                                OnClick="SubmitAsync">
+                        @Localizer[_isSubmitting ? "Saving configuration..." : "Save"]
+                    </GcdsButton>
+                }
+            </div>
         </div>
     </MudPaper>
 </section>
 
 @code {
+    private const int AdditionalInformationStep = 1;
+    private const int FrameworkStep = 2;
+    private const int GitOptionsStep = 3;
+    private const int ComposePathStep = 4;
+    private const int ReviewStep = 5;
+    private const int TotalSteps = 5;
+
     [Parameter, EditorRequired]
     public AppServiceConfiguration Configuration { get; set; } = null!;
 
@@ -108,6 +165,8 @@
     public EventCallback OnCancelled { get; set; }
 
     private ElementReference _heading;
+    private ElementReference _stepHeading;
+    private int _currentStep = AdditionalInformationStep;
     private string? _selectedFramework;
     private string? _gitRepoUrl;
     private string? _composePath;
@@ -117,10 +176,32 @@
     private bool _tokenChanged;
     private bool _isSubmitting;
     private bool _focusHeading = true;
+    private bool _focusStepHeading;
     private string? _frameworkError;
     private string? _gitRepoError;
     private string? _composePathError;
     private string? _accessTokenError;
+
+    private string Language => _cultureService.IsFrench
+        ? ICultureService.CanadaFrench
+        : ICultureService.CanadaEnglish;
+
+    private string StepHeading => _currentStep switch
+    {
+        AdditionalInformationStep => Localizer["Additional Information"],
+        FrameworkStep => Localizer["Select a web framework"],
+        GitOptionsStep => Localizer["Git repository options"],
+        ComposePathStep => Localizer["Docker Compose file path"],
+        _ => Localizer["Review your input"]
+    };
+
+    private string RepositoryVisibilityLabel => _isRepoPrivate
+        ? Localizer["Private"]
+        : Localizer["Public"];
+
+    private string ReviewAccessToken => _isRepoPrivate
+        ? "********"
+        : Localizer["N/A"];
 
     private IReadOnlyCollection<GcdsRadioOption> RepositoryVisibilityOptions =>
     [
@@ -202,6 +283,12 @@
             await _heading.FocusAsync();
         }
 
+        if (_focusStepHeading)
+        {
+            _focusStepHeading = false;
+            await _stepHeading.FocusAsync();
+        }
+
         await base.OnAfterRenderAsync(firstRender);
     }
 
@@ -225,41 +312,75 @@
         _gitRepoUrl = sanitizedUri.Uri.AbsoluteUri;
     }
 
-    private bool Validate()
+    private bool ValidateFramework()
     {
         _frameworkError = string.IsNullOrWhiteSpace(_selectedFramework)
             ? Localizer["Web framework is required"]
             : null;
 
-        if (_selectedFramework == AppServiceTemplates.CUSTOM)
+        return _frameworkError is null;
+    }
+
+    private bool ValidateGitOptions()
+    {
+        var validationResult = new GitRepoValidator().Validate(_gitRepoUrl ?? string.Empty);
+        _gitRepoError = validationResult.IsValid
+            ? null
+            : Localizer[validationResult.Errors[0].ErrorMessage];
+        _accessTokenError = _isRepoPrivate && string.IsNullOrWhiteSpace(_accessToken)
+            ? Localizer["Access tokens are required for private repos"]
+            : null;
+
+        return _gitRepoError is null && _accessTokenError is null;
+    }
+
+    private bool ValidateComposePath()
+    {
+        _composePathError = string.IsNullOrWhiteSpace(_composePath)
+            ? Localizer["Path to docker compose is necessary, file name must be included"]
+            : null;
+
+        return _composePathError is null;
+    }
+
+    private void SetStep(int step)
+    {
+        _currentStep = step;
+        _focusStepHeading = true;
+    }
+
+    private async Task NextAsync()
+    {
+        var canContinue = _currentStep switch
         {
-            var validationResult = new GitRepoValidator().Validate(_gitRepoUrl ?? string.Empty);
-            _gitRepoError = validationResult.IsValid
-                ? null
-                : Localizer[validationResult.Errors[0].ErrorMessage];
-            _composePathError = string.IsNullOrWhiteSpace(_composePath)
-                ? Localizer["Path to docker compose is necessary, file name must be included"]
-                : null;
-            _accessTokenError = _isRepoPrivate && string.IsNullOrWhiteSpace(_accessToken)
-                ? Localizer["Access tokens are required for private repos"]
-                : null;
-        }
-        else
+            FrameworkStep => ValidateFramework(),
+            GitOptionsStep => ValidateGitOptions(),
+            ComposePathStep => ValidateComposePath(),
+            _ => true
+        };
+
+        if (canContinue && _currentStep < ReviewStep)
         {
-            _gitRepoError = null;
-            _composePathError = null;
-            _accessTokenError = null;
+            SetStep(_currentStep + 1);
         }
 
-        return _frameworkError is null
-               && _gitRepoError is null
-               && _composePathError is null
-               && _accessTokenError is null;
+        await InvokeAsync(StateHasChanged);
+    }
+
+    private Task PreviousAsync()
+    {
+        if (_currentStep > AdditionalInformationStep)
+        {
+            SetStep(_currentStep - 1);
+        }
+
+        return InvokeAsync(StateHasChanged);
     }
 
     private async Task SubmitAsync()
     {
-        if (_isSubmitting || !Validate())
+        if (_isSubmitting || _currentStep != ReviewStep
+            || !ValidateFramework() || !ValidateGitOptions() || !ValidateComposePath())
         {
             return;
         }
