@@ -102,7 +102,9 @@ public partial class RepositoryService(
     {
         FastForwardStrategy = FastForwardStrategy.NoFastForward,
         IgnoreWhitespaceChange = true,
-        MergeFileFavor = MergeFileFavor.Union
+        // Prefer the incoming branch's version when both sides changed the same file.
+        // During a pull, that is the newest file being merged in.
+        MergeFileFavor = MergeFileFavor.Theirs
     };
 
     private PushOptions CreatePushOptions(string? issuerValidationName,
