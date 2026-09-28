@@ -21,89 +21,7 @@
     return;
 }
 <MudStack>
-    <MudStack Row="true" AlignItems="AlignItems.Center">
-        <DHMainContentTitle Title="@Localizer["Web application"]"/>
-        @if (_isConfigured)
-        {
-            <MudStack AlignItems="AlignItems.End" Justify="Justify.Center">
-                <DHIcon Icon="@SidebarIcons.Circle" Color="@(_webAppState ? Color.Success : Color.Error)"
-                        Title="@(_webAppState ? Localizer["Running"] : Localizer["Stopped"])"/>
-            </MudStack>
-        }
-        <MudSpacer/>
-        @if (_isProvisioned)
-        {
-            @if (_isConfigured)
-            {
-                @if (!_webAppState)
-                {
-                    <DHButton HtmlTag="button" Disabled="@_isStartStopping" Variant="Variant.Filled"
-                              StartIcon="@SidebarIcons.Start"
-                              IconColor="@Color.Success" Size="Size.Small"
-                              OnClick="@(async () => { await ExecuteAsyncWithStateChangeDelay(_webAppMgmtService.Start, _webAppId, 2000); })">
-                        @if (_isStartStopping)
-                        {
-                            <MudProgressCircular Color="Color.Default" Indeterminate="true" Size="Size.Small"/>
-                        }
-                        else
-                        {
-                            @Localizer["Start"]
-                        }
-                    </DHButton>
-                }
-                else
-                {
-                    <DHButton HtmlTag="button" Disabled="@_isStartStopping" Variant="Variant.Filled"
-                              StartIcon="@SidebarIcons.Stop"
-                              IconColor="@Color.Error" Size="Size.Small"
-                              OnClick="@(async () => { await ExecuteAsyncWithStateChangeDelay(_webAppMgmtService.Stop, _webAppId, 2000); })">
-                        @if (_isStartStopping)
-                        {
-                            <MudProgressCircular Color="Color.Default" Indeterminate="true" Size="Size.Small"/>
-                        }
-                        else
-                        {
-                            @Localizer["Stop"]
-                        }
-                    </DHButton>
-                }
-
-                <DHButton HtmlTag="button" Disabled="@(_isRestarting || !_webAppState)" Variant="Variant.Filled"
-                          StartIcon="@SidebarIcons.Restart" Size="Size.Small"
-                          OnClick="@(async () => { await ExecuteAsyncWithStateChangeDelay(_webAppMgmtService.Restart, _webAppId, 2000); })">
-                    @if (_isRestarting)
-                    {
-                        <MudProgressCircular Color="Color.Default" Indeterminate="true" Size="Size.Small"/>
-                    }
-                    else
-                    {
-                        @Localizer["Restart"]
-                    }
-                </DHButton>
-
-                <DHButton HtmlTag="button" Variant="Variant.Filled" Size="Size.Small" Color="Color.Primary"
-                          StartIcon="@SidebarIcons.Redeploy" OnClick="@(async () => await RedeployWebApp())">
-                    @if (_isRedeploying)
-                    {
-                        <MudProgressCircular Color="Color.Default" Indeterminate="true" Size="Size.Small"/>
-                    }
-                    else
-                    {
-                        @Localizer["Redeploy"]
-                    }
-                </DHButton>
-            }
-
-            <DHButton @ref="_configureButton" HtmlTag="button" Color="Color.Primary" Size="Size.Small" Variant="Variant.Filled"
-                      StartIcon="@SidebarIcons.Gear"
-                      Disabled="@(_isLoadingConfiguration || _showConfigurationForm)"
-                      aria-expanded="@(_showConfigurationForm ? "true" : "false")"
-                      aria-controls="web-app-configuration-form"
-                      OnClick="ShowWebAppConfigurationAsync">
-                @Localizer["Configure"]
-            </DHButton>
-        }
-    </MudStack>
+    <DHMainContentTitle Title="@Localizer["Web application"]"/>
 
     @if (_showConfigurationForm && _configurationToEdit is not null)
     {
@@ -115,6 +33,106 @@
     <GcdsText>
         @Localizer["On this page, you can manage your web application. You can view and edit the configurations of your web application"]
     </GcdsText>
+
+    @if (_isProvisioned)
+    {
+        <MudPaper Class="pa-4" Elevation="1">
+            <section id="web-app-control-panel" aria-labelledby="web-app-control-panel-heading">
+                <div @ref="_controlPanelHeading"
+                     tabindex="-1"
+                     aria-labelledby="web-app-control-panel-heading">
+                    <GcdsHeading id="web-app-control-panel-heading" Tag="h2" MarginTop="0">
+                        @Localizer["Web application controls"]
+                    </GcdsHeading>
+                </div>
+
+                @if (_isConfigured)
+                {
+                    <GcdsText><strong>@Localizer["Status"]:</strong> @(_webAppState ? Localizer["Running"] : Localizer["Stopped"])</GcdsText>
+                }
+
+                <MudStack Row Wrap="Wrap.Wrap" Spacing="2" AlignItems="AlignItems.Center">
+                    @if (_isConfigured)
+                    {
+                        @if (!_webAppState)
+                        {
+                            <GcdsButton Type="GcdsButtonType.Button"
+                                        Role="GcdsButtonRole.Secondary"
+                                        Size="GcdsButtonSize.Small"
+                                        Disabled="@_isStartStopping"
+                                        OnClick="@(async () => { await ExecuteAsyncWithStateChangeDelay(_webAppMgmtService.Start, _webAppId, 2000); })">
+                                @if (_isStartStopping)
+                                {
+                                    <MudProgressCircular Color="Color.Default" Indeterminate="true" Size="Size.Small"/>
+                                }
+                                else
+                                {
+                                    @Localizer["Start"]
+                                }
+                            </GcdsButton>
+                        }
+                        else
+                        {
+                            <GcdsButton Type="GcdsButtonType.Button"
+                                        Role="GcdsButtonRole.Danger"
+                                        Size="GcdsButtonSize.Small"
+                                        Disabled="@_isStartStopping"
+                                        OnClick="@(async () => { await ExecuteAsyncWithStateChangeDelay(_webAppMgmtService.Stop, _webAppId, 2000); })">
+                                @if (_isStartStopping)
+                                {
+                                    <MudProgressCircular Color="Color.Default" Indeterminate="true" Size="Size.Small"/>
+                                }
+                                else
+                                {
+                                    @Localizer["Stop"]
+                                }
+                            </GcdsButton>
+                        }
+
+                        <GcdsButton Type="GcdsButtonType.Button"
+                                    Role="GcdsButtonRole.Secondary"
+                                    Size="GcdsButtonSize.Small"
+                                    Disabled="@(_isRestarting || !_webAppState)"
+                                    OnClick="@(async () => { await ExecuteAsyncWithStateChangeDelay(_webAppMgmtService.Restart, _webAppId, 2000); })">
+                            @if (_isRestarting)
+                            {
+                                <MudProgressCircular Color="Color.Default" Indeterminate="true" Size="Size.Small"/>
+                            }
+                            else
+                            {
+                                @Localizer["Restart"]
+                            }
+                        </GcdsButton>
+
+                        <GcdsButton Type="GcdsButtonType.Button"
+                                    Role="GcdsButtonRole.Secondary"
+                                    Size="GcdsButtonSize.Small"
+                                    OnClick="@(async () => await RedeployWebApp())">
+                            @if (_isRedeploying)
+                            {
+                                <MudProgressCircular Color="Color.Default" Indeterminate="true" Size="Size.Small"/>
+                            }
+                            else
+                            {
+                                @Localizer["Redeploy"]
+                            }
+                        </GcdsButton>
+                    }
+
+                    <GcdsButton Id="web-app-configure-button"
+                                Type="GcdsButtonType.Button"
+                                Role="GcdsButtonRole.Primary"
+                                Size="GcdsButtonSize.Small"
+                                Disabled="@(_isLoadingConfiguration || _showConfigurationForm)"
+                                aria-expanded="@(_showConfigurationForm ? "true" : "false")"
+                                aria-controls="web-app-configuration-form"
+                                OnClick="ShowWebAppConfigurationAsync">
+                        @Localizer["Configure"]
+                    </GcdsButton>
+                </MudStack>
+            </section>
+        </MudPaper>
+    }
 
     @if (_isProvisioned && _isConfigured)
     {
@@ -311,9 +329,9 @@
     private bool _showConfigurationForm;
     private bool _isLoadingConfiguration;
     private bool _isSubmittingConfiguration;
-    private bool _focusConfigureButton;
+    private bool _focusControlPanelHeading;
     private AppServiceConfiguration? _configurationToEdit;
-    private DHButton? _configureButton;
+    private ElementReference _controlPanelHeading;
 
     protected override async Task OnInitializedAsync()
     {
@@ -496,16 +514,16 @@
     {
         _showConfigurationForm = false;
         _configurationToEdit = null;
-        _focusConfigureButton = true;
+        _focusControlPanelHeading = true;
         await InvokeAsync(StateHasChanged);
     }
 
     protected override async Task OnAfterRenderAsync(bool firstRender)
     {
-        if (_focusConfigureButton && _configureButton is not null)
+        if (_focusControlPanelHeading)
         {
-            _focusConfigureButton = false;
-            await _configureButton.FocusAsync();
+            _focusControlPanelHeading = false;
+            await _controlPanelHeading.FocusAsync();
         }
 
         await base.OnAfterRenderAsync(firstRender);

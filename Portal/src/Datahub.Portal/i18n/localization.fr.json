@@ -3656,5 +3656,6 @@
   "Key cannot be longer than 200 characters": "La clé ne peut pas dépasser 200 caractères",
   "Key can only contain letters and underscores": "La clé ne peut contenir que des lettres et des traits de soulignement",
   "Value cannot be empty": "La valeur ne peut pas être vide",
-  "Value cannot be longer than 200 characters": "La valeur ne peut pas dépasser 200 caractères"
+  "Value cannot be longer than 200 characters": "La valeur ne peut pas dépasser 200 caractères",
+  "Web application controls": "Commandes de l’application web"
 }

@@ -2693,5 +2693,6 @@
   "Key cannot be longer than 200 characters": "Key cannot be longer than 200 characters",
   "Key can only contain letters and underscores": "Key can only contain letters and underscores",
   "Value cannot be empty": "Value cannot be empty",
-  "Value cannot be longer than 200 characters": "Value cannot be longer than 200 characters"
+  "Value cannot be longer than 200 characters": "Value cannot be longer than 200 characters",
+  "Web application controls": "Web application controls"
 }
