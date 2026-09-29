@@ -1,17 +1,21 @@
-﻿@* GCPConnectionDataInput.razor *@
+@using GcdsWrapper.Blazor
+@* GCPConnectionDataInput.razor *@
 @using Datahub.Infrastructure.Services.Storage;
 @using static Datahub.Infrastructure.Services.Storage.CloudStorageHelpers;
 @using System.Text.Json;
 
-<MudTextField @bind-Value=@GCPConnectionJson
-              Label=@Localizer["Service Account Credentials (JSON)"]
-              Variant=@Variant.Outlined
-              Lines=10
-              Immediate
-              Adornment=@Adornment.End
-              AdornmentIcon=@Icons.Material.Filled.ContentPaste />
+<GcdsTextarea Id="storage-gcp-credentials" Name="storage-gcp-credentials"
+              Label="@Localizer["Service Account Credentials (JSON)"]" Required Disabled="@Disabled"
+              rows="10" @bind-Value="GCPConnectionJson" />
+<GcdsInput Id="storage-gcp-bucketname" Name="storage-gcp-bucketname"
+           Label="@Localizer["Bucket Name (optional)"]"
+           Hint="@Localizer["Specify a bucket when the service account cannot list every bucket in the project. Leave blank to discover all accessible buckets."]"
+           Disabled="@Disabled" @bind-Value="BucketName" />
 
 @code {
+    [Parameter]
+    public bool Disabled { get; set; }
+
 
     [Parameter]
     public IDictionary<string, string> ConnectionData { get; set; }
@@ -27,6 +31,17 @@
         set
         {
             ConnectionData[GCP_Json] = value;
+            UpdateProjectId();
+            Validate();
+        }
+    }
+
+    private string BucketName
+    {
+        get => ConnectionData.TryGetValue(GCP_BucketName, out var value) ? value : string.Empty;
+        set
+        {
+            ConnectionData[GCP_BucketName] = value?.Trim() ?? string.Empty;
             Validate();
         }
     }
@@ -45,7 +60,16 @@
     {
         if (ConnectionData is null) throw new InvalidDataException($"ConnectionData is null.");
 
+        ConnectionData.TryAdd(GCP_ProjectId, string.Empty);
+        ConnectionData.TryAdd(GCP_BucketName, string.Empty);
+        UpdateProjectId();
         Validate();
+    }
+
+    private void UpdateProjectId()
+    {
+        var credentials = GetCredentials();
+        ConnectionData[GCP_ProjectId] = credentials?.project_id?.Trim() ?? string.Empty;
     }
 
     private ServiceAccountCredentials? GetCredentials()

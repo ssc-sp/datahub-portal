@@ -114,7 +114,9 @@
 
         try
         {
-            BlockEditButton = await StorageHeading.CheckIfAnyFilesInTiers(
+            BlockEditButton |= StorageManager.ProviderType == CloudStorageProviderType.AWS
+                ? (await StorageManager.GetFileArchiveStatusAsync(ContainerName, FileName)).State != CloudStorageArchiveState.Available
+                : await StorageHeading.CheckIfAnyFilesInTiers(
                 new List<string> { FileName },
                 new List<string> { AccessTier.Archive.ToString() },
                 StorageManager,
@@ -124,7 +126,12 @@
         catch (NotImplementedException)
         {
             // If the storage manager does not support tier checking, we can ignore this error.
-            BlockEditButton = false;
+            // Preserve any existing block when metadata operations are unsupported.
+        }
+        catch (Exception) when (StorageManager.ProviderType == CloudStorageProviderType.AWS)
+        {
+            BlockEditButton = true;
+            _error = Localizer["Unable to read AWS archive status. Please try again."];
         }
     }
 
