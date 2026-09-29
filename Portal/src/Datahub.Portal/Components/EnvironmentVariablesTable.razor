@@ -56,36 +56,36 @@ else
                 <option value="@environmentVariable.Key">@environmentVariable.Key</option>
               }
             </GcdsSelect>
+
+            @if (_editorVisible)
+            {
+              <div class="my-4">
+                <GcdsHeading Tag="h4">
+                  @Localizer[_isAdding ? "Add environment variable" : "Edit environment variable"]
+                </GcdsHeading>
+                <GcdsInput Id="environment-variable-key" Name="environment-variable-key"
+                           Label="@Localizer["Environment variable key"]" Required Disabled="@(!_isAdding || _isSaving)"
+                           ErrorMessage="@_keyError" @bind-Value="EditorKey" />
+                <GcdsInput Id="environment-variable-value" Name="environment-variable-value"
+                           Label="@Localizer["Environment variable value"]" Type="GcdsInputType.Password" Required Disabled="@_isSaving"
+                           ErrorMessage="@_valueError" @bind-Value="EditorValue" />
+                <div class="d-flex gap-2 mt-4">
+                  <GcdsButton Type="GcdsButtonType.Button" Role="GcdsButtonRole.Secondary" Disabled="@_isSaving"
+                              OnClick="CancelEditingEnvironmentVariable">
+                    @Localizer["Cancel"]
+                  </GcdsButton>
+                  <GcdsButton Type="GcdsButtonType.Button" Disabled="@_isSaving" OnClick="SaveEnvironmentVariableAsync">
+                    @Localizer[_isSaving ? "Saving..." : "Save"]
+                  </GcdsButton>
+                </div>
+              </div>
+            }
           }
 
           <GcdsButton Type="GcdsButtonType.Button" Role="GcdsButtonRole.Secondary" Disabled="@_isSaving"
                       OnClick="StartAddingEnvironmentVariable">
             @Localizer["Add environment variable"]
           </GcdsButton>
-
-          @if (_editorVisible)
-          {
-            <div class="mt-4">
-              <GcdsHeading Tag="h4">
-                @Localizer[_isAdding ? "Add environment variable" : "Edit environment variable"]
-              </GcdsHeading>
-              <GcdsInput Id="environment-variable-key" Name="environment-variable-key"
-                         Label="@Localizer["Environment variable key"]" Required Disabled="@(!_isAdding || _isSaving)"
-                         ErrorMessage="@_keyError" @bind-Value="EditorKey" />
-              <GcdsInput Id="environment-variable-value" Name="environment-variable-value"
-                         Label="@Localizer["Environment variable value"]" Type="GcdsInputType.Password" Required Disabled="@_isSaving"
-                         ErrorMessage="@_valueError" @bind-Value="EditorValue" />
-              <div class="d-flex ga-2 mt-4">
-                <GcdsButton Type="GcdsButtonType.Button" Role="GcdsButtonRole.Secondary" Disabled="@_isSaving"
-                            OnClick="CancelEditingEnvironmentVariable">
-                  @Localizer["Cancel"]
-                </GcdsButton>
-                <GcdsButton Type="GcdsButtonType.Button" Disabled="@_isSaving" OnClick="SaveEnvironmentVariableAsync">
-                  @Localizer[_isSaving ? "Saving..." : "Save"]
-                </GcdsButton>
-              </div>
-            </div>
-          }
         </section>
       }
 

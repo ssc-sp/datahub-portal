@@ -49,6 +49,12 @@
                 @if (_isConfigured)
                 {
                     <GcdsText><strong>@Localizer["Status"]:</strong> @(_webAppState ? Localizer["Running"] : Localizer["Stopped"])</GcdsText>
+                    @if (_isProvisioned)
+                    {
+                        <GcdsText><GcdsLink Href="@PageRoutes.WorkspaceWebAppShare.Replace("{WorkspaceAcronymParam}", WorkspaceAcronym)">@Localizer["Access web app"]</GcdsLink></GcdsText>
+                        <GcdsText>@Localizer["Restart your application using the 'Restart' button to apply changes to your images or environment variables."]</GcdsText>
+                        <GcdsText>@Localizer["Redeploy your application using the 'Redeploy' button to apply changes to your docker-compose file."]</GcdsText>
+                    }
                 }
 
                 <MudStack Row Wrap="Wrap.Wrap" Spacing="2" AlignItems="AlignItems.Center">
@@ -136,14 +142,10 @@
 
     @if (_isProvisioned && _isConfigured)
     {
-        <GcdsNotice NoticeRole="info" NoticeTitle="@Localizer["Note"]" NoticeTitleTag="h2">
-            <GcdsText>@Localizer["Restart your application using the 'Restart' button to apply changes to your images or environment variables."]</GcdsText>
-            <GcdsText>@Localizer["Redeploy your application using the 'Redeploy' button to apply changes to your docker-compose file."]</GcdsText>
-        </GcdsNotice>
         <GcdsHeading Tag="h2">@Localizer["Quick settings"]</GcdsHeading>
         <MudPaper Class="pa-4">
             <SettingsField Label=@Localizer["URL rewriting"]
-                           Description="@Localizer["The {0} proxy rewrites URL paths which is supported by most web applications who do not configure the base href. However some frameworks (such as python dash) do configure a base url. For these frameworks, the URL rewrite option should be disabled and the proxied URL should be configured inside the application as base url.", Localizer["MainAcronym"]]">
+                           Description="@Localizer["The {0} proxy changes website addresses. Most websites work fine with this change automatically. Some tools (like Python Dash) have their own special address settings. For these tools, you should disable the URL rewriting and manually set the proxy address as the base URL in the tool.", Localizer["MainAcronym"]]">
                 <MudSwitch
                     T=@bool
                     Value=@_isUrlRewritingEnabled
@@ -187,7 +189,7 @@
         <GcdsHeading Tag="h2">@Localizer["Web application logs"]</GcdsHeading>
         <MudPaper Class="py-4" Elevation="1">
             <MudStack Row Class="px-4" AlignItems="AlignItems.Center">
-                <GcdsHeading Tag="h3">
+                <GcdsHeading Tag="h3" MarginTop="50">
                     @Localizer["Runtime logs"]
                 </GcdsHeading>
                 <MudSpacer/>
@@ -218,7 +220,9 @@
             @Localizer["For this reason, there are certain limitations you must follow in order to successfully deploy your web application."]
         </GcdsText>
         <GcdsText>
-            @Localizer["Limitations to docker compose:"]
+            <strong>
+                @Localizer["Limitations to docker compose:"]
+            </strong>
         </GcdsText>
         <GcdsText>
             @Localizer["The following are supported and unsupported docker compose configuration options as per "]
@@ -228,7 +232,9 @@
             </GcdsLink>
         </GcdsText>
         <GcdsText>
+            <strong>
             @Localizer["Supported options:"]
+            </strong>
         </GcdsText>
         <GcdsText>
             <ul class="ml-4">
@@ -259,7 +265,9 @@
             </ul>
         </GcdsText>
         <GcdsText>
+            <strong>
             @Localizer["Unsupported options:"]
+            </strong>
         </GcdsText>
         <GcdsText>
             <ul class="ml-4">
@@ -280,7 +288,11 @@
                 </li>
             </ul>
         </GcdsText>
-        <GcdsHeading Tag="h4">@Localizer["Syntax limitations:"]</GcdsHeading>
+        <GcdsText>
+            <strong>
+                @Localizer["Syntax limitations:"]
+            </strong>
+        </GcdsText>
         <GcdsText>
             <ul class="ml-4">
                 <li style="display: list-item; list-style-type: circle">
@@ -291,9 +303,13 @@
                 <li style="display: list-item; list-style-type: circle">@Localizer["volumes section must not have an empty curly brace after the volume name."]</li>
             </ul>
         </GcdsText>
-        <GcdsHeading Tag="h3">@Localizer["Limitations to images:"]</GcdsHeading>
         <GcdsText>
-            @Localizer["We currently only support public images, i.e. images that are available on Docker Hub or other public repositories. In order to deploy private images, please fill a support request."]
+            <strong>
+                @Localizer["Limitations to images:"]
+            </strong>
+        </GcdsText>
+        <GcdsText>
+            @Localizer["Our self-service menu only supports public images, i.e. images that are available on Docker Hub or other public repositories. To deploy private images, please fill a support request. We will follow up to request an access token for your image for the appropriate registry."]
         </GcdsText>
     }
 </MudStack>

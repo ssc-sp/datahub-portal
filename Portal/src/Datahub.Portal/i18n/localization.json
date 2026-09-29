@@ -2694,5 +2694,7 @@
   "Key can only contain letters and underscores": "Key can only contain letters and underscores",
   "Value cannot be empty": "Value cannot be empty",
   "Value cannot be longer than 200 characters": "Value cannot be longer than 200 characters",
-  "Web application controls": "Web application controls"
+  "Web application controls": "Web application controls",
+  "The {0} proxy changes website addresses. Most websites work fine with this change automatically. Some tools (like Python Dash) have their own special address settings. For these tools, you should disable the URL rewriting and manually set the proxy address as the base URL in the tool.": "The {0} proxy changes website addresses. Most websites work fine with this change automatically. Some tools (like Python Dash) have their own special address settings. For these tools, you should disable the URL rewriting and manually set the proxy address as the base URL in the tool.",
+  "Our self-service menu only supports public images, i.e. images that are available on Docker Hub or other public repositories. To deploy private images, please fill a support request. We will follow up to request an access token for your image for the appropriate registry.": "Our self-service menu only supports public images, i.e. images that are available on Docker Hub or other public repositories. To deploy private images, please fill a support request. We will follow up to request an access token for your image for the appropriate registry."
 }

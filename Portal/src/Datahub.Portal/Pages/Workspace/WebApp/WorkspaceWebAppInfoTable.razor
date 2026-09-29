@@ -1,6 +1,7 @@
 @using Datahub.Application.Services.ReverseProxy
 @using GcdsWrapper.Blazor
 @inject IReverseProxyConfigService ReverseProxyConfigService
+@inject NavigationManager NavigationManager
 
 <GcdsHeading Tag="h2">@Localizer["Web application information"]</GcdsHeading>
 <GcdsTable Columns="@Columns"
@@ -48,12 +49,20 @@
     protected override void OnParametersSet()
     {
         RefreshUrl();
-        shareLink = PageRoutes.WorkspaceWebAppShare.Replace("{WorkspaceAcronymParam}", WorkspaceAcronym);
+        var path = PageRoutes.WorkspaceWebAppShare.Replace("{WorkspaceAcronymParam}", WorkspaceAcronym);
+        shareLink = GetBaseUriNoTrailingSlash() + path;
     }
 
     public void RefreshUrl()
     {
-        _url = ReverseProxyConfigService.BuildWebAppURL(WorkspaceAcronym);
+        var path = ReverseProxyConfigService.BuildWebAppURL(WorkspaceAcronym);
+        _url = GetBaseUriNoTrailingSlash() + path;
+    }
+
+    private string GetBaseUriNoTrailingSlash()
+    {
+        var uri = new Uri(NavigationManager.BaseUri);
+        return uri.GetLeftPart(UriPartial.Authority);
     }
 
     private static IReadOnlyDictionary<string, string> CreateRow(string property, string value) =>

@@ -3657,5 +3657,7 @@
   "Key can only contain letters and underscores": "La clé ne peut contenir que des lettres et des traits de soulignement",
   "Value cannot be empty": "La valeur ne peut pas être vide",
   "Value cannot be longer than 200 characters": "La valeur ne peut pas dépasser 200 caractères",
-  "Web application controls": "Commandes de l’application web"
+  "Web application controls": "Commandes de l’application web",
+  "The {0} proxy changes website addresses. Most websites work fine with this change automatically. Some tools (like Python Dash) have their own special address settings. For these tools, you should disable the URL rewriting and manually set the proxy address as the base URL in the tool.": "Le proxy {0} modifie les adresses des sites Web. La plupart des sites Web fonctionnent correctement avec ce changement automatiquement. Certains outils (comme Python Dash) ont leurs propres paramètres d'adresse spéciaux. Pour ces outils, vous devez désactiver la réécriture de l'URL et définir manuellement l'adresse du proxy comme URL de base dans l'outil.",
+  "Our self-service menu only supports public images, i.e. images that are available on Docker Hub or other public repositories. To deploy private images, please fill a support request. We will follow up to request an access token for your image for the appropriate registry.": "Notre menu en libre-service ne prend en charge que les images publiques, c'est-à-dire les images disponibles sur Docker Hub ou d'autres dépôts publics. Pour déployer des images privées, veuillez remplir une demande de support. Nous vous contacterons pour demander un jeton d'accès pour votre image auprès du registre approprié."
 }
