@@ -15,8 +15,8 @@
 
 <MudStack Spacing="6">
     <MudStack>
-        <DHMainContentTitle Title="@Localizer["Achievements"]" />
-
+        <SettingsField Label="@Localizer["Achievements"]" Description="@Localizer["Achievements acquired from navigating around DataHub."]">
+        </SettingsField>
         @foreach (var userAchievement in GetUserAchievements())
         {
             var rarity = GetRarity(userAchievement);
