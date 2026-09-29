@@ -21,6 +21,13 @@ The web app configuration should be part of the page and use GC Design System co
         Then the existing private web app configuration is submitted
         And the original web app configuration is unchanged
 
+    Scenario: Public repository input is reviewed without a token
+        Given the web app configuration form is empty
+        When I enter a public web app repository URL
+        And I enter the web app compose path
+        And I advance to the web app configuration review
+        Then the public web app configuration review contains my input
+
     Scenario: Embedded repository credentials are extracted
         Given the web app configuration form is empty
         When I enter a web app repository URL containing a credential

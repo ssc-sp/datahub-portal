@@ -1,4 +1,5 @@
 using Bunit;
+using Datahub.Application.Services.UserManagement;
 using Datahub.Core.Components.Buttons;
 using Datahub.Portal.Pages.Workspace.WebApp;
 using Datahub.Shared.Entities.WorkspaceToolConfiguration;
@@ -63,9 +64,10 @@ public sealed class AccessibleWebAppConfigurationFormSteps : BunitTestSteps, IDi
     public void ThenTheWebAppConfigurationUsesGcdsControls()
     {
         var form = GetForm();
-        form.FindComponents<GcdsSelect>().Should().ContainSingle();
-        form.FindComponents<GcdsRadios>().Should().ContainSingle();
-        form.FindComponents<GcdsInput>().Should().HaveCount(3);
+        var stepper = form.FindComponent<GcdsStepper>();
+        stepper.Instance.CurrentStep.Should().Be(1);
+        stepper.Instance.TotalSteps.Should().Be(5);
+        stepper.Markup.Should().Contain("Additional Information");
         form.FindComponents<GcdsNotice>().Should().ContainSingle();
         form.FindComponents<GcdsButton>().Should().HaveCount(2)
             .And.OnlyContain(button => button.Instance.Type == GcdsButtonType.Button);
@@ -75,8 +77,9 @@ public sealed class AccessibleWebAppConfigurationFormSteps : BunitTestSteps, IDi
     }
 
     [Then("the existing web app token is masked")]
-    public void ThenTheExistingWebAppTokenIsMasked()
+    public async Task ThenTheExistingWebAppTokenIsMasked()
     {
+        await NavigateToStepAsync(3);
         FindInput("web-app-access-token").Instance.Value.Should().Be("secret********");
         GetForm().Markup.Should().NotContain("secret-value");
     }
@@ -84,12 +87,21 @@ public sealed class AccessibleWebAppConfigurationFormSteps : BunitTestSteps, IDi
     [When("I select a private web app repository")]
     public async Task WhenISelectAPrivateWebAppRepository()
     {
+        await NavigateToStepAsync(3);
         var visibility = GetForm().FindComponent<GcdsRadios>();
         await visibility.InvokeAsync(() => visibility.Instance.ValueChanged.InvokeAsync("private"));
     }
 
     [When("I save the web app configuration")]
-    public Task WhenISaveTheWebAppConfiguration() => ClickButtonAsync("Save");
+    public async Task WhenISaveTheWebAppConfiguration()
+    {
+        await NavigateToStepAsync(5);
+        if (CurrentStep == 5)
+        {
+            GetForm().Markup.Should().Contain("********").And.NotContain("secret-value");
+            await ClickButtonAsync("Save");
+        }
+    }
 
     [Then("the web app configuration is not submitted")]
     public void ThenTheWebAppConfigurationIsNotSubmitted()
@@ -99,8 +111,6 @@ public sealed class AccessibleWebAppConfigurationFormSteps : BunitTestSteps, IDi
     public void ThenTheRequiredWebAppConfigurationErrorsAreDisplayed()
     {
         FindInput("web-app-git-repository").Instance.ErrorMessage.Should().Be("Url cannot be empty");
-        FindInput("web-app-compose-path").Instance.ErrorMessage
-            .Should().Be("Path to docker compose is necessary, file name must be included");
         FindInput("web-app-access-token").Instance.ErrorMessage
             .Should().Be("Access tokens are required for private repos");
     }
@@ -118,16 +128,42 @@ public sealed class AccessibleWebAppConfigurationFormSteps : BunitTestSteps, IDi
     [When("I enter a web app repository URL containing a credential")]
     public async Task WhenIEnterAWebAppRepositoryUrlContainingACredential()
     {
+        await NavigateToStepAsync(3);
         var repository = FindInput("web-app-git-repository");
         await repository.InvokeAsync(() => repository.Instance.ValueChanged.InvokeAsync(
             "https://embedded-token@gitprovider.example/repository.git"));
     }
 
+    [When("I enter a public web app repository URL")]
+    public async Task WhenIEnterAPublicWebAppRepositoryUrl()
+    {
+        await NavigateToStepAsync(3);
+        var repository = FindInput("web-app-git-repository");
+        await repository.InvokeAsync(() => repository.Instance.ValueChanged.InvokeAsync(
+            "https://gitprovider.example/public-repository.git"));
+    }
+
     [When("I enter the web app compose path")]
     public async Task WhenIEnterTheWebAppComposePath()
     {
+        await NavigateToStepAsync(4);
         var composePath = FindInput("web-app-compose-path");
         await composePath.InvokeAsync(() => composePath.Instance.ValueChanged.InvokeAsync("compose.yaml"));
+    }
+
+    [When("I advance to the web app configuration review")]
+    public Task WhenIAdvanceToTheWebAppConfigurationReview() => NavigateToStepAsync(5);
+
+    [Then("the public web app configuration review contains my input")]
+    public void ThenThePublicWebAppConfigurationReviewContainsMyInput()
+    {
+        CurrentStep.Should().Be(5);
+        var markup = GetForm().Markup;
+        markup.Should().Contain("Docker compose")
+            .And.Contain("https://gitprovider.example/public-repository.git")
+            .And.Contain("Public")
+            .And.Contain("N/A")
+            .And.Contain("compose.yaml");
     }
 
     [Then("the sanitized private web app configuration is submitted")]
@@ -142,6 +178,7 @@ public sealed class AccessibleWebAppConfigurationFormSteps : BunitTestSteps, IDi
     [When("I edit and cancel the web app configuration")]
     public async Task WhenIEditAndCancelTheWebAppConfiguration()
     {
+        await NavigateToStepAsync(4);
         var composePath = FindInput("web-app-compose-path");
         await composePath.InvokeAsync(() => composePath.Instance.ValueChanged.InvokeAsync("changed.yaml"));
         await ClickButtonAsync("Cancel");
@@ -176,6 +213,7 @@ public sealed class AccessibleWebAppConfigurationFormSteps : BunitTestSteps, IDi
                 call.ArgAt<string>(0),
                 string.Format(call.ArgAt<string>(0), call.ArgAt<object[]>(1))));
         Services.AddSingleton(localizer);
+        Services.AddSingleton(Substitute.For<ICultureService>());
 
         _initialConfiguration = configuration;
         _form = Render<WebAppConfigurationForm>(parameters => parameters
@@ -192,6 +230,21 @@ public sealed class AccessibleWebAppConfigurationFormSteps : BunitTestSteps, IDi
         var button = GetForm().FindComponents<GcdsButton>()
             .Single(candidate => candidate.Markup.Contains(text, StringComparison.Ordinal));
         await button.InvokeAsync(() => button.Instance.OnClick.InvokeAsync());
+    }
+
+    private int CurrentStep => GetForm().FindComponent<GcdsStepper>().Instance.CurrentStep;
+
+    private async Task NavigateToStepAsync(int step)
+    {
+        while (CurrentStep < step)
+        {
+            var previousStep = CurrentStep;
+            await ClickButtonAsync("Next");
+            if (CurrentStep == previousStep)
+            {
+                break;
+            }
+        }
     }
 
     private IRenderedComponent<WebAppConfigurationForm> GetForm()

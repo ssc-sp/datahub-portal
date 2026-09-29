@@ -48,7 +48,7 @@
 
                 @if (_isConfigured)
                 {
-                    <GcdsText><strong>@Localizer["Status"]:</strong> @(_webAppState ? Localizer["Running"] : Localizer["Stopped"])</GcdsText>
+                    <GcdsText role="status"><strong>@Localizer["Status"]:</strong> @(_webAppState ? Localizer["Running"] : Localizer["Stopped"])</GcdsText>
                     @if (_isProvisioned)
                     {
                         <GcdsText><GcdsLink Href="@PageRoutes.WorkspaceWebAppShare.Replace("{WorkspaceAcronymParam}", WorkspaceAcronym)">@Localizer["Access web app"]</GcdsLink></GcdsText>
