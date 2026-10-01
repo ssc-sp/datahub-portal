@@ -157,15 +157,68 @@ class FunctionAppMappingTests(unittest.TestCase):
         host = self.function_app.resolve_databricks_host_url(workspace_definition)
         self.assertEqual("https://adb-456.azuredatabricks.net", host)
 
-    def test_resolve_databricks_host_url_errors_with_available_keys(self) -> None:
+    def test_resolve_databricks_host_url_returns_none_when_missing(self) -> None:
         workspace_definition = {
             "AppData": {
                 "appServiceConfiguration": None
             }
         }
 
-        with self.assertRaisesRegex(ValueError, "Available AppData keys"):
-            self.function_app.resolve_databricks_host_url(workspace_definition)
+        host = self.function_app.resolve_databricks_host_url(workspace_definition)
+        self.assertIsNone(host)
+
+    def test_resolve_databricks_host_url_returns_none_when_blank(self) -> None:
+        workspace_definition = {
+            "AppData": {
+                "DatabricksHostUrl": "   "
+            }
+        }
+
+        host = self.function_app.resolve_databricks_host_url(workspace_definition)
+        self.assertIsNone(host)
+
+    def test_sync_databricks_workspace_users_skips_when_host_missing(self) -> None:
+        workspace_definition = {
+            "Workspace": {"Acronym": "demo"},
+            "AppData": {},
+        }
+
+        with patch.object(
+            self.function_app.dtb_utils,
+            "get_workspace_client",
+            side_effect=AssertionError("get_workspace_client should not be called"),
+            create=True,
+        ):
+            self.function_app.sync_databricks_workspace_users_function(workspace_definition)
+
+    def test_new_sync_workspace_preserves_root_cause(self) -> None:
+        workspace_definition = {
+            "Workspace": {"Acronym": "demo"},
+            "Templates": [{"Name": "azure-databricks"}],
+        }
+
+        def failing_sync(_workspace_definition):
+            raise ValueError("databricks api failed")
+
+        with patch.object(
+            self.function_app,
+            "get_sync_func_mappings",
+            return_value={"azure-databricks": ("databricks users", failing_sync)},
+        ), patch.object(
+            self.function_app,
+            "send_exception_to_service_bus",
+            return_value=None,
+        ), patch.object(
+            self.function_app,
+            "send_healthcheck_to_service_bus",
+            return_value=None,
+        ):
+            with self.assertRaises(RuntimeError) as context:
+                self.function_app.new_sync_workspace(workspace_definition)
+
+        self.assertIn("Workspace demo had problems while synchronizing", str(context.exception))
+        self.assertIsInstance(context.exception.__cause__, ValueError)
+        self.assertEqual("databricks api failed", str(context.exception.__cause__))
 
     def test_keyvault_sync_serializes_vault_updates(self) -> None:
         import threading

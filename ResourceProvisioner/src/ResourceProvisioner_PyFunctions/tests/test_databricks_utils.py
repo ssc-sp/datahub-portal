@@ -44,10 +44,21 @@ class DatabricksUtilsUnityCatalogTests(unittest.TestCase):
             def as_dict(self):
                 return self.kwargs
 
+        class PermissionsChange:  # pragma: no cover - simple stub
+            def __init__(self, **kwargs):
+                self.kwargs = kwargs
+                self.principal = kwargs.get("principal")
+                self.add = kwargs.get("add")
+                self.remove = kwargs.get("remove")
+
+            def as_dict(self):
+                return self.kwargs
+
         class Privilege:  # pragma: no cover - simple stub
             ALL_PRIVILEGES = "ALL_PRIVILEGES"
             DATA_EDITOR = "DATA_EDITOR"
             DATA_READER = "DATA_READER"
+            USE_CATALOG = "USE_CATALOG"
 
         class AzureKeyVaultSecretScopeMetadata:  # pragma: no cover - simple stub
             def __init__(self, **kwargs):
@@ -59,6 +70,7 @@ class DatabricksUtilsUnityCatalogTests(unittest.TestCase):
         sdk_module.WorkspaceClient = WorkspaceClient
         iam_module.ComplexValue = ComplexValue
         catalog_module.Grant = Grant
+        catalog_module.PermissionsChange = PermissionsChange
         catalog_module.Privilege = Privilege
         workspace_module.AzureKeyVaultSecretScopeMetadata = AzureKeyVaultSecretScopeMetadata
         workspace_module.ScopeBackendType = ScopeBackendType
@@ -122,10 +134,36 @@ class DatabricksUtilsUnityCatalogTests(unittest.TestCase):
             with self.assertRaisesRegex(ValueError, "Azure Databricks workspace host"):
                 self.databricks_utils.get_workspace_client("https://adb-123.cloud.databricks.com")
 
+    def test_get_unity_catalog_role_lookup_uses_definition_mapping_only(self) -> None:
+        with mock.patch.dict(
+            os.environ,
+            {
+                "DATABRICKS_UC_OWNER_PRINCIPAL": "owner-override",
+                "DATABRICKS_UC_ADMIN_PRINCIPAL": "admin-override",
+                "DATABRICKS_UC_USER_PRINCIPAL": "user-override",
+                "DATABRICKS_UC_GUEST_PRINCIPAL": "guest-override",
+            },
+            clear=False,
+        ):
+            role_lookup = self.databricks_utils.get_unity_catalog_role_lookup()
+
+        self.assertEqual(
+            {
+                "Owner": "project_lead",
+                "Admin": "admins",
+                "User": "project_users",
+                "Guest": "project_users",
+            },
+            role_lookup,
+        )
+
     def test_synchronize_unity_catalog_permissions_applies_user_email_based_grants(self) -> None:
         class FakeGrantAPI:
             def __init__(self) -> None:
                 self.calls = []
+
+            def list(self, securable_type, full_name, principal=None):
+                return []
 
             def update(self, **kwargs):
                 self.calls.append(kwargs)
@@ -169,12 +207,10 @@ class DatabricksUtilsUnityCatalogTests(unittest.TestCase):
             changes = call["changes"]
             self.assertTrue(changes)
             for change in changes:
-                if isinstance(change, dict):
-                    principals.add(change["principal"])
-                    self.assertIn("privileges", change)
-                else:
-                    principals.add(change.kwargs["principal"])
-                    self.assertIn("privileges", change.kwargs)
+                principal = change["principal"] if isinstance(change, dict) else change.principal
+                principals.add(principal)
+                payload = change if isinstance(change, dict) else change.as_dict()
+                self.assertIn("add", payload)
         self.assertIn("owner@example.com", principals)
         self.assertIn("user@example.com", principals)
 
@@ -182,23 +218,53 @@ class DatabricksUtilsUnityCatalogTests(unittest.TestCase):
         owner_preset, owner_privileges = self.databricks_utils._resolve_unity_catalog_privileges_for_role("Owner")
         guest_preset, guest_privileges = self.databricks_utils._resolve_unity_catalog_privileges_for_role("Guest")
         admin_preset, admin_privileges = self.databricks_utils._resolve_unity_catalog_privileges_for_role("Admin")
+        unknown_preset, unknown_privileges = self.databricks_utils._resolve_unity_catalog_privileges_for_role("Contractor")
 
         self.assertEqual("ALL_PRIVILEGES", owner_preset)
-        self.assertEqual(["ALL_PRIVILEGES"], owner_privileges["catalog"])
-        self.assertEqual(["ALL_PRIVILEGES"], owner_privileges["schema"])
+        self.assertEqual({"catalog": ["ALL_PRIVILEGES"], "schema": ["ALL_PRIVILEGES"]}, owner_privileges)
 
         self.assertEqual("DATA_READER", guest_preset)
-        self.assertEqual(["DATA_READER"], guest_privileges["catalog"])
-        self.assertEqual(["DATA_READER"], guest_privileges["schema"])
+        self.assertEqual(["USE_CATALOG", "BROWSE"], guest_privileges["catalog"])
+        self.assertEqual(["USE_SCHEMA", "EXECUTE", "READ_VOLUME", "SELECT"], guest_privileges["schema"])
 
         self.assertEqual("DATA_EDITOR", admin_preset)
-        self.assertEqual(["DATA_EDITOR"], admin_privileges["catalog"])
-        self.assertEqual(["DATA_EDITOR"], admin_privileges["schema"])
+        self.assertEqual(
+            ["USE_CATALOG", "CREATE_SCHEMA", "BROWSE", "APPLY_TAG"],
+            admin_privileges["catalog"],
+        )
+        self.assertEqual(
+            [
+                "USE_SCHEMA",
+                "EXECUTE",
+                "READ_VOLUME",
+                "SELECT",
+                "APPLY_TAG",
+                "MODIFY",
+                "WRITE_VOLUME",
+                "CREATE_FUNCTION",
+                "CREATE_MATERIALIZED_VIEW",
+                "CREATE_MODEL",
+                "CREATE_TABLE",
+                "CREATE_VOLUME",
+            ],
+            admin_privileges["schema"],
+        )
+
+        self.assertIsNone(unknown_preset)
+        self.assertIsNone(unknown_privileges)
 
     def test_synchronize_unity_catalog_permissions_uses_owner_and_guest_presets(self) -> None:
         class FakeGrantAPI:
             def __init__(self) -> None:
                 self.calls = []
+
+            def list(self, securable_type, full_name, principal=None):
+                return [
+                    types.SimpleNamespace(
+                        principal=principal,
+                        privileges=["USE_CATALOG", "READ_FILES"],
+                    )
+                ]
 
             def update(self, **kwargs):
                 self.calls.append(kwargs)
@@ -236,23 +302,30 @@ class DatabricksUtilsUnityCatalogTests(unittest.TestCase):
 
         self.databricks_utils.synchronize_unity_catalog_permissions(definition_json, workspace_client)
 
-        grants_by_principal_and_type = {}
-        for call in workspace_client.grants.calls:
-            changes = call["changes"]
-            self.assertEqual(1, len(changes))
-            change = changes[0]
-            principal = change.kwargs["principal"] if hasattr(change, "kwargs") else change["principal"]
-            privileges = change.kwargs["privileges"] if hasattr(change, "kwargs") else change["privileges"]
-            grants_by_principal_and_type[(principal, call["securable_type"])] = privileges
+        self.assertEqual(4, len(workspace_client.grants.calls))
 
-        self.assertEqual(["ALL_PRIVILEGES"], grants_by_principal_and_type[("owner@example.com", "catalog")])
-        self.assertEqual(["DATA_READER"], grants_by_principal_and_type[("guest@example.com", "catalog")])
-        self.assertEqual(2, len(grants_by_principal_and_type))
+        owner_revoke = workspace_client.grants.calls[0]["changes"][0]
+        owner_apply = workspace_client.grants.calls[1]["changes"][0]
+        guest_revoke = workspace_client.grants.calls[2]["changes"][0]
+        guest_apply = workspace_client.grants.calls[3]["changes"][0]
 
-    def test_synchronize_unity_catalog_permissions_raises_when_preset_missing_in_api(self) -> None:
+        self.assertEqual(["USE_CATALOG", "READ_FILES"], owner_revoke.remove)
+        self.assertEqual(["ALL_PRIVILEGES"], owner_apply.add)
+        self.assertEqual(["USE_CATALOG", "READ_FILES"], guest_revoke.remove)
+        self.assertEqual(["USE_CATALOG", "BROWSE"], guest_apply.add)
+
+    def test_synchronize_unity_catalog_permissions_removes_grants_for_unmapped_role(self) -> None:
         class FakeGrantAPI:
             def __init__(self) -> None:
                 self.calls = []
+
+            def list(self, securable_type, full_name, principal=None):
+                return [
+                    types.SimpleNamespace(
+                        principal=principal,
+                        privileges=["USE_CATALOG", "SELECT"],
+                    )
+                ]
 
             def update(self, **kwargs):
                 self.calls.append(kwargs)
@@ -260,7 +333,15 @@ class DatabricksUtilsUnityCatalogTests(unittest.TestCase):
         class FakeWorkspaceClient:
             def __init__(self) -> None:
                 self.groups = types.SimpleNamespace(list=lambda: [])
-                self.users = types.SimpleNamespace(list=lambda: [])
+                self.users = types.SimpleNamespace(
+                    list=lambda: [
+                        types.SimpleNamespace(
+                            external_id="contractor-id",
+                            user_name="contractor@example.com",
+                            emails=[types.SimpleNamespace(value="contractor@example.com")],
+                        ),
+                    ]
+                )
                 self.grants = FakeGrantAPI()
 
         workspace_client = FakeWorkspaceClient()
@@ -269,23 +350,25 @@ class DatabricksUtilsUnityCatalogTests(unittest.TestCase):
             "Workspace": {
                 "Acronym": "demo",
                 "Users": [
-                    {"Email": "guest@example.com", "Role": "Guest", "ObjectId": "guest-id"},
+                    {"Email": "contractor@example.com", "Role": "Contractor", "ObjectId": "contractor-id"},
                 ],
             }
         }
 
-        original_get_supported = self.databricks_utils._get_unity_catalog_api_supported_privileges
-        self.databricks_utils._get_unity_catalog_api_supported_privileges = lambda: {"ALL_PRIVILEGES", "DATA_EDITOR"}
-        try:
-            with self.assertRaisesRegex(ValueError, "DATA_READER"):
-                self.databricks_utils.synchronize_unity_catalog_permissions(definition_json, workspace_client)
-        finally:
-            self.databricks_utils._get_unity_catalog_api_supported_privileges = original_get_supported
+        self.databricks_utils.synchronize_unity_catalog_permissions(definition_json, workspace_client)
+
+        self.assertEqual(1, len(workspace_client.grants.calls))
+        revoke_change = workspace_client.grants.calls[0]["changes"][0]
+        self.assertEqual(["USE_CATALOG", "SELECT"], revoke_change.remove)
+        self.assertIsNone(revoke_change.add)
 
     def test_synchronize_unity_catalog_permissions_uses_admin_user_email(self) -> None:
         class FakeGrantAPI:
             def __init__(self) -> None:
                 self.calls = []
+
+            def list(self, securable_type, full_name, principal=None):
+                return []
 
             def update(self, **kwargs):
                 self.calls.append(kwargs)
@@ -321,10 +404,7 @@ class DatabricksUtilsUnityCatalogTests(unittest.TestCase):
         principals = set()
         for call in workspace_client.grants.calls:
             for change in call["changes"]:
-                if isinstance(change, dict):
-                    principals.add(change["principal"])
-                else:
-                    principals.add(change.kwargs["principal"])
+                principals.add(change["principal"] if isinstance(change, dict) else change.principal)
 
         self.assertIn("admin@example.com", principals)
 
@@ -332,6 +412,9 @@ class DatabricksUtilsUnityCatalogTests(unittest.TestCase):
         class FakeGrantAPI:
             def __init__(self) -> None:
                 self.calls = []
+
+            def list(self, securable_type, full_name, principal=None):
+                return []
 
             def update(self, **kwargs):
                 self.calls.append(kwargs)
@@ -359,10 +442,7 @@ class DatabricksUtilsUnityCatalogTests(unittest.TestCase):
         principals = set()
         for call in workspace_client.grants.calls:
             for change in call["changes"]:
-                if isinstance(change, dict):
-                    principals.add(change["principal"])
-                else:
-                    principals.add(change.kwargs["principal"])
+                principals.add(change["principal"] if isinstance(change, dict) else change.principal)
 
         self.assertIn("admin@example.com", principals)
 
@@ -370,6 +450,9 @@ class DatabricksUtilsUnityCatalogTests(unittest.TestCase):
         class FakeGrantAPI:
             def __init__(self) -> None:
                 self.calls = []
+
+            def list(self, securable_type, full_name, principal=None):
+                return []
 
             def update(self, **kwargs):
                 self.calls.append(kwargs)
@@ -450,7 +533,7 @@ class DatabricksUtilsUnityCatalogTests(unittest.TestCase):
 
         self.assertEqual([], workspace_client.users.created)
 
-    def test_apply_unity_catalog_grant_uses_sdk_grant_objects(self) -> None:
+    def test_apply_unity_catalog_grant_uses_api_payload_objects(self) -> None:
         class FakeGrantAPI:
             def __init__(self):
                 self.calls = []
@@ -473,8 +556,41 @@ class DatabricksUtilsUnityCatalogTests(unittest.TestCase):
 
         self.assertEqual(1, len(workspace_client.grants.calls))
         self.assertEqual(1, len(workspace_client.grants.calls[0]["changes"]))
-        self.assertTrue(hasattr(workspace_client.grants.calls[0]["changes"][0], "principal"))
-        self.assertEqual("project_lead", workspace_client.grants.calls[0]["changes"][0].principal)
+
+        change = workspace_client.grants.calls[0]["changes"][0]
+        self.assertTrue(hasattr(change, "principal"))
+        self.assertEqual("project_lead", change.principal)
+        self.assertEqual(["USE_CATALOG"], change.add)
+        self.assertEqual({"principal": "project_lead", "add": ["USE_CATALOG"]}, change.as_dict())
+
+    def test_apply_unity_catalog_grant_reraises_update_errors(self) -> None:
+        class FakeGrantAPI:
+            def update(self, **kwargs):
+                raise RuntimeError("grant update failed")
+
+        class FakeWorkspaceClient:
+            def __init__(self):
+                self.grants = FakeGrantAPI()
+
+        workspace_client = FakeWorkspaceClient()
+
+        with self.assertRaisesRegex(RuntimeError, "grant update failed"):
+            self.databricks_utils.apply_unity_catalog_grant(
+                workspace_client,
+                "catalog",
+                "demo",
+                "project_lead",
+                ["USE_CATALOG"],
+            )
+
+    def test_build_catalog_permissions_change_normalizes_string_privileges(self) -> None:
+        change = self.databricks_utils._build_catalog_permissions_change(
+            principal="project_lead",
+            add=["USE_CATALOG"],
+        )
+
+        self.assertEqual(["USE_CATALOG"], change.add)
+        self.assertEqual({"principal": "project_lead", "add": ["USE_CATALOG"]}, change.as_dict())
 
     def test_get_unity_catalog_targets_uses_current_metastore(self) -> None:
         class FakeWorkspaceClient:
@@ -485,13 +601,12 @@ class DatabricksUtilsUnityCatalogTests(unittest.TestCase):
 
         definition_json = {"Workspace": {"Acronym": "demo"}}
 
-        catalog_name, schema_name = self.databricks_utils.get_unity_catalog_targets(
+        catalog_name = self.databricks_utils.get_unity_catalog_targets(
             definition_json,
             FakeWorkspaceClient(),
         )
 
         self.assertEqual("workspace-metastore", catalog_name)
-        self.assertEqual("default", schema_name)
 
     def test_get_unity_catalog_targets_prefers_explicit_catalog_override(self) -> None:
         class FakeWorkspaceClient:
@@ -505,7 +620,7 @@ class DatabricksUtilsUnityCatalogTests(unittest.TestCase):
             "AppData": {"DatabricksCatalogName": "explicit-catalog"},
         }
 
-        catalog_name, _ = self.databricks_utils.get_unity_catalog_targets(
+        catalog_name = self.databricks_utils.get_unity_catalog_targets(
             definition_json,
             FakeWorkspaceClient(),
         )

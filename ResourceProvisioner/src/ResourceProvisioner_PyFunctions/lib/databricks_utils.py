@@ -4,36 +4,12 @@ from databricks.sdk.service.workspace import AzureKeyVaultSecretScopeMetadata
 from databricks.sdk.service.workspace import ScopeBackendType
 import lib.azkeyvault_utils as azkv_utils
 import lib.constants as constants
+from lib.unity_catalog_constants import UNITY_CATALOG_PRESET_PRIVILEGES, UNITY_CATALOG_ROLE_PRESET
 import os
 import logging
 
 WORKSPACE_KV_SCOPE_NAME = "dh-workspace"
-DEFAULT_SCHEMA_FSDH = "bronze"
 logger = logging.getLogger(__name__)
-
-# Role-level privilege presets requested by product semantics.
-UNITY_CATALOG_ROLE_PRESET = {
-    "Owner": "ALL_PRIVILEGES",
-    "Guest": "DATA_READER",
-    "Admin": "DATA_EDITOR",
-    "User": "DATA_EDITOR",
-}
-
-# API-level privilege values expected to be supported directly by the Grants API.
-UNITY_CATALOG_API_PRESET_PRIVILEGES = {
-    "ALL_PRIVILEGES": {
-        "catalog": ["ALL_PRIVILEGES"],
-        "schema": ["ALL_PRIVILEGES"],
-    },
-    "DATA_EDITOR": {
-        "catalog": ["DATA_EDITOR"],
-        "schema": ["DATA_EDITOR"],
-    },
-    "DATA_READER": {
-        "catalog": ["DATA_READER"],
-        "schema": ["DATA_READER"],
-    },
-}
 
 def get_definition_role_lookup():
     """
@@ -57,33 +33,10 @@ def get_unity_catalog_role_lookup():
 
     Uses the definition role-to-group mapping by default.
 
-    Optional environment variable overrides:
-    - DATABRICKS_UC_OWNER_PRINCIPAL
-    - DATABRICKS_UC_ADMIN_PRINCIPAL
-    - DATABRICKS_UC_USER_PRINCIPAL
-    - DATABRICKS_UC_GUEST_PRINCIPAL
-
     Returns:
         dict: A dictionary that maps definition roles to UC principals.
     """
-    role_lookup = get_definition_role_lookup().copy()
-
-    owner_principal_override = os.environ.get("DATABRICKS_UC_OWNER_PRINCIPAL", "").strip()
-    admin_principal_override = os.environ.get("DATABRICKS_UC_ADMIN_PRINCIPAL", "").strip()
-    user_principal_override = os.environ.get("DATABRICKS_UC_USER_PRINCIPAL", "").strip()
-    guest_principal_override = os.environ.get("DATABRICKS_UC_GUEST_PRINCIPAL", "").strip()
-
-    if owner_principal_override:
-        role_lookup["Owner"] = owner_principal_override
-    if user_principal_override:
-        role_lookup["User"] = user_principal_override
-    if guest_principal_override:
-        role_lookup["Guest"] = guest_principal_override
-
-    if admin_principal_override:
-        role_lookup["Admin"] = admin_principal_override
-
-    return role_lookup
+    return get_definition_role_lookup().copy()
 
 
 def _find_workspace_user_for_definition_user(workspace_users, definition_user):
@@ -172,18 +125,18 @@ def remove_deleted_users_in_workspace(definition_json, workspace_client):
     """
     # remove users with removed role
     removedIds = list(user['ObjectId'] for user in definition_json['Workspace']['Users'] if (user['Role'] == 'Removed'))
-    logging.info(f'Users to remove: {removedIds}')
+    logger.info(f'Users to remove: {removedIds}')
     toRemove = []
     for user in workspace_client.users.list():
         if user.external_id is None:
-            logging.info(f'User {user.user_name} does not have an external ID, removing from workspace')
+            logger.info(f'User {user.user_name} does not have an external ID, removing from workspace')
             workspace_client.users.delete(user.id)
         else:
             if user.external_id in removedIds:
                 toRemove.append(user)
-            logging.info(f'User {user.user_name} with external ID {user.external_id} exists')
+            logger.info(f'User {user.user_name} with external ID {user.external_id} exists')
     for user in toRemove:
-        logging.info(f'User {user.user_name} with external ID {user.external_id} is marked for removal')
+        logger.info(f'User {user.user_name} with external ID {user.external_id} is marked for removal')
         workspace_client.users.delete(user.id)
 
 def synchronize_workspace_secrets(environment_name, subscription_id, definition_json, workspace_client):
@@ -191,7 +144,7 @@ def synchronize_workspace_secrets(environment_name, subscription_id, definition_
     kv_client = azkv_utils.get_keyvault_client(subscription_id, azure_tenant_id)
     secret_list = azkv_utils.list_secrets(kv_client, environment_name, definition_json)
     for secret in secret_list:
-        logging.info(f"adding secret: {secret.name} to workspace")
+        logger.info(f"adding secret: {secret.name} to workspace")
         workspace_client.secrets.put_secret(scope=WORKSPACE_KV_SCOPE_NAME, key=secret.name)
 
 def synchronize_workspace_secret_scopes(environment_name, subscription_id, definition_json, workspace_client):
@@ -217,7 +170,7 @@ def synchronize_workspace_secret_scopes(environment_name, subscription_id, defin
     resource_id = f"/subscriptions/{subscription_id}/resourcegroups/{rg_name.lower()}/providers/Microsoft.KeyVault/vaults/{vault_name.lower()}"
     workspace_secret_scopes = workspace_client.secrets.list_scopes()
     # for workspace_secret_scope in workspace_secret_scopes:
-    #     logging.info(f"Deleting secret scope {workspace_secret_scope.name}")
+    #     logger.info(f"Deleting secret scope {workspace_secret_scope.name}")
     #     workspace_client.secrets.delete_scope(scope=workspace_secret_scope.name)
     # Check if WORKSPACE_KV_SCOPE_NAME exists   
     workspace_kv_scope_found = False
@@ -291,27 +244,27 @@ def synchronize_workspace_users(definition_json, workspace_client, retries = 0):
                 user_found = existing_user is not None
 
             if user_found and existing_user is not None:
-                logging.info(f"User {user['Email']} already exists in workspace; reconciling group membership")
+                logger.info(f"User {user['Email']} already exists in workspace; reconciling group membership")
                 set_user_group_in_workspace(workspace_client, existing_user, user)
                 continue
 
-            logging.info(f"User {user['Email']} does not exist in workspace")
+            logger.info(f"User {user['Email']} does not exist in workspace")
             create_new_user_in_workspace(workspace_client, user)
         except Exception:
-            logging.exception(f"Error synchronizing user {user['Email']} in workspace.")
+            logger.exception(f"Error synchronizing user {user['Email']} in workspace.")
             if (retries < 1):
-                logging.info(f"Retrying to synchronize user {user['Email']} in workspace.")
+                logger.info(f"Retrying to synchronize user {user['Email']} in workspace.")
                 refreshed_users = list(workspace_client.users.list())
                 existing_user = _find_existing_workspace_user_by_email(refreshed_users, user.get('Email'))
                 if existing_user is not None:
-                    logging.info(f"Found existing user {user['Email']} in workspace during retry; reconciling group membership")
+                    logger.info(f"Found existing user {user['Email']} in workspace during retry; reconciling group membership")
                     set_user_group_in_workspace(workspace_client, existing_user, user)
                     return
 
                 for workspace_user in refreshed_users:
-                    logging.info(f"Checking {workspace_user} in workspace")
+                    logger.info(f"Checking {workspace_user} in workspace")
                     if user['Email'].lower() == getattr(workspace_user, 'user_name', '').lower():
-                        logging.info(f"Deleting user {user['Email']} in workspace")
+                        logger.info(f"Deleting user {user['Email']} in workspace")
                         workspace_client.users.delete(workspace_user.id)
                         break
                 synchronize_workspace_users(definition_json, workspace_client, retries + 1)
@@ -327,33 +280,33 @@ def _get_current_metastore_catalog_name(workspace_client):
         return normalized
 
     if not workspace_client or not hasattr(workspace_client, "metastores"):
-        logging.warning("Workspace client or its metastores attribute is not available.")
+        logger.warning("Workspace client or its metastores attribute is not available.")
         return None
 
     metastores_api = workspace_client.metastores
     if not hasattr(metastores_api, "current"):
-        logging.warning("Workspace client metastores API does not expose current().")
+        logger.warning("Workspace client metastores API does not expose current().")
         return None
 
     try:
         current_assignment = metastores_api.current()
-        logging.info(
+        logger.info(
             "_get_current_metastore_catalog_name: loaded current metastore assignment for metastore_id=%s",
             getattr(current_assignment, "metastore_id", None),
         )
     except Exception:
-        logging.exception("Failed to retrieve current metastore from workspace")
+        logger.exception("Failed to retrieve current metastore from workspace")
         return None
 
     catalog_name = _normalize_catalog_name(getattr(current_assignment, "default_catalog_name", None))
     if catalog_name:
-        logging.info(
+        logger.info(
             "Resolved Unity Catalog name '%s' from current metastore assignment field 'default_catalog_name'.",
             catalog_name,
         )
         return catalog_name
 
-    logging.error(
+    logger.error(
         "Unable to resolve Unity Catalog name from current metastore assignment. "
         "Assignment fields: metastore_id=%s default_catalog_name=%s",
         getattr(current_assignment, "metastore_id", None),
@@ -365,13 +318,13 @@ def _get_current_metastore_catalog_name(workspace_client):
 
 def get_unity_catalog_targets(definition_json, workspace_client=None):
     """
-    Returns the catalog and schema names to use for Unity Catalog grants.
+    Returns the catalog name to use for Unity Catalog grants.
 
     Args:
         definition_json (dict): The workspace definition file as a dictionary (json).
 
     Returns:
-        tuple[str, str]: The catalog and schema names.
+        str: The catalog name.
     """
     app_data = definition_json.get("AppData", {}) or {}
     metastore_catalog_name = _get_current_metastore_catalog_name(workspace_client)
@@ -382,19 +335,19 @@ def get_unity_catalog_targets(definition_json, workspace_client=None):
     if explicit_catalog_name is not None and str(explicit_catalog_name).strip():
         catalog_name = str(explicit_catalog_name).strip()
         catalog_source = "AppData.DatabricksCatalogName"
-        logging.debug("get_unity_catalog_targets: using catalog from AppData.DatabricksCatalogName")
+        logger.debug("get_unity_catalog_targets: using catalog from AppData.DatabricksCatalogName")
     elif app_data.get("UnityCatalogName") is not None and str(app_data.get("UnityCatalogName")).strip():
         catalog_name = str(app_data.get("UnityCatalogName")).strip()
         catalog_source = "AppData.UnityCatalogName"
-        logging.debug("get_unity_catalog_targets: using catalog from AppData.UnityCatalogName")
+        logger.debug("get_unity_catalog_targets: using catalog from AppData.UnityCatalogName")
     elif metastore_catalog_name is not None and str(metastore_catalog_name).strip():
         catalog_name = str(metastore_catalog_name).strip()
         catalog_source = "workspace_client.metastores.current()"
-        logging.debug("get_unity_catalog_targets: using catalog from workspace_client.metastores.current()")
+        logger.debug("get_unity_catalog_targets: using catalog from workspace_client.metastores.current()")
 
     if not catalog_name:
         workspace_name = definition_json.get("Workspace", {}).get("Acronym", "unknown")
-        logging.error(
+        logger.error(
             "get_unity_catalog_targets: unable to resolve catalog for workspace '%s'. "
             "DatabricksCatalogName=%s UnityCatalogName=%s AppDataKeys=%s",
             workspace_name,
@@ -407,14 +360,8 @@ def get_unity_catalog_targets(definition_json, workspace_client=None):
             "or ensure workspace_client.metastores.current() returns a catalog/default_catalog_name."
         )
 
-    logging.debug("Using Unity Catalog name '%s' from %s", catalog_name, catalog_source)
-
-    schema_name = (
-        app_data.get("DatabricksSchemaName")
-        or app_data.get("UnitySchemaName")
-        or DEFAULT_SCHEMA_FSDH
-    )
-    return catalog_name, schema_name
+    logger.debug("Using Unity Catalog name '%s' from %s", catalog_name, catalog_source)
+    return catalog_name
 
 
 class _CatalogGrantPayload:
@@ -426,52 +373,132 @@ class _CatalogGrantPayload:
         return {"principal": self.principal, "privileges": self.privileges}
 
 
+class _CatalogPermissionsChangePayload:
+    def __init__(self, principal, add=None, remove=None):
+        self.principal = principal
+        self.add = add
+        self.remove = remove
+
+    def as_dict(self):
+        body = {"principal": self.principal}
+        if self.add:
+            body["add"] = [getattr(privilege, "value", privilege) for privilege in self.add]
+        if self.remove:
+            body["remove"] = [getattr(privilege, "value", privilege) for privilege in self.remove]
+        return body
+
+
 def _resolve_unity_catalog_privileges_for_role(role_name):
-    """Return preset label and API-native privileges to apply for a definition role."""
-    preset = UNITY_CATALOG_ROLE_PRESET.get(role_name, "DATA_EDITOR")
-    api_native_privileges = UNITY_CATALOG_API_PRESET_PRIVILEGES[preset]
-    return preset, api_native_privileges
+    """Return role preset label and documented API privileges to apply."""
+    preset = UNITY_CATALOG_ROLE_PRESET.get(role_name)
+    if preset is None:
+        return None, None
+
+    privileges = UNITY_CATALOG_PRESET_PRIVILEGES.get(preset)
+    if privileges is None:
+        raise ValueError(f"Unity Catalog preset '{preset}' is not mapped to API privileges")
+
+    return preset, privileges
 
 
-def _get_unity_catalog_api_supported_privileges():
-    """Return SDK-exposed Unity Catalog privilege names, or None if unavailable."""
+def _list_catalog_schema_full_names(workspace_client, catalog_name):
+    """Return fully qualified schema names for a catalog when the schemas API is available."""
+    if not hasattr(workspace_client, "schemas") or not hasattr(workspace_client.schemas, "list"):
+        return []
+
     try:
-        from databricks.sdk.service.catalog import Privilege as CatalogPrivilege
+        schemas = list(workspace_client.schemas.list(catalog_name=catalog_name))
+    except TypeError:
+        schemas = list(workspace_client.schemas.list(catalog_name))
     except Exception:
+        logger.exception("Failed to list schemas for catalog '%s'", catalog_name)
+        return []
+
+    schema_full_names = []
+    for schema in schemas:
+        full_name = getattr(schema, "full_name", None)
+        if full_name:
+            schema_full_names.append(full_name)
+            continue
+
+        schema_name = getattr(schema, "name", None)
+        if schema_name:
+            schema_full_names.append(f"{catalog_name}.{schema_name}")
+
+    return sorted(set(schema_full_names))
+
+
+def _catalog_privilege_value(privilege_name):
+    if privilege_name is None:
         return None
 
-    supported = set()
+    return getattr(privilege_name, "value", privilege_name)
 
-    enum_members = getattr(CatalogPrivilege, "__members__", None)
-    if isinstance(enum_members, dict):
-        supported.update(enum_members.keys())
 
-    for attr_name in dir(CatalogPrivilege):
-        if attr_name.startswith("_"):
+def _normalize_catalog_permissions(privileges):
+    if privileges is None:
+        return None
+    return [_catalog_privilege_value(privilege) for privilege in privileges]
+
+
+def _build_catalog_permissions_change(principal, add=None, remove=None):
+    normalized_add = _normalize_catalog_permissions(add)
+    normalized_remove = _normalize_catalog_permissions(remove)
+
+    return _CatalogPermissionsChangePayload(
+        principal=principal,
+        add=normalized_add,
+        remove=normalized_remove,
+    )
+
+
+def _revoke_unity_catalog_privileges(workspace_client, securable_type, full_name, principal):
+    if not hasattr(workspace_client, "grants") or not hasattr(workspace_client.grants, "list"):
+        logger.info("Workspace client does not expose a grants list API; skipping Unity Catalog privilege revocation")
+        return False
+
+    try:
+        current_assignments = list(workspace_client.grants.list(securable_type, full_name, principal=principal))
+    except Exception:
+        logger.exception(
+            "Failed to list current Unity Catalog privileges for principal '%s' on '%s'",
+            principal,
+            full_name,
+        )
+        return False
+
+    changes = []
+    for assignment in current_assignments:
+        privileges = getattr(assignment, "privileges", None) or []
+        if not privileges:
             continue
-        attr_value = getattr(CatalogPrivilege, attr_name, None)
-        if isinstance(attr_value, str):
-            supported.add(attr_name)
-            supported.add(attr_value)
 
-    return supported
-
-
-def _validate_unity_catalog_role_presets_against_api():
-    """Validate configured role presets are represented by the current SDK/API surface."""
-    required_presets = {preset for preset in UNITY_CATALOG_ROLE_PRESET.values()}
-    supported_privileges = _get_unity_catalog_api_supported_privileges()
-    if supported_privileges is None:
-        raise ValueError(
-            "Unable to validate Unity Catalog role presets against SDK API because catalog.Privilege is not available"
+        assignment_principal = getattr(assignment, "principal", None) or principal
+        remove_privileges = [
+            _catalog_privilege_value(getattr(privilege, "value", privilege))
+            for privilege in privileges
+        ]
+        changes.append(
+            _build_catalog_permissions_change(
+                principal=assignment_principal,
+                remove=remove_privileges,
+            )
         )
 
-    missing_presets = sorted(preset for preset in required_presets if preset not in supported_privileges)
-    if missing_presets:
-        raise ValueError(
-            "Configured Unity Catalog role presets are not available in the current Databricks API/SDK: "
-            f"{', '.join(missing_presets)}"
-        )
+    if not changes:
+        return False
+
+    logger.info(
+        "Removing existing Unity Catalog privileges for principal '%s' on '%s' before reapplying role presets",
+        principal,
+        full_name,
+    )
+    workspace_client.grants.update(
+        securable_type=securable_type,
+        full_name=full_name,
+        changes=changes,
+    )
+    return True
 
 
 def apply_unity_catalog_grant(workspace_client, securable_type, full_name, principal, privileges):
@@ -489,25 +516,15 @@ def apply_unity_catalog_grant(workspace_client, securable_type, full_name, princ
         None        
     """    
     if not hasattr(workspace_client, "grants") or not hasattr(workspace_client.grants, "update"):
-        logging.info("Workspace client does not expose a grants API; skipping Unity Catalog permissions")
+        logger.info("Workspace client does not expose a grants API; skipping Unity Catalog permissions")
         return
 
-    logging.info("Applying Unity Catalog grant for principal '%s' on '%s'", principal, full_name)
+    logger.info("Applying Unity Catalog grant for principal '%s' on '%s'", principal, full_name)
     try:
-        try:
-            from databricks.sdk.service.catalog import Grant as CatalogGrant
-        except Exception:
-            CatalogGrant = None
-
-        if CatalogGrant is not None:
-            try:
-                grant = CatalogGrant(principal=principal, privileges=privileges)
-                if not hasattr(grant, "as_dict"):
-                    raise AttributeError("Grant object does not expose as_dict")
-            except Exception:
-                grant = _CatalogGrantPayload(principal=principal, privileges=privileges)
-        else:
-            grant = _CatalogGrantPayload(principal=principal, privileges=privileges)
+        grant = _build_catalog_permissions_change(
+            principal=principal,
+            add=_normalize_catalog_permissions(privileges),
+        )
 
         workspace_client.grants.update(
             securable_type=securable_type,
@@ -515,9 +532,10 @@ def apply_unity_catalog_grant(workspace_client, securable_type, full_name, princ
             changes=[grant]
         )
 
-        logging.info(f"Applied Unity Catalog privileges {privileges} to {principal} on {full_name}")
+        logger.info(f"Applied Unity Catalog privileges {privileges} to {principal} on {full_name}")
     except Exception:
-        logging.exception(f"Failed to apply Unity Catalog grant for {principal} on {full_name}")
+        logger.exception(f"Failed to apply Unity Catalog grant for {principal} on {full_name}")
+        raise
 
 
 def synchronize_unity_catalog_permissions(definition_json, workspace_client):
@@ -531,27 +549,47 @@ def synchronize_unity_catalog_permissions(definition_json, workspace_client):
     Returns:
         None
     """
-    catalog_name, schema_name = get_unity_catalog_targets(definition_json, workspace_client)
-    _validate_unity_catalog_role_presets_against_api()
-    schema_full_name = f"{catalog_name}.{schema_name}"
+    catalog_name = get_unity_catalog_targets(definition_json, workspace_client)
+    schema_full_names = _list_catalog_schema_full_names(workspace_client, catalog_name)
 
     workspace_users = list(workspace_client.users.list()) if hasattr(workspace_client, "users") and hasattr(workspace_client.users, "list") else []
     for user in (user for user in definition_json.get("Workspace", {}).get("Users", []) if user.get("Role") != "Removed"):
         principal = _resolve_unity_catalog_principal_for_user(user, workspace_users)
         if not principal:
-            logging.info(f"Skipping Unity Catalog permission sync for user {user.get('Email')} because no principal email could be resolved")
+            logger.info(f"Skipping Unity Catalog permission sync for user {user.get('Email')} because no principal email could be resolved")
             continue
 
         role_name = user.get("Role", "User")
         preset, role_privileges = _resolve_unity_catalog_privileges_for_role(role_name)
+        _revoke_unity_catalog_privileges(
+            workspace_client,
+            "catalog",
+            catalog_name,
+            principal,
+        )
+        for schema_full_name in schema_full_names:
+            _revoke_unity_catalog_privileges(
+                workspace_client,
+                "schema",
+                schema_full_name,
+                principal,
+            )
+
+        if preset is None or role_privileges is None:
+            logger.info(
+                "Skipping Unity Catalog privilege assignment for %s because role '%s' is not mapped to a preset",
+                principal,
+                role_name,
+            )
+            continue
+
         preset_display = preset.replace("_", " ")
-        logging.info(
-            "Synchronizing Unity Catalog permissions for %s (%s) using API preset '%s' on catalog '%s' (schema '%s' relies on inherited permissions)",
+        logger.info(
+            "Synchronizing Unity Catalog permissions for %s (%s) using API preset '%s' on catalog '%s'",
             principal,
             role_name,
             preset_display,
             catalog_name,
-            schema_full_name,
         )
 
         apply_unity_catalog_grant(
@@ -559,8 +597,18 @@ def synchronize_unity_catalog_permissions(definition_json, workspace_client):
             "catalog",
             catalog_name,
             principal,
-            role_privileges["catalog"],
+            role_privileges.get("catalog"),
         )
+
+        schema_privileges = role_privileges.get("schema") or []
+        for schema_full_name in schema_full_names:
+            apply_unity_catalog_grant(
+                workspace_client,
+                "schema",
+                schema_full_name,
+                principal,
+                schema_privileges,
+            )
 
 
 def _get_workspace_group_for_role(workspace_groups, role_name):
@@ -568,11 +616,11 @@ def _get_workspace_group_for_role(workspace_groups, role_name):
     definition_role_lookup = get_definition_role_lookup()
     group_name = definition_role_lookup.get(role_name)
     if not group_name:
-        logging.warning("No Databricks group mapping for role '%s'", role_name)
+        logger.warning("No Databricks group mapping for role '%s'", role_name)
         return None
 
     if group_name not in workspace_groups:
-        logging.warning(
+        logger.warning(
             "Role '%s' maps to Databricks group '%s', but that group does not exist in this workspace; skipping group assignment",
             role_name,
             group_name,
@@ -594,7 +642,7 @@ def create_new_user_in_workspace(workspace_client, user):
         workspace_user (User): The workspace user that was created.
 
     """
-    logging.info(f"\tCreating user {user['Email']} in workspace")
+    logger.info(f"\tCreating user {user['Email']} in workspace")
 
     workspace_groups = get_workspace_groups(workspace_client)
     workspace_email = ComplexValue(value=user['Email'], 
@@ -614,7 +662,7 @@ def create_new_user_in_workspace(workspace_client, user):
         create_kwargs["groups"] = [workspace_group]
 
     workspace_user = workspace_client.users.create(**create_kwargs)
-    logging.info(f"\tUser {user['Email']} created in workspace")
+    logger.info(f"\tUser {user['Email']} created in workspace")
 
     return workspace_user
 
@@ -658,14 +706,14 @@ def update_user_group_in_workspace(workspace_client, workspace_user, definition_
     for group in workspace_user.groups:
         if group.display == definition_role_lookup[definition_user['Role']]:
             group_found = True
-            logging.info(f"\tUser {definition_user['Email']} has correct group {group} in workspace")
+            logger.info(f"\tUser {definition_user['Email']} has correct group {group} in workspace")
             break
     if not group_found:
-        logging.info(f"\tUser {definition_user['Email']} does not have correct groups {definition_user['Role']} in workspace, updating...")
+        logger.info(f"\tUser {definition_user['Email']} does not have correct groups {definition_user['Role']} in workspace, updating...")
 
         role_display_name = definition_role_lookup[definition_user['Role']]
         if role_display_name not in workspace_groups:
-            logging.warning(
+            logger.warning(
                 "Skipping group update for user %s because Databricks group '%s' does not exist in this workspace",
                 definition_user['Email'],
                 role_display_name,
@@ -673,10 +721,10 @@ def update_user_group_in_workspace(workspace_client, workspace_user, definition_
             return
         group_to_add = ComplexValue(value=workspace_groups[role_display_name].id, display=role_display_name, primary=None, type=None)
 
-        logging.info(f"\tAdding missing group {group_to_add} to user {definition_user['Email']}")
+        logger.info(f"\tAdding missing group {group_to_add} to user {definition_user['Email']}")
 
         workspace_client.users.update(id=workspace_user.id, user_name=definition_user['Email'], groups=[group_to_add])
-        logging.info(f"\tUser {definition_user['Email']} now has role {definition_user['Role']} in workspace (definition role: {definition_role_lookup[definition_user['Role']]}))")
+        logger.info(f"\tUser {definition_user['Email']} now has role {definition_user['Role']} in workspace (definition role: {definition_role_lookup[definition_user['Role']]}))")
 
 def add_user_to_group_in_workspace(workspace_client, workspace_user, definition_user):
     """
@@ -693,11 +741,11 @@ def add_user_to_group_in_workspace(workspace_client, workspace_user, definition_
     workspace_groups = get_workspace_groups(workspace_client)
     definition_role_lookup = get_definition_role_lookup()
 
-    logging.info(f"\tUser {definition_user['Email']} has no groups in workspace, updating...")
+    logger.info(f"\tUser {definition_user['Email']} has no groups in workspace, updating...")
 
     role_display_name = definition_role_lookup[definition_user['Role']]
     if role_display_name not in workspace_groups:
-        logging.warning(
+        logger.warning(
             "Skipping group assignment for user %s because Databricks group '%s' does not exist in this workspace",
             definition_user['Email'],
             role_display_name,
@@ -706,7 +754,7 @@ def add_user_to_group_in_workspace(workspace_client, workspace_user, definition_
 
     group_to_add = ComplexValue(value=workspace_groups[role_display_name].id, display=role_display_name, primary=None, type=None)
 
-    logging.info(f"\tAdding new group {group_to_add} to user {definition_user['Email']}")
+    logger.info(f"\tAdding new group {group_to_add} to user {definition_user['Email']}")
 
     workspace_client.users.update(id=workspace_user.id, user_name=definition_user['Email'], groups=[group_to_add])
-    logging.info(f"\tUser {definition_user['Email']} is now in the {role_display_name} group in workspace")
+    logger.info(f"\tUser {definition_user['Email']} is now in the {role_display_name} group in workspace")

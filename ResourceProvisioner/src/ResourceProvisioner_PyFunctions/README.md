@@ -101,6 +101,28 @@ func start --python
 
 This function is triggered by a message in the Storage Queue. The message contains the workspace definition file with the list of users and their roles. The function will synchronize the users and their roles with the workspace.
 
+## Unity Catalog Permission Mapping
+
+Unity Catalog role presets and permission constants are defined in [lib/unity_catalog_constants.py](lib/unity_catalog_constants.py).
+
+The role-to-permission matrix is documented in [UNITY_CATALOG_ROLE_PERMISSION_MATRIX.md](UNITY_CATALOG_ROLE_PERMISSION_MATRIX.md).
+
+Current preset behavior:
+
+- Owner: `ALL_PRIVILEGES` on catalog and schema
+- Guest (`DATA_READER`):
+  - Catalog: `USE_CATALOG`, `BROWSE`
+  - Schema: `USE_SCHEMA`, `EXECUTE`, `READ_VOLUME`, `SELECT`
+- Admin/User (`DATA_EDITOR`):
+  - Catalog: `USE_CATALOG`, `CREATE_SCHEMA`, `BROWSE`, `APPLY_TAG`
+  - Schema: `USE_SCHEMA`, `EXECUTE`, `READ_VOLUME`, `SELECT`, `APPLY_TAG`, `MODIFY`, `WRITE_VOLUME`, `CREATE_FUNCTION`, `CREATE_MATERIALIZED_VIEW`, `CREATE_MODEL`, `CREATE_TABLE`, `CREATE_VOLUME`
+
+Notes:
+
+- Permission tokens use Databricks API/SQL GRANT privilege names.
+- Workspace synchronization applies catalog grants and, when available, schema-level grants for schemas discovered in the target catalog.
+- Grant failures are raised so the workspace sync is reported as failed instead of successful.
+
 
 ```mermaid
 flowchart

@@ -240,6 +240,7 @@ def new_sync_workspace(workspace_definition):
     logger.info("Got template mappings")
 
     errors = []
+    failure_causes = []
 
     workspace_name = workspace_definition["Workspace"]["Acronym"]
     logger.info(f"Synchronizing workspace users for {workspace_name}")
@@ -265,9 +266,13 @@ def new_sync_workspace(workspace_definition):
                 logger.info(f"Synchronizing {name} for {workspace_name}.")
                 sync_fn(workspace_definition)
             except Exception as e:
-                error_msg = f"Error synchronizing {name} for {workspace_name}"
-                logger.exception(error_msg, exc_info=e)
+                error_msg = (
+                    f"Error synchronizing {name} for {workspace_name}: "
+                    f"{type(e).__name__}: {e}"
+                )
+                logger.exception(error_msg)
                 errors.append(error_msg)
+                failure_causes.append(e)
                 send_exception_to_service_bus(error_msg)
 
     errors_joined = ERROR_DETAILS_JOINER.join(errors)
@@ -289,6 +294,8 @@ def new_sync_workspace(workspace_definition):
     else:
         overall_sync_error = f"Workspace {workspace_name} had problems while synchronizing: {errors_joined}"
         logger.error(overall_sync_error)
+        if failure_causes:
+            raise RuntimeError(overall_sync_error) from failure_causes[0]
         raise RuntimeError(overall_sync_error)
 
 
@@ -304,6 +311,14 @@ def sync_databricks_workspace_users_function(workspace_definition):
 
     """
     databricksHost = resolve_databricks_host_url(workspace_definition)
+    if not databricksHost:
+        workspace_name = workspace_definition.get("Workspace", {}).get("Acronym", "unknown")
+        logger.info(
+            "Skipping Databricks synchronization for workspace %s because no Databricks host URL was provided in AppData",
+            workspace_name,
+        )
+        return
+
     environment_name = os.environ["DataHub_ENVNAME"]
     subscription_id = os.environ["AzureSubscriptionId"]
 
@@ -325,10 +340,15 @@ def sync_databricks_workspace_users_function(workspace_definition):
 
 
 def resolve_databricks_host_url(workspace_definition):
-    """Resolve Databricks host URL from workspace AppData using supported key variants."""
+    """Resolve Databricks host URL from workspace AppData using supported key variants.
+
+    Returns:
+        str | None: The Databricks host URL when present, otherwise None.
+    """
     app_data = workspace_definition.get("AppData")
     if not isinstance(app_data, dict):
-        raise ValueError("Workspace definition is missing AppData object required for Databricks synchronization")
+        logger.info("Workspace AppData is missing or invalid; Databricks synchronization will be skipped")
+        return None
 
     candidate_keys = [
         "DatabricksHostUrl",
@@ -349,10 +369,14 @@ def resolve_databricks_host_url(workspace_definition):
             return host
 
     app_data_keys = sorted(app_data.keys())
-    raise ValueError(
+    logger.info(
         "Workspace AppData does not contain a Databricks host URL. "
-        f"Checked keys: {candidate_keys}. Available AppData keys: {app_data_keys}"
+        "Databricks synchronization will be skipped. "
+        "Checked keys: %s. Available AppData keys: %s",
+        candidate_keys,
+        app_data_keys,
     )
+    return None
 
 
 def sync_keyvault_workspace_users_function(workspace_definition):

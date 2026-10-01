@@ -1,0 +1,69 @@
+"""Unity Catalog role presets and API privilege constants.
+
+Privilege names are API tokens aligned with Databricks Unity Catalog GRANT semantics.
+"""
+
+# Role-level privilege presets requested by product semantics.
+UNITY_CATALOG_ROLE_PRESET = {
+    "Owner": "ALL_PRIVILEGES",
+    "Guest": "DATA_READER",
+    "Admin": "DATA_EDITOR",
+    "User": "DATA_EDITOR",
+}
+
+# Unity Catalog API privilege names.
+UC_PRIVILEGE_ALL_PRIVILEGES = "ALL_PRIVILEGES"
+UC_PRIVILEGE_USE_CATALOG = "USE_CATALOG"
+UC_PRIVILEGE_USE_SCHEMA = "USE_SCHEMA"
+UC_PRIVILEGE_CREATE_SCHEMA = "CREATE_SCHEMA"
+UC_PRIVILEGE_BROWSE = "BROWSE"
+UC_PRIVILEGE_APPLY_TAG = "APPLY_TAG"
+UC_PRIVILEGE_EXECUTE = "EXECUTE"
+UC_PRIVILEGE_READ_VOLUME = "READ_VOLUME"
+UC_PRIVILEGE_SELECT = "SELECT"
+UC_PRIVILEGE_MODIFY = "MODIFY"
+UC_PRIVILEGE_WRITE_VOLUME = "WRITE_VOLUME"
+UC_PRIVILEGE_CREATE_FUNCTION = "CREATE_FUNCTION"
+UC_PRIVILEGE_CREATE_MATERIALIZED_VIEW = "CREATE_MATERIALIZED_VIEW"
+UC_PRIVILEGE_CREATE_MODEL = "CREATE_MODEL"
+UC_PRIVILEGE_CREATE_TABLE = "CREATE_TABLE"
+UC_PRIVILEGE_CREATE_VOLUME = "CREATE_VOLUME"
+
+# Product role presets mapped to API privileges by securable type.
+UNITY_CATALOG_PRESET_PRIVILEGES = {
+    "ALL_PRIVILEGES": {
+        "catalog": [UC_PRIVILEGE_ALL_PRIVILEGES],
+        "schema": [UC_PRIVILEGE_ALL_PRIVILEGES],
+    },
+    "DATA_READER": {
+        "catalog": [UC_PRIVILEGE_USE_CATALOG, UC_PRIVILEGE_BROWSE],
+        "schema": [
+            UC_PRIVILEGE_USE_SCHEMA,
+            UC_PRIVILEGE_EXECUTE,
+            UC_PRIVILEGE_READ_VOLUME,
+            UC_PRIVILEGE_SELECT,
+        ],
+    },
+    "DATA_EDITOR": {
+        "catalog": [
+            UC_PRIVILEGE_USE_CATALOG,
+            UC_PRIVILEGE_CREATE_SCHEMA,
+            UC_PRIVILEGE_BROWSE,
+            UC_PRIVILEGE_APPLY_TAG,
+        ],
+        "schema": [
+            UC_PRIVILEGE_USE_SCHEMA,
+            UC_PRIVILEGE_EXECUTE,
+            UC_PRIVILEGE_READ_VOLUME,
+            UC_PRIVILEGE_SELECT,
+            UC_PRIVILEGE_APPLY_TAG,
+            UC_PRIVILEGE_MODIFY,
+            UC_PRIVILEGE_WRITE_VOLUME,
+            UC_PRIVILEGE_CREATE_FUNCTION,
+            UC_PRIVILEGE_CREATE_MATERIALIZED_VIEW,
+            UC_PRIVILEGE_CREATE_MODEL,
+            UC_PRIVILEGE_CREATE_TABLE,
+            UC_PRIVILEGE_CREATE_VOLUME,
+        ],
+    },
+}
