@@ -1,117 +1,50 @@
 @using Datahub.Portal.Model
-<MudText Typo="Typo.h2" Class="mt-6">
-    @Localizer["Database Information"]
-</MudText>
+@using GcdsWrapper.Blazor
+
+<GcdsHeading Tag="h2">@Localizer["Database Information"]</GcdsHeading>
 @if (dbServer is not null)
 {
-    <MudSimpleTable Dense Hover Striped Outlined>
-        <thead>
-        <tr>
-            <th><strong>@Localizer["Property"]</strong></th>
-            <th><strong>@Localizer["Value"]</strong></th>
-        </tr>
-        </thead>
-        <tbody>
-            <tr>
-                <td>
-                    @Localizer["SKU"]
-                </td>
-                <td>
-                    <code>@dbServer.PostgresTier.SKUName</code>
-                </td>
-            </tr>
-            <tr>
-                <td>
-                    @Localizer["Instance Type"]
-                </td>
-                <td>
-                    <code>@dbServer.PostgresTier.Type</code>
-                </td>
-            </tr>
-            <tr>
-                <td>
-                    @Localizer["vCores"]
-                </td>
-                <td>
-                    <code>@dbServer.PostgresTier.Cores</code>
-                </td>
-            </tr>
-            <tr>
-                <td>
-                    @Localizer["Memory Size"]
-                </td>
-                <td>
-                    <code>@dbServer.PostgresTier.MemorySize</code>
-                </td>
-            </tr>
-            <tr>
-                <td>
-                    @Localizer["MaxIOPS"]
-                </td>
-                <td>
-                    <code>@dbServer.PostgresTier.MaxIOPS</code>
-                </td>
-            </tr>
-            <tr>
-                <td>
-                    @Localizer["MaxBandwidth"]
-                </td>
-                <td>
-                    <code>@dbServer.PostgresTier.MaxBandwidth</code>
-                </td>
-            </tr>
-            <tr>
-                <td>
-                    @Localizer["Storage Size"]
-                </td>
-                <td>
-                    <code>@dbServer.StorageSize</code>
-                </td>
-            </tr>
-        <tr>
-            <td>
-                @Localizer["Host"]
-            </td>
-            <td>
-                    <code>@dbServer.DatabaseHost</code>
-            </td>
-        </tr>
-        <tr>
-            <td>
-                @Localizer["Database Name"]
-            </td>
-            <td>
-                    <code>@dbServer.DatabaseName</code>
-            </td>
-        </tr>
-        <tr>
-            <td>
-                @Localizer["Username"]
-            </td>
-            <td>
-                    <code>@dbServer.Username</code>
-            </td>
-        </tr>
-        <tr>
-            <td>
-                @Localizer["Password"]
-            </td>
-            <td>
-                    <code>@dbServer.Password</code>
-            </td>
-        </tr>
-        <tr>
-            <td>
-                @Localizer["Port"]
-            </td>
-            <td>
-                    <code>@dbServer.Port</code>
-            </td>
-        </tr>
-        </tbody>
-    </MudSimpleTable>
+    <GcdsTable Columns="@Columns"
+               Data="@Rows"
+               Filter="false"
+               Sort="false"
+               Pagination="false">
+        <span slot="caption" class="sr-only">@Localizer["Database Information"]</span>
+    </GcdsTable>
 }
 
 @code {
-    [Parameter] public AzurePgsqlDBServer dbServer { get; set; }
+    [Parameter]
+    public AzurePgsqlDBServer dbServer { get; set; }
+
+    private IReadOnlyCollection<TableColumn> Columns =>
+    [
+        new("property", Localizer["Property"], true),
+        new("value", Localizer["Value"])
+    ];
+
+    private IReadOnlyCollection<IReadOnlyDictionary<string, string>> Rows =>
+    [
+        CreateRow(Localizer["SKU"], dbServer.PostgresTier.SKUName),
+        CreateRow(Localizer["Instance Type"], dbServer.PostgresTier.Type),
+        CreateRow(Localizer["vCores"], dbServer.PostgresTier.Cores.ToString()),
+        CreateRow(Localizer["Memory Size"], dbServer.PostgresTier.MemorySize),
+        CreateRow(Localizer["MaxIOPS"], dbServer.PostgresTier.MaxIOPS.ToString()),
+        CreateRow(Localizer["MaxBandwidth"], dbServer.PostgresTier.MaxBandwidth),
+        CreateRow(Localizer["Storage Size"], dbServer.StorageSize.ToString()),
+        CreateRow(Localizer["Host"], dbServer.DatabaseHost),
+        CreateRow(Localizer["Database Name"], dbServer.DatabaseName),
+        CreateRow(Localizer["Username"], dbServer.Username),
+        CreateRow(Localizer["Password"], dbServer.Password),
+        CreateRow(Localizer["Port"], dbServer.Port)
+    ];
+
+    private static IReadOnlyDictionary<string, string> CreateRow(string property, string value) =>
+        new Dictionary<string, string>
+        {
+            ["property"] = property,
+            ["value"] = value
+        };
+
+    private sealed record TableColumn(string Field, string Header, bool RowHeader = false);
 }
