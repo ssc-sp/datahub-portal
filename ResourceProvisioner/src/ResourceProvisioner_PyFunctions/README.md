@@ -34,6 +34,22 @@ Install the project dependencies with Poetry:
 poetry install
 ```
 
+## Running Python tests
+
+The project’s tests are written with Python’s built-in `unittest` framework and can be run from the project root.
+
+```bash
+poetry run python -m unittest discover -s tests -v
+```
+
+To run a single test module:
+
+```bash
+poetry run python -m unittest tests.test_function_app -v
+```
+
+If you prefer to run the suite with `pytest`, the tests should still work because they use standard `unittest` classes, but the repo does not require `pytest` for normal local validation.
+
 Install Azure Functions Core Tools separately if the `func` command is not available:
 
 ```powershell
