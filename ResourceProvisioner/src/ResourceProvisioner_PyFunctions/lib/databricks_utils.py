@@ -401,33 +401,6 @@ def _resolve_unity_catalog_privileges_for_role(role_name):
     return preset, privileges
 
 
-def _list_catalog_schema_full_names(workspace_client, catalog_name):
-    """Return fully qualified schema names for a catalog when the schemas API is available."""
-    if not hasattr(workspace_client, "schemas") or not hasattr(workspace_client.schemas, "list"):
-        return []
-
-    try:
-        schemas = list(workspace_client.schemas.list(catalog_name=catalog_name))
-    except TypeError:
-        schemas = list(workspace_client.schemas.list(catalog_name))
-    except Exception:
-        logger.exception("Failed to list schemas for catalog '%s'", catalog_name)
-        return []
-
-    schema_full_names = []
-    for schema in schemas:
-        full_name = getattr(schema, "full_name", None)
-        if full_name:
-            schema_full_names.append(full_name)
-            continue
-
-        schema_name = getattr(schema, "name", None)
-        if schema_name:
-            schema_full_names.append(f"{catalog_name}.{schema_name}")
-
-    return sorted(set(schema_full_names))
-
-
 def _catalog_privilege_value(privilege_name):
     if privilege_name is None:
         return None
@@ -550,8 +523,6 @@ def synchronize_unity_catalog_permissions(definition_json, workspace_client):
         None
     """
     catalog_name = get_unity_catalog_targets(definition_json, workspace_client)
-    schema_full_names = _list_catalog_schema_full_names(workspace_client, catalog_name)
-
     workspace_users = list(workspace_client.users.list()) if hasattr(workspace_client, "users") and hasattr(workspace_client.users, "list") else []
     for user in (user for user in definition_json.get("Workspace", {}).get("Users", []) if user.get("Role") != "Removed"):
         principal = _resolve_unity_catalog_principal_for_user(user, workspace_users)
@@ -567,13 +538,6 @@ def synchronize_unity_catalog_permissions(definition_json, workspace_client):
             catalog_name,
             principal,
         )
-        for schema_full_name in schema_full_names:
-            _revoke_unity_catalog_privileges(
-                workspace_client,
-                "schema",
-                schema_full_name,
-                principal,
-            )
 
         if preset is None or role_privileges is None:
             logger.info(
@@ -597,18 +561,8 @@ def synchronize_unity_catalog_permissions(definition_json, workspace_client):
             "catalog",
             catalog_name,
             principal,
-            role_privileges.get("catalog"),
+            role_privileges,
         )
-
-        schema_privileges = role_privileges.get("schema") or []
-        for schema_full_name in schema_full_names:
-            apply_unity_catalog_grant(
-                workspace_client,
-                "schema",
-                schema_full_name,
-                principal,
-                schema_privileges,
-            )
 
 
 def _get_workspace_group_for_role(workspace_groups, role_name):

@@ -109,18 +109,14 @@ The role-to-permission matrix is documented in [UNITY_CATALOG_ROLE_PERMISSION_MA
 
 Current preset behavior:
 
-- Owner: `ALL_PRIVILEGES` on catalog and schema
-- Guest (`DATA_READER`):
-  - Catalog: `USE_CATALOG`, `BROWSE`
-  - Schema: `USE_SCHEMA`, `EXECUTE`, `READ_VOLUME`, `SELECT`
-- Admin/User (`DATA_EDITOR`):
-  - Catalog: `USE_CATALOG`, `CREATE_SCHEMA`, `BROWSE`, `APPLY_TAG`
-  - Schema: `USE_SCHEMA`, `EXECUTE`, `READ_VOLUME`, `SELECT`, `APPLY_TAG`, `MODIFY`, `WRITE_VOLUME`, `CREATE_FUNCTION`, `CREATE_MATERIALIZED_VIEW`, `CREATE_MODEL`, `CREATE_TABLE`, `CREATE_VOLUME`
+- Owner: `ALL_PRIVILEGES`
+- Guest (`DATA_READER`): `USE_CATALOG`, `BROWSE`, `USE_SCHEMA`, `EXECUTE`, `READ_VOLUME`, `SELECT`
+- Admin/User (`DATA_EDITOR`): `USE_CATALOG`, `CREATE_SCHEMA`, `BROWSE`, `APPLY_TAG`, `USE_SCHEMA`, `EXECUTE`, `READ_VOLUME`, `SELECT`, `MODIFY`, `WRITE_VOLUME`, `CREATE_FUNCTION`, `CREATE_MATERIALIZED_VIEW`, `CREATE_MODEL`, `CREATE_TABLE`, `CREATE_VOLUME`
 
 Notes:
 
 - Permission tokens use Databricks API/SQL GRANT privilege names.
-- Workspace synchronization applies catalog grants and, when available, schema-level grants for schemas discovered in the target catalog.
+- Workspace synchronization applies a single merged preset privilege list to the catalog grant.
 - Grant failures are raised so the workspace sync is reported as failed instead of successful.
 
 
