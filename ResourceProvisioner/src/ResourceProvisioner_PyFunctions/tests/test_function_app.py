@@ -327,6 +327,117 @@ class FunctionAppMappingTests(unittest.TestCase):
         self.assertTrue(azkeyvault_utils._keyvault_operation_lock.acquire(blocking=False))
         azkeyvault_utils._keyvault_operation_lock.release()
 
+    def test_keyvault_sync_allows_parallel_updates_for_different_vaults(self) -> None:
+        import threading
+        import time
+
+        sys.path.insert(0, str(ROOT))
+        lib_module = sys.modules.get("lib")
+        if lib_module is not None:
+            lib_module.__path__ = [str(ROOT / "lib")]
+        else:
+            lib_module = types.ModuleType("lib")
+            lib_module.__path__ = [str(ROOT / "lib")]
+            sys.modules["lib"] = lib_module
+
+        azure_module = types.ModuleType("azure")
+        identity_module = types.ModuleType("azure.identity")
+        keyvault_module = types.ModuleType("azure.mgmt.keyvault")
+        models_module = types.ModuleType("azure.mgmt.keyvault.models")
+        import importlib
+
+        class ClientSecretCredential:  # pragma: no cover - simple stub
+            def __init__(self, *args, **kwargs):
+                pass
+
+        class AccessPolicyEntry:  # pragma: no cover - simple stub
+            def __init__(self, tenant_id, object_id, permissions):
+                self.tenant_id = tenant_id
+                self.object_id = object_id
+                self.permissions = types.SimpleNamespace(secrets=permissions.get("secrets", []))
+
+        class VaultProperties:  # pragma: no cover - simple stub
+            def __init__(self, access_policies=None):
+                self.access_policies = access_policies or []
+
+        class Vault:  # pragma: no cover - simple stub
+            def __init__(self, access_policies=None):
+                self.properties = VaultProperties(access_policies)
+
+        class FakeKeyVaultManagementClient:  # pragma: no cover - simple stub
+            def __init__(self):
+                self.vaults = self
+                self.calls = 0
+                self.first_entered = threading.Event()
+                self.allow_first_to_finish = threading.Event()
+
+            def get(self, rg_name, vault_name):
+                return Vault(access_policies=[])
+
+            def begin_create_or_update(self, rg_name, vault_name, vault):
+                self.calls += 1
+                if self.calls == 1:
+                    self.first_entered.set()
+                    self.allow_first_to_finish.wait(timeout=2)
+                return types.SimpleNamespace(result=lambda: "ok")
+
+        identity_module.ClientSecretCredential = ClientSecretCredential
+        keyvault_module.KeyVaultManagementClient = FakeKeyVaultManagementClient
+        models_module.AccessPolicyEntry = AccessPolicyEntry
+        models_module.VaultAccessPolicyParameters = object
+        models_module.SecretPermissions = object
+
+        sys.modules.update({
+            "azure": azure_module,
+            "azure.identity": identity_module,
+            "azure.mgmt": types.ModuleType("azure.mgmt"),
+            "azure.mgmt.keyvault": keyvault_module,
+            "azure.mgmt.keyvault.models": models_module,
+        })
+
+        sys.modules.pop("lib.azkeyvault_utils", None)
+        azkeyvault_utils = importlib.import_module("lib.azkeyvault_utils")
+        azkeyvault_utils._keyvault_operation_lock = threading.Semaphore(1)
+        azkeyvault_utils._keyvault_operation_locks = {}
+
+        definition_one = {
+            "Workspace": {
+                "Acronym": "demo",
+                "Users": [{"ObjectId": "user-1", "Role": "Owner"}],
+            }
+        }
+        definition_two = {
+            "Workspace": {
+                "Acronym": "other",
+                "Users": [{"ObjectId": "user-2", "Role": "Owner"}],
+            }
+        }
+
+        second_entered = []
+        client = FakeKeyVaultManagementClient()
+
+        def first_call():
+            with patch.object(azkeyvault_utils, "get_kv_reference", return_value=("rg", "vault-1")):
+                azkeyvault_utils.synchronize_access_policies(client, "dev", definition_one, "tenant-id")
+
+        def second_call():
+            with patch.object(azkeyvault_utils, "get_kv_reference", return_value=("rg", "vault-2")):
+                azkeyvault_utils.synchronize_access_policies(client, "dev", definition_two, "tenant-id")
+                second_entered.append("entered")
+
+        first_thread = threading.Thread(target=first_call)
+        second_thread = threading.Thread(target=second_call)
+
+        first_thread.start()
+        self.assertTrue(client.first_entered.wait(timeout=2))
+        second_thread.start()
+        time.sleep(0.2)
+        self.assertEqual(second_entered, ["entered"])
+
+        client.allow_first_to_finish.set()
+        first_thread.join(timeout=2)
+        second_thread.join(timeout=2)
+
 
 if __name__ == "__main__":
     unittest.main()

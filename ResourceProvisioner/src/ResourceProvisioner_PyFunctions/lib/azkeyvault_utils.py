@@ -7,6 +7,17 @@ import threading
 import lib.constants as constants
 
 _keyvault_operation_lock = threading.Semaphore(1)
+_keyvault_operation_locks = {}
+_keyvault_operation_locks_lock = threading.Lock()
+
+
+def get_keyvault_operation_lock(rg_name, vault_name):
+    key = (rg_name, vault_name)
+    with _keyvault_operation_locks_lock:
+        if key not in _keyvault_operation_locks:
+            _keyvault_operation_locks[key] = threading.Semaphore(1)
+        return _keyvault_operation_locks[key]
+
 
 def get_keyvault_client(subscription_id, tenant_id) -> KeyVaultManagementClient:
     """
@@ -50,7 +61,8 @@ def synchronize_access_policies(client:KeyVaultManagementClient, environment_nam
     rg_name, vault_name = get_kv_reference(environment_name, definition_json)
     print(f"using vault: [{rg_name}].[{vault_name}]")
 
-    _keyvault_operation_lock.acquire()
+    vault_lock = get_keyvault_operation_lock(rg_name, vault_name)
+    vault_lock.acquire()
     try:
         vault = client.vaults.get(rg_name, vault_name)
         current_policies = list(vault.properties.access_policies or [])
@@ -100,7 +112,7 @@ def synchronize_access_policies(client:KeyVaultManagementClient, environment_nam
         )
         return keyvault_poller.result()
     finally:
-        _keyvault_operation_lock.release()
+        vault_lock.release()
 
 def get_kv_reference(environment_name, definition_json):
     rg_name = f"{constants.RESOURCE_PREFIX}_proj_{definition_json['Workspace']['Acronym']}_{environment_name}_rg"
