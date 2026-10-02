@@ -37,6 +37,14 @@ public interface ICloudStorageManager
 
     List<string> GetFileStorageTiersList();
 
+    async Task<CloudStorageArchiveStatus> GetFileArchiveStatusAsync(string container, string file)
+    {
+        var tier = await GetFileStorageTierAsync(container, file);
+        return new CloudStorageArchiveStatus(tier == "Archive"
+            ? CloudStorageArchiveState.RestoreRequired
+            : CloudStorageArchiveState.Available);
+    }
+
     Task<IDictionary<string, string>> GetFileMetadataAsync(string container, string file);
 
     Task SetFileMetadataAsync(string container, string file, Dictionary<string, string> metadata);
