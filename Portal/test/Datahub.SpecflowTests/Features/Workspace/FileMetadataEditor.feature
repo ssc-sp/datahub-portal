@@ -103,6 +103,15 @@ The file metadata editor lets workspace collaborators view and maintain custom f
           | Cool |
           | Cold |
 
+    Scenario: Unavailable AWS archive status blocks metadata editing and shows an error
+        Given the file has the following metadata
+          | Key    | Value |
+          | custom | value |
+        And AWS metadata archive status cannot be read
+        When the file metadata editor is rendered for viewing
+        Then the metadata edit button should be disabled
+        And the metadata editor should display "Unable to read AWS archive status. Please try again."
+
     Scenario: Unsupported tier lookup does not prevent metadata editing
         Given the file has the following metadata
           | Key   | Value |

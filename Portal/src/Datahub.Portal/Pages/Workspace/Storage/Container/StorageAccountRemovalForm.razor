@@ -1,0 +1,46 @@
+@using GcdsWrapper.Blazor
+@using Microsoft.Identity.Web
+@inject ILogger<StorageAccountRemovalForm> Logger
+@inject MicrosoftIdentityConsentAndConditionalAccessHandler ConsentHandler
+
+<section id="storage-removal-confirmation" role="region" aria-labelledby="storage-removal-heading" aria-busy="@(_busy ? "true" : "false")">
+    <GcdsHeading Id="storage-removal-heading" Tag="h2" tabindex="-1">@Localizer["Remove Storage Account"]</GcdsHeading>
+    <GcdsText>@Localizer["RemoveStorageNamePrompt", AccountName]</GcdsText>
+    @if (!string.IsNullOrEmpty(_error))
+    {
+        <div role="alert">
+            <GcdsNotice NoticeRole="danger" NoticeTitle="@Localizer["Storage configuration error"]" NoticeTitleTag="h3">
+                <GcdsText>@_error</GcdsText>
+            </GcdsNotice>
+        </div>
+    }
+    <div class="d-flex flex-wrap gap-4 mb-4">
+        <GcdsButton Type="GcdsButtonType.Button" Role="GcdsButtonRole.Secondary" Disabled="@_busy" OnClick="CancelAsync">@Localizer["Cancel"]</GcdsButton>
+        <GcdsButton Type="GcdsButtonType.Button" Role="GcdsButtonRole.Danger" Disabled="@_busy" OnClick="ConfirmAsync">@Localizer["Confirm removal"]</GcdsButton>
+    </div>
+</section>
+
+@code {
+    [Parameter] public string AccountName { get; set; } = string.Empty;
+    [Parameter] public EventCallback OnConfirmed { get; set; }
+    [Parameter] public EventCallback OnCancelled { get; set; }
+    private bool _busy;
+    private string? _error;
+
+    private Task CancelAsync() => _busy ? Task.CompletedTask : OnCancelled.InvokeAsync();
+
+    private async Task ConfirmAsync()
+    {
+        if (_busy) return;
+        _busy = true;
+        _error = null;
+        try { await OnConfirmed.InvokeAsync(); }
+        catch (MicrosoftIdentityWebChallengeUserException e) { ConsentHandler.HandleException(e); }
+        catch (Exception e)
+        {
+            Logger.LogError(e, "Error removing storage account");
+            _error = Localizer["Unable to remove storage account. Please try again."];
+        }
+        finally { _busy = false; }
+    }
+}
