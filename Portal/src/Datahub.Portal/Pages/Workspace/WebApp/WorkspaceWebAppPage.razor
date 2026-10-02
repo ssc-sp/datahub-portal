@@ -1,15 +1,14 @@
 @using Datahub.Application.Services.ReverseProxy
-@using Datahub.Portal.Views.Dialogs
 @using Datahub.Portal.Pages.Account
 @using Datahub.Shared.Entities
 @using Datahub.Shared.Entities.WorkspaceToolConfiguration
 @using Microsoft.Identity.Web
 @using Datahub.Core.Model.Projects
 @using Datahub.Application.Services.WebApp
+@using GcdsWrapper.Blazor
 
 @inject IDbContextFactory<DatahubProjectDBContext> _dbContextFactory
 @inject IKeyVaultUserService _keyVaultUserService
-@inject IDialogService _dialogService
 @inject ISnackbar _snackbar
 @inject ILogger<WorkspaceWebAppPage> _logger
 @inject MicrosoftIdentityConsentAndConditionalAccessHandler _consentHandler
@@ -22,102 +21,131 @@
     return;
 }
 <MudStack>
-    <MudStack Row="true" AlignItems="AlignItems.Center">
-        <DHMainContentTitle Title="@Localizer["Web application"]"/>
-        @if (_isConfigured)
-        {
-            <MudStack AlignItems="AlignItems.End" Justify="Justify.Center">
-                <DHIcon Icon="@SidebarIcons.Circle" Color="@(_webAppState ? Color.Success : Color.Error)"
-                        Title="@(_webAppState ? Localizer["Running"] : Localizer["Stopped"])"/>
-            </MudStack>
-        }
-        <MudSpacer/>
-        @if (_isProvisioned)
-        {
-            @if (_isConfigured)
-            {
-                @if (!_webAppState)
-                {
-                    <DHButton HtmlTag="button" Disabled="@_isStartStopping" Variant="Variant.Filled"
-                              StartIcon="@SidebarIcons.Start"
-                              IconColor="@Color.Success" Size="Size.Small"
-                              OnClick="@(async () => { await ExecuteAsyncWithStateChangeDelay(_webAppMgmtService.Start, _webAppId, 2000); })">
-                        @if (_isStartStopping)
-                        {
-                            <MudProgressCircular Color="Color.Default" Indeterminate="true" Size="Size.Small"/>
-                        }
-                        else
-                        {
-                            @Localizer["Start"]
-                        }
-                    </DHButton>
-                }
-                else
-                {
-                    <DHButton HtmlTag="button" Disabled="@_isStartStopping" Variant="Variant.Filled"
-                              StartIcon="@SidebarIcons.Stop"
-                              IconColor="@Color.Error" Size="Size.Small"
-                              OnClick="@(async () => { await ExecuteAsyncWithStateChangeDelay(_webAppMgmtService.Stop, _webAppId, 2000); })">
-                        @if (_isStartStopping)
-                        {
-                            <MudProgressCircular Color="Color.Default" Indeterminate="true" Size="Size.Small"/>
-                        }
-                        else
-                        {
-                            @Localizer["Stop"]
-                        }
-                    </DHButton>
-                }
+    <DHMainContentTitle Title="@Localizer["Web application"]"/>
 
-                <DHButton HtmlTag="button" Disabled="@(_isRestarting || !_webAppState)" Variant="Variant.Filled"
-                          StartIcon="@SidebarIcons.Restart" Size="Size.Small"
-                          OnClick="@(async () => { await ExecuteAsyncWithStateChangeDelay(_webAppMgmtService.Restart, _webAppId, 2000); })">
-                    @if (_isRestarting)
-                    {
-                        <MudProgressCircular Color="Color.Default" Indeterminate="true" Size="Size.Small"/>
-                    }
-                    else
-                    {
-                        @Localizer["Restart"]
-                    }
-                </DHButton>
+    @if (_showConfigurationForm && _configurationToEdit is not null)
+    {
+        <WebAppConfigurationForm Configuration="@_configurationToEdit"
+                                 OnSubmit="HandleConfigurationSubmittedAsync"
+                                 OnCancelled="HideConfigurationFormAsync" />
+    }
 
-                <DHButton HtmlTag="button" Variant="Variant.Filled" Size="Size.Small" Color="Color.Primary"
-                          StartIcon="@SidebarIcons.Redeploy" OnClick="@(async () => await RedeployWebApp())">
-                    @if (_isRedeploying)
-                    {
-                        <MudProgressCircular Color="Color.Default" Indeterminate="true" Size="Size.Small"/>
-                    }
-                    else
-                    {
-                        @Localizer["Redeploy"]
-                    }
-                </DHButton>
-            }
+    <GcdsText>
+        @Localizer["On this page, you can manage your web application. You can view and edit the configurations of your web application"]
+    </GcdsText>
 
-            <DHButton HtmlTag="button" Color="Color.Primary" Size="Size.Small" Variant="Variant.Filled"
-                      StartIcon="@SidebarIcons.Gear"
-                      OnClick="@(async () => await NewWebAppConfiguration())">
-                @Localizer["Configure"]
-            </DHButton>
-        }
-    </MudStack>
-
-    <MudText>
-        @Localizer["Here you can manage your web application. You can view and edit the configurations of your web application"]
-    </MudText>
-
-    <MudAlert Dense="true" Severity="Severity.Info" Variant="Variant.Outlined" Style="color: #000">
-        @Localizer["Restart your application using the 'Restart' button to apply changes to your images or environment variables."]
-        <br/>
-        @Localizer["Redeploy your application using the 'Redeploy' button to apply changes to your docker-compose file."]
-    </MudAlert>
     @if (_isProvisioned)
     {
-        <MudText Typo="Typo.h2">@Localizer["Quick settings"]</MudText>
+        <MudPaper Class="pa-4" Elevation="1">
+            <section id="web-app-control-panel" aria-labelledby="web-app-control-panel-heading">
+                <div @ref="_controlPanelHeading"
+                     tabindex="-1"
+                     aria-labelledby="web-app-control-panel-heading">
+                    <GcdsHeading id="web-app-control-panel-heading" Tag="h2" MarginTop="0">
+                        @Localizer["Web application controls"]
+                    </GcdsHeading>
+                </div>
+
+                @if (_isConfigured)
+                {
+                    <GcdsText role="status"><strong>@Localizer["Status"]:</strong> @(_webAppState ? Localizer["Running"] : Localizer["Stopped"])</GcdsText>
+                    @if (_isProvisioned)
+                    {
+                        <GcdsText><GcdsLink Href="@PageRoutes.WorkspaceWebAppShare.Replace("{WorkspaceAcronymParam}", WorkspaceAcronym)">@Localizer["Access web app"]</GcdsLink></GcdsText>
+                        <GcdsText>@Localizer["Restart your application using the 'Restart' button to apply changes to your images or environment variables."]</GcdsText>
+                        <GcdsText>@Localizer["Redeploy your application using the 'Redeploy' button to apply changes to your docker-compose file."]</GcdsText>
+                    }
+                }
+
+                <MudStack Row Wrap="Wrap.Wrap" Spacing="2" AlignItems="AlignItems.Center">
+                    @if (_isConfigured)
+                    {
+                        @if (!_webAppState)
+                        {
+                            <GcdsButton Type="GcdsButtonType.Button"
+                                        Role="GcdsButtonRole.Secondary"
+                                        Size="GcdsButtonSize.Small"
+                                        Disabled="@_isStartStopping"
+                                        OnClick="@(async () => { await ExecuteAsyncWithStateChangeDelay(_webAppMgmtService.Start, _webAppId, 2000); })">
+                                @if (_isStartStopping)
+                                {
+                                    <MudProgressCircular Color="Color.Default" Indeterminate="true" Size="Size.Small"/>
+                                }
+                                else
+                                {
+                                    @Localizer["Start"]
+                                }
+                            </GcdsButton>
+                        }
+                        else
+                        {
+                            <GcdsButton Type="GcdsButtonType.Button"
+                                        Role="GcdsButtonRole.Danger"
+                                        Size="GcdsButtonSize.Small"
+                                        Disabled="@_isStartStopping"
+                                        OnClick="@(async () => { await ExecuteAsyncWithStateChangeDelay(_webAppMgmtService.Stop, _webAppId, 2000); })">
+                                @if (_isStartStopping)
+                                {
+                                    <MudProgressCircular Color="Color.Default" Indeterminate="true" Size="Size.Small"/>
+                                }
+                                else
+                                {
+                                    @Localizer["Stop"]
+                                }
+                            </GcdsButton>
+                        }
+
+                        <GcdsButton Type="GcdsButtonType.Button"
+                                    Role="GcdsButtonRole.Secondary"
+                                    Size="GcdsButtonSize.Small"
+                                    Disabled="@(_isRestarting || !_webAppState)"
+                                    OnClick="@(async () => { await ExecuteAsyncWithStateChangeDelay(_webAppMgmtService.Restart, _webAppId, 2000); })">
+                            @if (_isRestarting)
+                            {
+                                <MudProgressCircular Color="Color.Default" Indeterminate="true" Size="Size.Small"/>
+                            }
+                            else
+                            {
+                                @Localizer["Restart"]
+                            }
+                        </GcdsButton>
+
+                        <GcdsButton Type="GcdsButtonType.Button"
+                                    Role="GcdsButtonRole.Secondary"
+                                    Size="GcdsButtonSize.Small"
+                                    OnClick="@(async () => await RedeployWebApp())">
+                            @if (_isRedeploying)
+                            {
+                                <MudProgressCircular Color="Color.Default" Indeterminate="true" Size="Size.Small"/>
+                            }
+                            else
+                            {
+                                @Localizer["Redeploy"]
+                            }
+                        </GcdsButton>
+                    }
+
+                    <GcdsButton Id="web-app-configure-button"
+                                Type="GcdsButtonType.Button"
+                                Role="GcdsButtonRole.Primary"
+                                Size="GcdsButtonSize.Small"
+                                Disabled="@(_isLoadingConfiguration || _showConfigurationForm)"
+                                aria-expanded="@(_showConfigurationForm ? "true" : "false")"
+                                aria-controls="web-app-configuration-form"
+                                OnClick="ShowWebAppConfigurationAsync">
+                        @Localizer["Configure"]
+                    </GcdsButton>
+                </MudStack>
+            </section>
+        </MudPaper>
+    }
+
+    @if (_isProvisioned && _isConfigured)
+    {
+        <GcdsHeading Tag="h2">@Localizer["Quick settings"]</GcdsHeading>
         <MudPaper Class="pa-4">
             <SettingsField Label=@Localizer["URL rewriting"]
-                           Description="@Localizer["The {0} proxy rewrites URL paths which is supported by most web applications who do not configure the base href. However some frameworks (such as python dash) do configure a base url. For these frameworks, the URL rewrite option should be disabled and the proxied URL should be configured inside the application as base url.", Localizer["MainAcronym"]]">
+                           Description="@Localizer["The {0} proxy changes website addresses. Most websites work fine with this change automatically. Some tools (like Python Dash) have their own special address settings. For these tools, you should disable the URL rewriting and manually set the proxy address as the base URL in the tool.", Localizer["MainAcronym"]]">
                 <MudSwitch
                     T=@bool
                     Value=@_isUrlRewritingEnabled
@@ -127,13 +155,10 @@
                     Disabled=@_isSaving/>
             </SettingsField>
         </MudPaper>
-        <MudText Typo="Typo.body1" Style="font-style: italic">
-            @Localizer["Quick settings are applied immediately. No need to restart your web application."]
-        </MudText>
-    }
-
-    @if (_isProvisioned && _isConfigured)
-    {
+        <GcdsText>
+            <em>@Localizer["Quick settings are applied immediately. No need to restart your web application."]</em>
+        </GcdsText>
+        
         <WorkspaceWebAppInfoTable
             @ref=@_webappInfoTable
             WebAppHost="@_webAppHost"
@@ -144,15 +169,15 @@
     }
     else if (_isProvisioned)
     {
-        <MudText>
+        <GcdsText>
             @Localizer["This web application is not configured yet. Please configure it by clicking the 'Configure' button at the top right of the page."]
-        </MudText>
+        </GcdsText>
     }
     else
     {
-        <MudText>
+        <GcdsText>
             @Localizer["This web application is not provisioned yet. Please come back soon."]
-        </MudText>
+        </GcdsText>
     }
     @if (_resource is not null && _isConfigured)
     {
@@ -161,12 +186,12 @@
     }
     @if (_isConfigured)
     {
-        <MudText Typo="Typo.h2">@Localizer["Web application logs"]</MudText>
+        <GcdsHeading Tag="h2">@Localizer["Web application logs"]</GcdsHeading>
         <MudPaper Class="py-4" Elevation="1">
             <MudStack Row Class="px-4" AlignItems="AlignItems.Center">
-                <MudText Typo="Typo.h3">
+                <GcdsHeading Tag="h3" MarginTop="50">
                     @Localizer["Runtime logs"]
-                </MudText>
+                </GcdsHeading>
                 <MudSpacer/>
                 <DHButton HtmlTag="Button" OnClick="ToggleLogs" IconSize="Size.Large" Variant="Variant.Filled"
                           EndIcon="@(_showLogs ? Icons.Material.Filled.ArrowDropUp : Icons.Material.Filled.ArrowDropDown)">@(_showLogs ? Localizer["Hide"] : Localizer["View"])</DHButton>
@@ -179,110 +204,113 @@
                 </iframe>
             </MudCollapse>
         </MudPaper>
-        <MudText Typo="Typo.body1" Style="font-style: italic">
-            @Localizer["Please note that the logs are only available when the web application is running. Logs may be delayed by a few minutes."]
-        </MudText>
+        <GcdsText>
+            <em>@Localizer["Please note that the logs are only available when the web application is running. Logs may be delayed by a few minutes."]</em>
+        </GcdsText>
     }
     @if (_isProvisioned)
     {
-        <MudText Typo="Typo.h2" Class="mt-6">
-            @Localizer["Additional information"]
-        </MudText>
-        <MudPaper Class="pa-6" Elevation="1">
-            <MudAlert Severity="Severity.Warning">
-                <strong>
-                    @Localizer["Please read before configuration to ensure that you do not run into any issues!"]
-                </strong>
-            </MudAlert>
-            <MudText Typo="Typo.body1" Class="mt-4">
-                @Localizer["Web applications in {0} are deployed and hosted using the ", Localizer["MainAcronym"]]
-                <MudLink
-                    Href="https://azure.microsoft.com/en-ca/products/app-service">@Localizer["Azure App Service. "]</MudLink>
-                @Localizer["For this reason, there are certain limitations you must follow in order to successfully deploy your web application."]
-            </MudText>
-            <MudText Typo="Typo.h3" Class="mt-4">
+        <GcdsHeading Tag="h2">@Localizer["Additional information"]</GcdsHeading>
+        <GcdsNotice NoticeRole="warning" NoticeTitle="@Localizer["Warning"]" NoticeTitleTag="h2">
+            <GcdsText>@Localizer["Please read the following information before configuring your web application to avoid any issues."]</GcdsText>
+        </GcdsNotice>
+        <GcdsText>
+            @Localizer["Web applications in {0} are deployed and hosted using the ", Localizer["MainAcronym"]]
+            <GcdsLink Href="https://azure.microsoft.com/en-ca/products/app-service">@Localizer["Azure App Service. "]</GcdsLink>
+            @Localizer["For this reason, there are certain limitations you must follow in order to successfully deploy your web application."]
+        </GcdsText>
+        <GcdsText>
+            <strong>
                 @Localizer["Limitations to docker compose:"]
-            </MudText>
-            <MudText Typo="Typo.body1" Class="mt-4">
-                @Localizer["The following are supported and unsupported docker compose configuration options as per "]
-                <MudLink
-                    Href="https://learn.microsoft.com/en-us/azure/app-service/configure-custom-container?tabs=debian&pivots=container-linux#configure-multi-container-apps">
-                    @Localizer["Microsoft's documentation on multi-container web apps. "]
-                </MudLink>
-            </MudText>
-            <MudText Typo="Typo.h4" Class="mt-4">
-                @Localizer["Supported options:"]
-            </MudText>
-            <MudText Typo="Typo.body1">
-                <ul class="ml-4">
-                    <li style="display: list-item; list-style-type: circle">
-                        <code>command</code>
-                    </li>
-                    <li style="display: list-item; list-style-type: circle">
-                        <code>entrypoint</code>
-                    </li>
-                    <li style="display: list-item; list-style-type: circle">
-                        <code>environment</code>
-                    </li>
-                    <li style="display: list-item; list-style-type: circle">
-                        <code>image</code>
-                    </li>
-                    <li style="display: list-item; list-style-type: circle">
-                        <code>ports</code>
-                    </li>
-                    <li style="display: list-item; list-style-type: circle">
-                        <code>restart</code>
-                    </li>
-                    <li style="display: list-item; list-style-type: circle">
-                        <code>services</code>
-                    </li>
-                    <li style="display: list-item; list-style-type: circle">
-                        <code>volumes</code>, @Localizer["please contact us to set-up volumes as they require more configuration."]
-                    </li>
-                </ul>
-            </MudText>
-            <MudText Typo="Typo.h4" Class="mt-4">
-                @Localizer["Unsupported options:"]
-            </MudText>
-            <MudText>
-                <ul class="ml-4">
-                    <li style="display: list-item; list-style-type: circle">
-                        <code>build</code> @Localizer[", not allowed without "] <code>image</code>.
-                    </li>
-                    <li style="display: list-item; list-style-type: circle">
-                        <code>depends_on</code> @Localizer[", will be ignored."]
-                    </li>
-                    <li style="display: list-item; list-style-type: circle">
-                        <code>networks</code> @Localizer[", will be ignored."]
-                    </li>
-                    <li style="display: list-item; list-style-type: circle">
-                        <code>secrets</code>@Localizer[", will be ignored."]
-                    </li>
-                    <li style="display: list-item; list-style-type: circle">
-                        <code>ports</code>@Localizer[" other than 80 and 8080 will be ignored."]
-                    </li>
-                </ul>
-            </MudText>
-            <MudText Typo="Typo.h4" Class="mt-4">
+            </strong>
+        </GcdsText>
+        <GcdsText>
+            @Localizer["The following are supported and unsupported docker compose configuration options as per "]
+            <GcdsLink
+                Href="https://learn.microsoft.com/en-us/azure/app-service/configure-custom-container?tabs=debian&pivots=container-linux#configure-multi-container-apps">
+                @Localizer["Microsoft's documentation on multi-container web apps. "]
+            </GcdsLink>
+        </GcdsText>
+        <GcdsText>
+            <strong>
+            @Localizer["Supported options:"]
+            </strong>
+        </GcdsText>
+        <GcdsText>
+            <ul class="ml-4">
+                <li style="display: list-item; list-style-type: circle">
+                    <code>command</code>
+                </li>
+                <li style="display: list-item; list-style-type: circle">
+                    <code>entrypoint</code>
+                </li>
+                <li style="display: list-item; list-style-type: circle">
+                    <code>environment</code>
+                </li>
+                <li style="display: list-item; list-style-type: circle">
+                    <code>image</code>
+                </li>
+                <li style="display: list-item; list-style-type: circle">
+                    <code>ports</code>
+                </li>
+                <li style="display: list-item; list-style-type: circle">
+                    <code>restart</code>
+                </li>
+                <li style="display: list-item; list-style-type: circle">
+                    <code>services</code>
+                </li>
+                <li style="display: list-item; list-style-type: circle">
+                    <code>volumes</code>, @Localizer["please contact us to set-up volumes as they require more configuration."]
+                </li>
+            </ul>
+        </GcdsText>
+        <GcdsText>
+            <strong>
+            @Localizer["Unsupported options:"]
+            </strong>
+        </GcdsText>
+        <GcdsText>
+            <ul class="ml-4">
+                <li style="display: list-item; list-style-type: circle">
+                    <code>build</code> @Localizer[", not allowed without "] <code>image</code>.
+                </li>
+                <li style="display: list-item; list-style-type: circle">
+                    <code>depends_on</code> @Localizer[", will be ignored."]
+                </li>
+                <li style="display: list-item; list-style-type: circle">
+                    <code>networks</code> @Localizer[", will be ignored."]
+                </li>
+                <li style="display: list-item; list-style-type: circle">
+                    <code>secrets</code>@Localizer[", will be ignored."]
+                </li>
+                <li style="display: list-item; list-style-type: circle">
+                    <code>ports</code>@Localizer[" other than 80 and 8080 will be ignored."]
+                </li>
+            </ul>
+        </GcdsText>
+        <GcdsText>
+            <strong>
                 @Localizer["Syntax limitations:"]
-            </MudText>
-            <MudText>
-                <ul class="ml-4">
-                    <li style="display: list-item; list-style-type: circle">
-                        <code>version: "X"</code>@Localizer[" must always be the first YAML statement in the file."]
-                    </li>
-                    <li style="display: list-item; list-style-type: circle">@Localizer["ports section in the YAML must use quoted numbers."]</li>
-                    <li style="display: list-item; list-style-type: circle">@Localizer["image > volume section in the YAML must be quoted and cannot have permissions definitions."]</li>
-                    <li style="display: list-item; list-style-type: circle">@Localizer["volumes section must not have an empty curly brace after the volume name."]</li>
-                </ul>
-            </MudText>
-            <MudText Typo="Typo.h3" Class="mt-4">
+            </strong>
+        </GcdsText>
+        <GcdsText>
+            <ul class="ml-4">
+                <li style="display: list-item; list-style-type: circle">
+                    <code>version: "X"</code>@Localizer[" must always be the first YAML statement in the file."]
+                </li>
+                <li style="display: list-item; list-style-type: circle">@Localizer["ports section in the YAML must use quoted numbers."]</li>
+                <li style="display: list-item; list-style-type: circle">@Localizer["image > volume section in the YAML must be quoted and cannot have permissions definitions."]</li>
+                <li style="display: list-item; list-style-type: circle">@Localizer["volumes section must not have an empty curly brace after the volume name."]</li>
+            </ul>
+        </GcdsText>
+        <GcdsText>
+            <strong>
                 @Localizer["Limitations to images:"]
-            </MudText>
-            <MudText Typo="Typo.body1" Class="mt-4">
-                @Localizer["We currently only support public images, i.e. images that are available on Docker Hub or other public repositories. In order to deploy private images, please fill a support request."]
-            </MudText>
-        </MudPaper>
+            </strong>
+        </GcdsText>
+        <GcdsText>
+            @Localizer["Our self-service menu only supports public images, i.e. images that are available on Docker Hub or other public repositories. To deploy private images, please fill a support request. We will follow up to request an access token for your image for the appropriate registry."]
+        </GcdsText>
     }
 </MudStack>
 
@@ -314,6 +342,12 @@
     private bool _isSaving;
     private bool _isRedeploying;
     private bool _showLogs;
+    private bool _showConfigurationForm;
+    private bool _isLoadingConfiguration;
+    private bool _isSubmittingConfiguration;
+    private bool _focusControlPanelHeading;
+    private AppServiceConfiguration? _configurationToEdit;
+    private ElementReference _controlPanelHeading;
 
     protected override async Task OnInitializedAsync()
     {
@@ -441,40 +475,74 @@
         StateHasChanged();
     }
 
-    private async Task NewWebAppConfiguration()
+    private async Task ShowWebAppConfigurationAsync()
     {
-        using var ctx = await _dbContextFactory.CreateDbContextAsync();
-        var resource = await _webAppMgmtService.GetResource(ctx, WorkspaceAcronym);
-        if (_appConfiguration.IsGitRepoPrivate)
+        if (_isLoadingConfiguration || _showConfigurationForm || _appConfiguration is null)
         {
-            _appConfiguration.GitToken = await _keyVaultUserService.GetSecretAsync(WorkspaceAcronym, _appConfiguration.GitTokenSecretName);
+            return;
         }
 
-        var dialogOptions = new DialogOptions()
+        _isLoadingConfiguration = true;
+        try
         {
-            MaxWidth = MaxWidth.Large,
-            FullWidth = true,
-            CloseButton = true
-        };
-
-        var dialogParameters = new DialogParameters
-        {
-            { "Configuration", _appConfiguration },
-            { "WorkspaceAcronym", WorkspaceAcronym },
-            { "Resource", resource }
-        };
-
-        var dialog = await _dialogService.ShowAsync<AzureAppServiceConfigurationDialog>(Localizer["Configure Web Application"], dialogParameters, dialogOptions);
-        var dialogResult = await dialog.Result;
-
-        if (!dialogResult.Canceled)
-        {
-            var resultConfig = dialogResult.Data as AppServiceConfiguration;
-            if (resultConfig is not null)
+            _configurationToEdit = (AppServiceConfiguration)_appConfiguration.Clone();
+            if (_configurationToEdit.IsGitRepoPrivate)
             {
-                await ConfigureWebApp(resultConfig);
+                _configurationToEdit.GitToken = await _keyVaultUserService.GetSecretAsync(
+                    WorkspaceAcronym,
+                    _configurationToEdit.GitTokenSecretName);
             }
+
+            _showConfigurationForm = true;
         }
+        catch (Exception e)
+        {
+            _logger.LogError(e, "Failed to load web app configuration");
+            _snackbar.Add(Localizer["Web application configuration failed"], Severity.Error);
+        }
+        finally
+        {
+            _isLoadingConfiguration = false;
+            await InvokeAsync(StateHasChanged);
+        }
+    }
+
+    private async Task HandleConfigurationSubmittedAsync(AppServiceConfiguration configuration)
+    {
+        if (_isSubmittingConfiguration)
+        {
+            return;
+        }
+
+        _isSubmittingConfiguration = true;
+        try
+        {
+            await ConfigureWebApp(configuration);
+            await HideConfigurationFormAsync();
+        }
+        finally
+        {
+            _isSubmittingConfiguration = false;
+        }
+    }
+
+    private async Task HideConfigurationFormAsync()
+    {
+        _showConfigurationForm = false;
+        _configurationToEdit = null;
+        _focusControlPanelHeading = true;
+        await InvokeAsync(StateHasChanged);
+    }
+
+    protected override async Task OnAfterRenderAsync(bool firstRender)
+    {
+        if (_focusControlPanelHeading)
+        {
+            _focusControlPanelHeading = false;
+            await _controlPanelHeading.FocusAsync();
+        }
+
+        await base.OnAfterRenderAsync(firstRender);
     }
 
     private async Task ConfigureWebApp(AppServiceConfiguration configuration)
