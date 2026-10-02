@@ -200,8 +200,8 @@ public interface IUserInformationService
     Task<bool> IsUserDatahubAdmin();
 
     /// <summary>
-    /// Ensures that the authenticated graph user has a corresponding portal user record and updates
-    /// first/last login timestamps appropriately.
+    /// Ensures that the authenticated Graph user has a corresponding portal user record, synchronizes
+    /// their display name and email from Entra, and updates first/last login timestamps appropriately.
     /// </summary>
     Task RegisterAuthenticatedEntraUser();
 
