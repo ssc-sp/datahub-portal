@@ -11,54 +11,52 @@
 @inherits ViewUserBase<AccountPage>
 
 @inject ISnackbar _snackbar
+@inject NavigationManager _navigationManager
 
-@* @attribute [Route(PageRoutes.AccountDefault)]
+@attribute [Route(PageRoutes.AccountDefault)]
 @attribute [Route(PageRoutes.AccountDefault_FR)]
 @attribute [Route(PageRoutes.Account)]
 @attribute [Route(PageRoutes.Account_FR)]
-@attribute [ExternalUserPage] *@
-
+@attribute [ExternalUserPage]
 
 <PageTitle>
     @Localizer["{0} - Profile - {1}", _title, Localizer["MainTitle"]]
 </PageTitle>
 
-<DHSidebarDrawer>
-    <PersonalSidebar/>
-</DHSidebarDrawer>
+<DatahubAuthView AuthLevel="DatahubAuthView.AuthLevels.DatahubSupport">
+    <DHSidebarDrawer>
+        <PersonalSidebar />
+    </DHSidebarDrawer>
+</DatahubAuthView>
 
 @if (_viewedPortalUser is null)
 {
     return;
 }
 
-
-@* <DatahubAuthView AuthLevel="DatahubAuthView.AuthLevels.Personal" UserGraphId="@_viewedPortalUser.GraphGuid"> *@
-@* <Authorized> *@
-
 @if (_viewedPortalUser is null)
 {
-    <DHLoadingInitializer Message="@Localizer["Loading Settings"]"/>
+    <DHLoadingInitializer Message="@Localizer["Loading Settings"]" />
 }
 else
 {
-    var containsKey = !string.IsNullOrWhiteSpace(Section)
-                      && _sectionComponents.ContainsKey(Section);
-    var parameters = new Dictionary<string, object>
-    {
-        { "OnViewedUserChanged", EventCallback.Factory.Create<PortalUser>(this, HandleViewedUserChanged) },
-        { "ViewedUser", _viewedPortalUser }
-    };
+    <DHMainContentTitle  Title="@Localizer["Account Settings"]"/>
+    <AccountPublicProfileSettings ViewedUser="@_viewedPortalUser"/>
+    <AccountAppearanceSettings ViewedUser="@_viewedPortalUser"/>
+    <DatahubAuthView AllowedUsers="DatahubAuthView.UserType.TrustedEntraOnly">
+        <AccountNotificationSettings ViewedUser="@_viewedPortalUser"/>
+    </DatahubAuthView>
+    <AchievementsPage ViewedUser="@_viewedPortalUser"/>
 
-    var sectionKey = containsKey ? Section : PersonalSidebar.SectionViews.Profile;
-    <MudGrid Justify="Justify.Center">
-        <MudItem xs="8" sm="12">
-            <UserCard ViewedUser="@_viewedPortalUser"/>
-        </MudItem>
-        <MudItem xs="8" sm="12" >
-            <DynamicComponent Type="@_sectionComponents[sectionKey]" Parameters="@parameters"/>
-        </MudItem>
-    </MudGrid>
+    <DatahubAuthView AuthLevel="DatahubAuthView.AuthLevels.DatahubAdminGuestView">
+        <SettingsField Label="@Localizer["Admin Access"]" Description="@Localizer["Toggle admin access mode."]">
+            <MudSwitch T="bool"
+                       Color="Color.Primary"
+                       Value="@_isViewAsAdmin"
+                       ValueChanged="@ToggleAdminMode"
+                       Label="@Localizer["Admin Access Enabled"]" Style="text-wrap: nowrap" />
+        </SettingsField>
+    </DatahubAuthView>
 }
 
 @code {
@@ -66,10 +64,17 @@ else
     [Parameter] public string Section { get; set; }
 
     private PortalUser _viewedPortalUser;
+    private bool _isViewAsAdmin;
 
     private string _title => _viewedPortalUser?.DisplayName != null
         ? $"{_viewedPortalUser.DisplayName}"
         : Localizer["Home"];
+
+
+        protected override async Task OnInitializedAsync()
+    {
+        _isViewAsAdmin = await _userInformationService.IsAdminModeEnabled();
+    }
 
 
     protected override async Task OnParametersSetAsync()
@@ -107,6 +112,13 @@ else
         }
 
         await InvokeAsync(StateHasChanged);
+    }
+
+    private async Task ToggleAdminMode()
+    {
+        _isViewAsAdmin = !_isViewAsAdmin;
+        await _userInformationService.SetAdminModeView(_isViewAsAdmin);
+        _navigationManager.NavigateTo(_navigationManager.Uri, true);
     }
 
 }
