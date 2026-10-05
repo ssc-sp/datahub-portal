@@ -1,7 +1,7 @@
 @using Datahub.Portal.Model
 @using GcdsWrapper.Blazor
 
-<GcdsHeading Tag="h2">@Localizer["Database Information"]</GcdsHeading>
+<GcdsHeading Tag="h2" MarginTop="0">@Localizer["Database Information"]</GcdsHeading>
 @if (dbServer is not null)
 {
     <GcdsTable Columns="@Columns"

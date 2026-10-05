@@ -9,29 +9,27 @@
 @inject IUserInformationService _userInformationService
 
 <MudStack>
-    <MudText Typo="Typo.h2" Class="mt-6">
-        @Localizer["Database Firewall Rules"]
-    </MudText>
-    <MudText>
+    <GcdsHeading Tag="h2">@Localizer["Database Firewall Rules"]</GcdsHeading>
+    <GcdsText>
         @Localizer["The following IP addresses are whitelisted for the database. Names must be unique and can only contain letters, numbers, underscores and hyphens."]
-    </MudText>
-    <MudAlert Severity="Severity.Info">
+    </GcdsText>
+    <GcdsText>
         @Localizer["Changes to the firewall rules can take up to 15 minutes to apply."]
-    </MudAlert>
+    </GcdsText>
     <MudStack Row>
-        <DHButton OnClick="@AddCurrentIpAddress" Disabled="@(_userIpAddress is null || _savingRule)">
+        <GcdsButton Type="GcdsButtonType.Button" OnClick="@AddCurrentIpAddress" Disabled="@(_userIpAddress is null || _savingRule)">
             @Localizer["Add current IP address ({0})", _userIpAddress]
-        </DHButton>
-        <DHButton OnClick="@StartAddingIpRange" Disabled="@_savingRule">
+        </GcdsButton>
+        <GcdsButton Type="GcdsButtonType.Button" OnClick="@StartAddingIpRange" Disabled="@_savingRule">
             @Localizer["Add a new IP address"]
-        </DHButton>
+        </GcdsButton>
         <MudSpacer />
     </MudStack>
 </MudStack>
 
-<MudText Typo="Typo.h3" Class="mt-6">
+<GcdsHeading Tag="h3" MarginBottom="0">
     @Localizer["Database IP Address Whitelist"]
-</MudText>
+</GcdsHeading>
 
 <GcdsTable Columns="@Columns"
            Data="@Rows"
@@ -42,18 +40,19 @@
     <span slot="caption" class="sr-only">@Localizer["Database IP Address Whitelist"]</span>
 </GcdsTable>
 
-<MudStack Row Class="mt-6 mb-12" AlignItems="AlignItems.End">
-    <GcdsSelect Id="firewall-rule-select"
-                Name="firewall-rule-select"
-                Label="@Localizer["Select a firewall rule"]"
-                DefaultValue="@Localizer["Please Select"]"
-                Disabled="@(!_firewallRules.Any() || _savingRule)"
-                @bind-Value="_selectedRuleName">
-        @foreach (var rule in _firewallRules)
-        {
-            <option value="@rule.Name">@rule.Name</option>
-        }
-    </GcdsSelect>
+
+<GcdsSelect Id="firewall-rule-select"
+            Name="firewall-rule-select"
+            Label="@Localizer["Select a firewall rule"]"
+            DefaultValue="@Localizer["Please Select"]"
+            Disabled="@(!_firewallRules.Any() || _savingRule)"
+            @bind-Value="_selectedRuleName">
+    @foreach (var rule in _firewallRules)
+    {
+        <option value="@rule.Name">@rule.Name</option>
+    }
+</GcdsSelect>
+<MudStack Row Class="mb-12" AlignItems="AlignItems.End">
     <GcdsButton Type="GcdsButtonType.Button"
                 Role="GcdsButtonRole.Secondary"
                 OnClick="@StartEditingSelectedIpRange"

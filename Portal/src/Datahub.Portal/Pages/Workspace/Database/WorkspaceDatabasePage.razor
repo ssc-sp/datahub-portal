@@ -2,6 +2,7 @@
 @using Datahub.Portal.Model
 @using Datahub.Shared.Entities
 @using Datahub.Shared.Entities.WorkspaceToolConfiguration
+@using GcdsWrapper.Blazor
 @using Microsoft.Identity.Web
 
 @inject IDbContextFactory<DatahubProjectDBContext> _dbContextFactory
@@ -27,7 +28,7 @@
 
     <GcdsText Size="GcdsTextSize.Small">@Localizer["Connection info can only be displayed by the workspace lead."]</GcdsText>
     <DatahubAuthView AuthLevel="DatahubAuthView.AuthLevels.WorkspaceLead" ProjectAcronym="@WorkspaceAcronym" ElevatedWorkspaceAccessEnabled="@ElevatedWorkspaceAccessEnabled">
-        <DHButton style="width: fit-content;" OnClick="ToggleContentVisibility" Color=@Color.Primary Variant=@Variant.Filled>@Localizer[_message]</DHButton>
+        <GcdsButton Type="GcdsButtonType.Button" OnClick="ToggleContentVisibility">@Localizer[_message]</GcdsButton>
         <DatabaseAdminSetupInfo />
     </DatahubAuthView>
 
@@ -35,7 +36,7 @@
         @Localizer["Connection Info"]
     </GcdsHeading>
 
-    <MudTabs Elevation="0" Outlined TabPanelsClass="pa-6" Class="mt-8">
+    <MudTabs Elevation="0" Outlined TabPanelsClass="pa-6">
         <MudTabPanel Text="Databricks">
             <DHMarkdown Content="@_databricksConnectionInfo" LinkRewriter="@(link => link)"/>
         </MudTabPanel>
