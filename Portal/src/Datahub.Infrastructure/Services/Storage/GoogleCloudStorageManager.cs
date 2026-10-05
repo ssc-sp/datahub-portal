@@ -9,6 +9,7 @@ using Google.Apis.Auth.OAuth2;
 using Google.Apis.Storage.v1.Data;
 using Google.Cloud.Storage.V1;
 using Microsoft.Extensions.Logging;
+using System.Text.Json;
 using GObject = Google.Apis.Storage.v1.Data.Object;
 
 namespace Datahub.Infrastructure.Services.Storage
@@ -32,13 +33,35 @@ namespace Datahub.Infrastructure.Services.Storage
         private readonly string _projectId;
         private readonly string _jsonCredentials;
         private readonly string _displayName;
+        private readonly string? _bucketName;
 
-        public GoogleCloudStorageManager(ILoggerFactory loggerFactory, string projectId, string jsonCredentials, string displayName)
+        public GoogleCloudStorageManager(ILoggerFactory loggerFactory, string projectId, string jsonCredentials, string displayName, string? bucketName = null)
         {
             _logger = loggerFactory.CreateLogger<GoogleCloudStorageManager>();
-            _projectId = projectId;
+            _projectId = ResolveProjectId(projectId, jsonCredentials);
             _jsonCredentials = jsonCredentials;
             _displayName = displayName;
+            _bucketName = string.IsNullOrWhiteSpace(bucketName) ? null : bucketName.Trim();
+        }
+
+        internal static string ResolveProjectId(string projectId, string jsonCredentials)
+        {
+            if (!string.IsNullOrWhiteSpace(projectId))
+            {
+                return projectId.Trim();
+            }
+
+            try
+            {
+                using var document = JsonDocument.Parse(jsonCredentials);
+                return document.RootElement.TryGetProperty("project_id", out var property)
+                    ? property.GetString()?.Trim() ?? string.Empty
+                    : string.Empty;
+            }
+            catch (JsonException)
+            {
+                return string.Empty;
+            }
         }
 
         private GoogleCredential GetCredential()
@@ -143,6 +166,18 @@ namespace Datahub.Infrastructure.Services.Storage
         public async Task<List<string>> GetContainersAsync()
         {
             using var storageClient = await CreateStorageClientAsync();
+            return await GetContainersAsync(storageClient);
+        }
+
+        internal async Task<List<string>> GetContainersAsync(StorageClient storageClient)
+        {
+            if (_bucketName is not null)
+            {
+                var objectOptions = new ListObjectsOptions { PageSize = 1 };
+                await storageClient.ListObjectsAsync(_bucketName, options: objectOptions).ReadPageAsync(1);
+                return [_bucketName];
+            }
+
             var options = new ListBucketsOptions() { PageSize = PAGE_SIZE };
             var bucketNames = new List<string>();
             Page<Bucket>? buckets = null;
@@ -236,20 +271,74 @@ namespace Datahub.Infrastructure.Services.Storage
             return new(folders, files, continuationToken);
         }
 
-        public Task<StorageMetadata> GetStorageMetadataAsync(string container)
+        public async Task<StorageMetadata> GetStorageMetadataAsync(string container)
         {
-            var metadata = new StorageMetadata()
+            using var storageClient = await CreateStorageClientAsync();
+            return await GetStorageMetadataAsync(storageClient, container);
+        }
+
+        internal async Task<StorageMetadata> GetStorageMetadataAsync(StorageClient storageClient, string container)
+        {
+            var metadata = new GoogleCloudStorageMetadata
             {
-                Container = container,
-                //TODO additional fields
+                Container = container
             };
 
-            return Task.FromResult(metadata);
+            try
+            {
+                var bucket = await storageClient.GetBucketAsync(container, new GetBucketOptions());
+                metadata.AutoclassEnabled = bucket.Autoclass?.Enabled;
+            }
+            catch (GoogleApiException ex)
+            {
+                // Bucket-scoped service accounts may be able to use objects without being able to read
+                // bucket configuration. Autoclass detection is optional and must not block the explorer.
+                _logger.LogWarning(ex, "Could not read Autoclass configuration for Google Cloud bucket {Bucket}.", container);
+            }
+
+            return metadata;
         }
 
         public async Task<Dictionary<string, int>> ListFoldersAsync(string container, string prefix = "")
         {
-            throw new NotImplementedException();
+            using var storageClient = await CreateStorageClientAsync();
+            return await ListFoldersAsync(storageClient, container, prefix);
+        }
+
+        internal async Task<Dictionary<string, int>> ListFoldersAsync(StorageClient storageClient, string container, string prefix)
+        {
+            var folderPrefix = NormalizeFolderPath(prefix);
+            var folders = new Dictionary<string, int>(StringComparer.Ordinal)
+            {
+                [folderPrefix] = 0
+            };
+            var options = new ListObjectsOptions { PageSize = PAGE_SIZE };
+            Page<GObject>? objects = null;
+
+            while (objects is null || objects.NextPageToken is not null)
+            {
+                options.PageToken = objects?.NextPageToken;
+                objects = await storageClient.ListObjectsAsync(container, folderPrefix, options).ReadPageAsync(PAGE_SIZE);
+
+                foreach (var obj in objects)
+                {
+                    var objectName = obj.Name;
+                    for (var index = objectName.IndexOf('/', folderPrefix.Length); index >= 0;
+                         index = objectName.IndexOf('/', index + 1))
+                    {
+                        folders.TryAdd(objectName[..(index + 1)], 0);
+                    }
+
+                    // Objects ending in a slash are folder markers, not files.
+                    if (!IsFolder(objectName))
+                    {
+                        var parent = objectName[..(objectName.LastIndexOf('/') + 1)];
+                        folders[parent]++;
+                    }
+                }
+            }
+
+            return folders;
         }
 
         public Task<List<FileMetadata>> SearchFilesAsync(string container, string folderPath, string searchTerm, CancellationToken cancellationToken, bool searchInContent = false)
@@ -317,17 +406,22 @@ namespace Datahub.Infrastructure.Services.Storage
         public async Task<string> GetFileStorageTierAsync(string container, string file)
         {
             using var client = await CreateStorageClientAsync();
+            return await GetFileStorageTierAsync(client, container, file);
+        }
+
+        internal async Task<string> GetFileStorageTierAsync(StorageClient client, string container, string file)
+        {
             var options = new GetObjectOptions();
             try
             {
                 var obj = await client.GetObjectAsync(container, file, options);
-                return await Task.FromResult(obj.StorageClass);
+                return obj.StorageClass ?? "STANDARD";
             }
             catch (GoogleApiException ex)
             {
                 if (ex.HttpStatusCode == System.Net.HttpStatusCode.NotFound)
                 {
-                    return await Task.FromResult(string.Empty);
+                    return string.Empty;
                 }
                 else
                 {
@@ -339,7 +433,36 @@ namespace Datahub.Infrastructure.Services.Storage
 
         public async Task<bool> SetFileStorageTierAsync(string container, string file, string newTier)
         {
-            return false; // Not implemented yet for GCP
+            using var client = await CreateStorageClientAsync();
+            return await SetFileStorageTierAsync(client, container, file, newTier);
+        }
+
+        internal async Task<bool> SetFileStorageTierAsync(StorageClient client, string container, string file, string newTier)
+        {
+            if (!GetFileStorageTiersList().Contains(newTier, StringComparer.Ordinal))
+                throw new StorageTierChangeException("Unsupported Google Cloud storage class.");
+
+            var obj = await client.GetObjectAsync(container, file, new GetObjectOptions());
+            if (string.Equals(obj.StorageClass ?? "STANDARD", newTier, StringComparison.Ordinal))
+                return true;
+
+            var options = new CopyObjectOptions
+            {
+                ExtraMetadata = new GObject { StorageClass = newTier },
+                IfSourceGenerationMatch = obj.Generation,
+                IfGenerationMatch = obj.Generation,
+                KmsKeyName = obj.KmsKeyName
+            };
+            var rewrittenObject = await client.CopyObjectAsync(container, file, container, file, options);
+            if (!string.Equals(rewrittenObject.StorageClass, newTier, StringComparison.Ordinal))
+            {
+                _logger.LogWarning(
+                    "Google Cloud did not apply storage class {RequestedStorageClass} to {Bucket}/{Object}. The returned storage class was {ActualStorageClass}.",
+                    newTier, container, file, rewrittenObject.StorageClass);
+                throw new StorageTierChangeException(
+                    "Google Cloud did not apply the requested storage class. The bucket may have Autoclass enabled.");
+            }
+            return true;
         }
 
         public List<string> GetFileStorageTiersList()
