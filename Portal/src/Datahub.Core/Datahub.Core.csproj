@@ -57,6 +57,8 @@
     <PackageReference Include="DeepL.net" />
 
     <PackageReference Include="Foundatio.AzureStorage" />
+
+    <PackageReference Include="GcdsWrapper.Blazor.Markdown" />
     <PackageReference Include="Localization.AspNetCore.TagHelpers" />
     <PackageReference Include="MailKit" />
     <PackageReference Include="Markdig" />
