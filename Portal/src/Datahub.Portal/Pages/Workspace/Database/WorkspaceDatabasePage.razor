@@ -24,7 +24,7 @@
         @Localizer["Here you can manage your workspace database. You can view and test the connectivity of your database"]
     </GcdsText>
 
-    <DatabaseInfoTable dbServer="@_dbServer"/>
+    <DatabaseInfoTable dbServer="@_dbServer" HideConnectionInfo="@_hideContent" />
 
     <GcdsText Size="GcdsTextSize.Small">@Localizer["Connection info can only be displayed by the workspace lead."]</GcdsText>
     <DatahubAuthView AuthLevel="DatahubAuthView.AuthLevels.WorkspaceLead" ProjectAcronym="@WorkspaceAcronym" ElevatedWorkspaceAccessEnabled="@ElevatedWorkspaceAccessEnabled">

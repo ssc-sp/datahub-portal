@@ -17,6 +17,9 @@
     [Parameter]
     public AzurePgsqlDBServer dbServer { get; set; }
 
+    [Parameter]
+    public bool HideConnectionInfo { get; set; } = true;
+
     private IReadOnlyCollection<TableColumn> Columns =>
     [
         new("property", Localizer["Property"], true),
@@ -32,11 +35,11 @@
         CreateRow(Localizer["MaxIOPS"], dbServer.PostgresTier.MaxIOPS.ToString()),
         CreateRow(Localizer["MaxBandwidth"], dbServer.PostgresTier.MaxBandwidth),
         CreateRow(Localizer["Storage Size"], dbServer.StorageSize.ToString()),
-        CreateRow(Localizer["Host"], dbServer.DatabaseHost),
-        CreateRow(Localizer["Database Name"], dbServer.DatabaseName),
-        CreateRow(Localizer["Username"], dbServer.Username),
-        CreateRow(Localizer["Password"], dbServer.Password),
-        CreateRow(Localizer["Port"], dbServer.Port)
+        CreateRow(Localizer["Host"], HideConnectionInfo ? "<database_host>" : dbServer.DatabaseHost),
+        CreateRow(Localizer["Database Name"], HideConnectionInfo ? "<database_name>" : dbServer.DatabaseName),
+        CreateRow(Localizer["Username"], HideConnectionInfo ? "<username>" : dbServer.Username),
+        CreateRow(Localizer["Password"], HideConnectionInfo ? "<password>" : dbServer.Password),
+        CreateRow(Localizer["Port"], HideConnectionInfo ? "<port>" : dbServer.Port)
     ];
 
     private static IReadOnlyDictionary<string, string> CreateRow(string property, string value) =>

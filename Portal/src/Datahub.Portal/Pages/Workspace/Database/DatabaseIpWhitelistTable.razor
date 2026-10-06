@@ -25,6 +25,18 @@
         </GcdsButton>
         <MudSpacer />
     </MudStack>
+
+    @if (_ruleFormMode is RuleFormMode.Add)
+    {
+        <DatabaseIpWhitelistRuleForm
+            @bind-RuleName="_ruleName"
+            @bind-StartIpAddress="_startIpAddress"
+            @bind-EndIpAddress="_endIpAddress"
+            Error="@_ruleFormError"
+            Saving="@_savingRule"
+            OnSave="@SaveIpRange"
+            OnCancel="@CancelIpRangeForm" />
+    }
 </MudStack>
 
 <GcdsHeading Tag="h3" MarginBottom="0">
@@ -68,50 +80,17 @@
     <MudSpacer />
 </MudStack>
 
-@if (_ruleFormMode is not RuleFormMode.None)
+@if (_ruleFormMode is RuleFormMode.Edit)
 {
-    <section role="region" aria-labelledby="firewall-rule-form-heading" class="mb-12">
-        <GcdsHeading Id="firewall-rule-form-heading" Tag="h3">
-            @Localizer[_ruleFormMode is RuleFormMode.Add ? "Add IP Address or Range" : "Edit IP Address or Range"]
-        </GcdsHeading>
-        @if (_ruleFormMode is RuleFormMode.Edit)
-        {
-            <GcdsInput Id="firewall-rule-name"
-                       Name="firewall-rule-name"
-                       Label="@Localizer["Name"]"
-                       Required
-                       Disabled="@_savingRule"
-                       @bind-Value="_ruleName" />
-        }
-        <GcdsInput Id="firewall-rule-start-ip"
-                   Name="firewall-rule-start-ip"
-                   Label="@Localizer["Start IP Address"]"
-                   Required
-                   Disabled="@_savingRule"
-                   @bind-Value="_startIpAddress" />
-        <GcdsInput Id="firewall-rule-end-ip"
-                   Name="firewall-rule-end-ip"
-                   Label="@Localizer["End IP Address"]"
-                   Disabled="@_savingRule"
-                   @bind-Value="_endIpAddress" />
-        @if (!string.IsNullOrWhiteSpace(_ruleFormError))
-        {
-            <GcdsErrorMessage MessageId="firewall-rule-form-error">
-                @_ruleFormError
-            </GcdsErrorMessage>
-        }
-        <GcdsButton Type="GcdsButtonType.Button"
-                    OnClick="@SaveIpRange"
-                    Disabled="@_savingRule">
-            @Localizer["Save"]
-        </GcdsButton>
-        <GcdsButton Type="GcdsButtonType.Button"
-                    Role="GcdsButtonRole.Secondary"
-                    OnClick="@CancelIpRangeForm"
-                    Disabled="@_savingRule">
-            @Localizer["Cancel"]
-        </GcdsButton>
-    </section>
+    <DatabaseIpWhitelistRuleForm
+        IsEdit
+        @bind-RuleName="_ruleName"
+        @bind-StartIpAddress="_startIpAddress"
+        @bind-EndIpAddress="_endIpAddress"
+        Error="@_ruleFormError"
+        Saving="@_savingRule"
+        OnSave="@SaveIpRange"
+        OnCancel="@CancelIpRangeForm" />
 }
 
 @code {
