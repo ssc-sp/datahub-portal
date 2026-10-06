@@ -29,12 +29,7 @@
     </DHSidebarDrawer>
 </DatahubAuthView>
 
-@if (_viewedPortalUser is null)
-{
-    return;
-}
-
-@if (_viewedPortalUser is null)
+@if (_viewedPortalUser == null)
 {
     <DHLoadingInitializer Message="@Localizer["Loading Settings"]" />
 }
