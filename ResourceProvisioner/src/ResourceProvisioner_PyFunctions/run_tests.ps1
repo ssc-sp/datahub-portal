@@ -1,21 +1,25 @@
 #!/usr/bin/env pwsh
 param(
     [ValidateSet("test", "dev", "int", "poc")]
-    [string]$Environment = $null
+    [string]$Environment = $null,
+
+    [switch]$ConfigureOnly
 )
 
-Write-Output "Starting Azure Functions host with Poetry"
+$ErrorActionPreference = "Stop"
+
+$scriptDir = Split-Path -Parent $MyInvocation.MyCommand.Path
+Set-Location $scriptDir
 
 if ([string]::IsNullOrWhiteSpace($Environment)) {
     $Environment = if ($env:DataHub_ENVNAME) { $env:DataHub_ENVNAME } else { 'dev' }
 }
 $env:DataHub_ENVNAME = $Environment
 
-$projectDir = Split-Path -Parent $MyInvocation.MyCommand.Path
-$repoRoot = (Resolve-Path (Join-Path $projectDir "../../..")).Path
-$modulePath = Join-Path $repoRoot "scripts/appsettings.psm1"
+Write-Output "Setting environment variables from Azure Key Vault"
 
-Set-Location $projectDir
+$repoRoot = (Resolve-Path (Join-Path $scriptDir "../../..")).Path
+$modulePath = Join-Path $repoRoot "scripts/appsettings.psm1"
 
 if (-not (Test-Path $modulePath)) {
     Write-Error "Unable to locate appsettings module at $modulePath."
@@ -24,11 +28,6 @@ if (-not (Test-Path $modulePath)) {
 
 Import-Module $modulePath -Force
 if (-not (Connect-FSDHAzure)) {
-    exit 1
-}
-
-if (-not (Get-Command poetry -ErrorAction SilentlyContinue)) {
-    Write-Error "Poetry is not installed or not available on PATH."
     exit 1
 }
 
@@ -47,8 +46,6 @@ $vaultName = Get-FSDHKeyVaultName -Environment $Environment
 $azureContext = Get-AzContext -ErrorAction Stop
 $env:AzureTenantId = if ($script:AzureTenantId) { $script:AzureTenantId } else { $azureContext.Tenant.Id }
 $env:AzureSubscriptionId = if ($script:AzureSubscriptionId) { $script:AzureSubscriptionId } else { $azureContext.Subscription.Id }
-
-Write-Output "Using vault $vaultName for environment $Environment"
 $env:AzureClientId = (Read-VaultSecret $vaultName "devops-client-id")
 $env:AzureClientSecret = (Read-VaultSecret $vaultName "devops-client-secret")
 $env:DatahubServiceBus = (Read-VaultSecret $vaultName "service-bus-connection-string")
@@ -56,13 +53,34 @@ $env:AzureWebJobsStorage = (Read-VaultSecret $vaultName "datahub-storage-queue-c
 $env:AzureWebJobsDashboard = $env:AzureWebJobsStorage
 $env:AzureWebJobsAzureStorageQueueConnectionString = $env:AzureWebJobsStorage
 
-Write-Output "Installing dependencies with Poetry..."
-poetry install
+Write-Output "Environment variables set - service bus is $($env:DatahubServiceBus)"
+Write-Output "Logging to ACR"
+
+if (-not (Get-Module -ListAvailable -Name Az.ContainerRegistry)) {
+    Write-Output "Az.ContainerRegistry module not found. Installing..."
+    Install-Module -Name Az.ContainerRegistry -Force -Scope CurrentUser
+} else {
+    Write-Output "Az.ContainerRegistry module is already installed."
+}
+
+
+if ($ConfigureOnly) {
+    Write-Output "Environment configured. Skipping test execution."
+    return
+}
+
+Write-Host "Ensuring Poetry is using Python 3.12..."
+poetry env use python3.12
 if ($LASTEXITCODE -ne 0) {
-    Write-Error "Poetry install failed."
     exit $LASTEXITCODE
 }
 
-Write-Output "Starting Azure Functions host..."
-poetry run func start --python
+Write-Host "Installing project dependencies..."
+poetry install
+if ($LASTEXITCODE -ne 0) {
+    exit $LASTEXITCODE
+}
+
+Write-Host "Running Python unit tests..."
+poetry run python -m unittest discover -s tests -v
 exit $LASTEXITCODE

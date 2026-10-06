@@ -34,6 +34,22 @@ Install the project dependencies with Poetry:
 poetry install
 ```
 
+## Running Python tests
+
+The project’s tests are written with Python’s built-in `unittest` framework and can be run from the project root.
+
+```bash
+poetry run python -m unittest discover -s tests -v
+```
+
+To run a single test module:
+
+```bash
+poetry run python -m unittest tests.test_function_app -v
+```
+
+If you prefer to run the suite with `pytest`, the tests should still work because they use standard `unittest` classes, but the repo does not require `pytest` for normal local validation.
+
 Install Azure Functions Core Tools separately if the `func` command is not available:
 
 ```powershell
@@ -84,6 +100,24 @@ func start --python
 ## SynchronizeWorkspaceUsersHttpTrigger
 
 This function is triggered by a message in the Storage Queue. The message contains the workspace definition file with the list of users and their roles. The function will synchronize the users and their roles with the workspace.
+
+## Unity Catalog Permission Mapping
+
+Unity Catalog role presets and permission constants are defined in [lib/unity_catalog_constants.py](lib/unity_catalog_constants.py).
+
+The role-to-permission matrix is documented in [UNITY_CATALOG_ROLE_PERMISSION_MATRIX.md](UNITY_CATALOG_ROLE_PERMISSION_MATRIX.md).
+
+Current preset behavior:
+
+- Owner: `ALL_PRIVILEGES`
+- Guest (`DATA_READER`): `USE_CATALOG`, `BROWSE`, `USE_SCHEMA`, `EXECUTE`, `READ_VOLUME`, `SELECT`
+- Admin/User (`DATA_EDITOR`): `USE_CATALOG`, `CREATE_SCHEMA`, `BROWSE`, `APPLY_TAG`, `USE_SCHEMA`, `EXECUTE`, `READ_VOLUME`, `SELECT`, `MODIFY`, `WRITE_VOLUME`, `CREATE_FUNCTION`, `CREATE_MATERIALIZED_VIEW`, `CREATE_MODEL`, `CREATE_TABLE`, `CREATE_VOLUME`
+
+Notes:
+
+- Permission tokens use Databricks API/SQL GRANT privilege names.
+- Workspace synchronization applies a single merged preset privilege list to the catalog grant.
+- Grant failures are raised so the workspace sync is reported as failed instead of successful.
 
 
 ```mermaid
