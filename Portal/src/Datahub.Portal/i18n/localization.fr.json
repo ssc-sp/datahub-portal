@@ -1,4 +1,7 @@
 {
+  "Add IP Address or Range": "Ajouter une adresse IP ou une plage d’adresses",
+  "Edit IP Address or Range": "Modifier une adresse IP ou une plage d’adresses",
+  "Select a firewall rule": "Sélectionner une règle de pare-feu",
   "Nearline": "Nearline",
   "Coldline": "Coldline",
   "Archive": "Archive",
