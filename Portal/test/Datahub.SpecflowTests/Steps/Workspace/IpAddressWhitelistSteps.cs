@@ -4,7 +4,6 @@ using System.Text.Json;
 using Bunit;
 using Datahub.Application.Configuration;
 using Datahub.Application.Services.UserManagement;
-using Datahub.Core.Components.Buttons;
 using Datahub.Core.Model.Context;
 using Datahub.Core.Model.Projects;
 using Datahub.Core.Model.Subscriptions;
@@ -208,19 +207,20 @@ public class IpAddressWhitelistSteps(ScenarioContext scenarioContext) : BunitTes
             RuleName,
             "192.0.2.1",
             "192.0.2.20");
+        inputs.Should().AllSatisfy(input => input.Instance.ValueExpression.Should().NotBeNull());
 
         GetWhitelist().Find("[role='region'][aria-labelledby='firewall-rule-form-heading']");
         GetActionButton("Save").Should().NotBeNull();
         GetActionButton("Cancel").Should().NotBeNull();
         GetWhitelist().FindComponents<MudDialog>().Should().BeEmpty();
+        AssertRuleFormIsBelow("Edit");
     }
 
     [When("the add firewall rule form is opened")]
     public async Task WhenTheAddFirewallRuleFormIsOpened()
     {
-        var addButton = GetWhitelist().FindComponents<DHButton>()
-            .Single(button => button.FindComponent<MudText>().Markup.Contains("Add a new IP address"));
-        await GetWhitelist().InvokeAsync(() => addButton.Instance.OnClick.InvokeAsync(new MouseEventArgs()));
+        await GetWhitelist().InvokeAsync(() =>
+            GetActionButton("Add a new IP address").Instance.OnClick.InvokeAsync(new MouseEventArgs()));
     }
 
     [Then("the add firewall rule editor is an inline GCDS form")]
@@ -230,11 +230,23 @@ public class IpAddressWhitelistSteps(ScenarioContext scenarioContext) : BunitTes
         inputs.Select(input => input.Instance.Id).Should().Equal(
             "firewall-rule-start-ip",
             "firewall-rule-end-ip");
+        inputs.Should().AllSatisfy(input => input.Instance.ValueExpression.Should().NotBeNull());
 
         GetWhitelist().Find("[role='region'][aria-labelledby='firewall-rule-form-heading']");
         GetActionButton("Save").Should().NotBeNull();
         GetActionButton("Cancel").Should().NotBeNull();
         GetWhitelist().FindComponents<MudDialog>().Should().BeEmpty();
+        AssertRuleFormIsBelow("Add a new IP address");
+    }
+
+    private void AssertRuleFormIsBelow(string buttonText)
+    {
+        var markup = GetWhitelist().Markup;
+        var buttonIndex = markup.IndexOf(buttonText, StringComparison.Ordinal);
+        var formIndex = markup.IndexOf("aria-labelledby=\"firewall-rule-form-heading\"", StringComparison.Ordinal);
+
+        buttonIndex.Should().BeGreaterThanOrEqualTo(0);
+        formIndex.Should().BeGreaterThan(buttonIndex);
     }
 
     private IRenderedComponent<GcdsButton> GetActionButton(string text) => GetWhitelist()
