@@ -3,17 +3,15 @@ using Datahub.Core.Model.Projects;
 using Datahub.Core.Utils;
 using Datahub.Shared.Entities;
 using FluentValidation;
-using Microsoft.AspNetCore.Components.Web;
 using Microsoft.EntityFrameworkCore;
-using Microsoft.JSInterop;
 using Severity = MudBlazor.Severity;
 
 namespace Datahub.Portal.Components
 {
     public class KeyValuePair
     {
-        public string Key { get; set; }
-        public string Value { get; set; }
+        public string Key { get; set; } = string.Empty;
+        public string Value { get; set; } = string.Empty;
     }
 
     public class KeyValuePairValidator : AbstractValidator<KeyValuePair>
@@ -40,25 +38,6 @@ namespace Datahub.Portal.Components
 
     public partial class EnvironmentVariablesTable
     {
-        private KeyValuePair? _currentRow;
-
-        private bool FilterFunc(KeyValuePair item)
-        {
-            if (string.IsNullOrWhiteSpace(_filterString))
-                return true;
-            if (item.Key.Contains(_filterString, StringComparison.OrdinalIgnoreCase))
-                return true;
-            if (item.Value.Contains(_filterString, StringComparison.OrdinalIgnoreCase))
-                return true;
-
-            return false;
-        }
-
-        private Func<KeyValuePair, string> ValidateKeyValuePair() => kvp =>
-            Localizer["{0}",
-                    new KeyValuePairValidator().Validate(kvp).Errors.Select(e => e.ErrorMessage).FirstOrDefault()]
-                .ToString();
-
         private async Task<List<KeyValuePair>> GetEnvironmentVariables()
         {
             var keys = TerraformVariableExtraction.ExtractEnvironmentVariableKeys(resource);
@@ -110,68 +89,112 @@ namespace Datahub.Portal.Components
             return key.ToLower().Replace("_", "-");
         }
 
-        private async Task HandleCommitEditClicked(MouseEventArgs args)
+        private void ToggleValues()
         {
-            _logger.LogInformation("Commit edit button clicked.");
-            if (_currentRow is not null)
-            {
-                await CreateOrUpdateEnvironmentVariable(_currentRow);
-                _snackbar.Add(Localizer["Environment variable has been updated."], Severity.Success);
-                _logger.LogInformation($"Item has been committed: {_currentRow.Key}");
-            }
-            else
-            {
-                _snackbar.Add(Localizer["Error updating environment variable."], Severity.Error);
-                _logger.LogError("Error updating environment variable.");
-            }
+            _show = !_show;
         }
 
-        private void HandleRowEditCommit(object element)
+        private void StartEditingEnvironmentVariable(string? key)
         {
-            _currentRow = element as KeyValuePair;
-        }
-
-        private async Task AddNewEnvironmentVariable()
-        {
-            var newKey = await _jsRuntime.InvokeAsync<string>("prompt",
-                Localizer[
-                        "Enter the key of your new environment variable. Environment variable keys cannot be changed and environment variables cannot be deleted."]
-                    .ToString());
-
-            if (string.IsNullOrWhiteSpace(newKey))
+            _selectedEnvironmentVariableKey = key;
+            var environmentVariable = envVars.FirstOrDefault(variable => variable.Key == key);
+            if (environmentVariable is null)
             {
                 return;
             }
 
-            var newValue = await _jsRuntime.InvokeAsync<string>("prompt",
-                Localizer["Enter the value of your new environment variable. You may edit this value later."]
-                    .ToString());
+            _isAdding = false;
+            _editorVisible = true;
+            _editorKey = environmentVariable.Key;
+            _editorValue = environmentVariable.Value;
+            ClearEditorErrors();
+        }
 
-            if (string.IsNullOrWhiteSpace(newValue))
+        private void StartAddingEnvironmentVariable()
+        {
+            _selectedEnvironmentVariableKey = null;
+            _isAdding = true;
+            _editorVisible = true;
+            _editorKey = null;
+            _editorValue = null;
+            ClearEditorErrors();
+        }
+
+        private void CancelEditingEnvironmentVariable()
+        {
+            _selectedEnvironmentVariableKey = null;
+            _editorVisible = false;
+            _isAdding = false;
+            _editorKey = null;
+            _editorValue = null;
+            ClearEditorErrors();
+        }
+
+        private async Task SaveEnvironmentVariableAsync()
+        {
+            var item = new KeyValuePair
+            {
+                Key = (_editorKey ?? string.Empty).Trim(),
+                Value = _editorValue ?? string.Empty
+            };
+
+            if (_isAdding)
+            {
+                item.Key = item.Key.ToUpperInvariant();
+            }
+
+            var validationResult = new KeyValuePairValidator().Validate(item);
+            _keyError = validationResult.Errors
+                .Where(error => error.PropertyName == nameof(KeyValuePair.Key))
+                .Select(error => Localizer[error.ErrorMessage].ToString())
+                .FirstOrDefault();
+            _valueError = validationResult.Errors
+                .Where(error => error.PropertyName == nameof(KeyValuePair.Value))
+                .Select(error => Localizer[error.ErrorMessage].ToString())
+                .FirstOrDefault();
+
+            if (!validationResult.IsValid)
             {
                 return;
             }
 
-            KeyValuePair newKVP = new() { Key = newKey, Value = newValue };
-            var validation = ValidateKeyValuePair().Invoke(newKVP);
+            _isSaving = true;
+            try
+            {
+                if (!await CreateOrUpdateEnvironmentVariable(item))
+                {
+                    _snackbar.Add(Localizer["Error updating environment variable."], Severity.Error);
+                    return;
+                }
 
-            if (string.IsNullOrWhiteSpace(validation))
-            {
-                newKVP.Key = newKVP.Key.ToUpper();
-                await CreateOrUpdateEnvironmentVariable(newKVP);
-                _snackbar.Add(Localizer["Environment variable {0} has been added.", newKey], Severity.Success);
+                _snackbar.Add(
+                    _isAdding
+                        ? Localizer["Environment variable {0} has been added.", item.Key]
+                        : Localizer["Environment variable has been updated."],
+                    Severity.Success);
+                CancelEditingEnvironmentVariable();
             }
-            else
+            finally
             {
-                _snackbar.Add(Localizer["Error adding environment variable: {0}", validation], Severity.Error);
+                _isSaving = false;
             }
         }
 
-        private async Task CreateOrUpdateEnvironmentVariable(KeyValuePair item)
+        private void ClearEditorErrors()
+        {
+            _keyError = null;
+            _valueError = null;
+        }
+
+        private async Task<bool> CreateOrUpdateEnvironmentVariable(KeyValuePair item)
         {
             try
             {
-                await SyncEnvironmentVariables(item);
+                if (!await SyncEnvironmentVariables(item))
+                {
+                    return false;
+                }
+
                 var existingItem = envVars.FirstOrDefault(x => x.Key == item.Key);
                 if (existingItem is not null)
                 {
@@ -183,35 +206,12 @@ namespace Datahub.Portal.Components
                 }
 
                 needsRestart = true;
+                return true;
             }
             catch (Exception e)
             {
                 _logger.LogError(e, "Error creating or updating environment variable.");
-            }
-        }
-
-        private void BackupItem(object item)
-        {
-            var element = item as KeyValuePair;
-            _elementBeforeEdit = new()
-            {
-                Key = element.Key,
-                Value = element.Value
-            };
-        }
-
-        private void HandleRowEditCancel(object element)
-        {
-            var item = element as KeyValuePair;
-            if (item is not null)
-            {
-                item = new KeyValuePair
-                {
-                    Key = _elementBeforeEdit.Key,
-                    Value = _elementBeforeEdit.Value
-                };
-
-                _logger.LogInformation($"Item has been reset to original values: {item.Key}");
+                return false;
             }
         }
 
@@ -225,19 +225,20 @@ namespace Datahub.Portal.Components
             return new string('*', value.Length);
         }
 
-        private async Task SyncEnvironmentVariables(KeyValuePair kvp)
+        private async Task<bool> SyncEnvironmentVariables(KeyValuePair kvp)
         {
             try
             {
                 _logger.LogInformation("Syncing KeyVault with new environment variables.");
                 await UpdateKeyVault(kvp);
                 _logger.LogInformation("KeyVault updated successfully. Now syncing local environment variables.");
-                await UpdateLocal(kvp);
+                return await UpdateLocal(kvp);
             }
             catch (Exception e)
             {
                 _logger.LogError("Error syncing environment variables." + e.Message);
                 _snackbar.Add(Localizer["Error syncing environment variables."], Severity.Error);
+                return false;
             }
         }
 
@@ -248,7 +249,7 @@ namespace Datahub.Portal.Components
             _logger.LogInformation($"Secret {kvp.Key} stored or updated successfully.");
         }
 
-        private async Task UpdateLocal(KeyValuePair kvp)
+        private async Task<bool> UpdateLocal(KeyValuePair kvp)
         {
             _logger.LogInformation($"Updating local environment variables.");
             using var ctx = await _dbContextFactory.CreateDbContextAsync();
@@ -257,7 +258,7 @@ namespace Datahub.Portal.Components
             {
                 _logger.LogError($"Project {projectAcronym} not found in database.");
                 _snackbar.Add(Localizer["Error updating local environment variables."], Severity.Error);
-                return;
+                return false;
             }
 
             var webAppResourceType = TerraformTemplate.AzureAppService;
@@ -268,7 +269,7 @@ namespace Datahub.Portal.Components
             {
                 _logger.LogError($"WebApp resource not found in database.");
                 _snackbar.Add(Localizer["Error updating local environment variables."], Severity.Error);
-                return;
+                return false;
             }
 
             var currentEnvVarKeys = TerraformVariableExtraction.ExtractEnvironmentVariableKeys(webAppResource);
@@ -284,6 +285,7 @@ namespace Datahub.Portal.Components
             await ctx.SaveChangesAsync();
 
             _logger.LogInformation($"Local environment variables updated successfully.");
+            return true;
         }
     }
 }

@@ -23,7 +23,7 @@ As a user I want to manage my web application so that I can configure it correct
     Scenario: Configure the web application
         Given I am on the Web Application page
         When I click on the Configure button
-        Then the configuration dialog should be displayed
+        Then the inline configuration form should be displayed
 
     Scenario: Display web application information
         Given I am on the Web Application page
