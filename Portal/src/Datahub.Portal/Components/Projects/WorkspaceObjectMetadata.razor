@@ -1,146 +1,136 @@
-﻿@*WorkspaceObjectMetadata.razor *@
-
-@using Microsoft.AspNetCore.Components
+@using System.Globalization
 @using Datahub.Core.Model.Onboarding
-@using Datahub.Core.Model.Projects
-@using Datahub.Core.Services.CatalogSearch;
-@using Datahub.Metadata.DTO
 @using Datahub.Metadata.Model
-@using Datahub.Core
-@using Datahub.Metadata.Utils
-@using MudBlazor
+@using GcdsWrapper.Blazor
 
-@inject NavigationManager NavigationManager
-@inject ILogger<ProjectObjectMetadata> Logger
-@inject ISnackbar _snackbar
+@inject ILogger<WorkspaceObjectMetadata> Logger
 @inject IDbContextFactory<DatahubProjectDBContext> ContextFactory
 
 @if (!_loaded)
 {
-    <div>Loading...</div>
+    <GcdsText>@Localizer["Loading..."]</GcdsText>
 }
 else if (_workspace is not null)
 {
     <div class="workspace-metadata">
-        <MudTextField Label="@Localizer["Workspace Name"]"
-                      Value="@_workspace.WorkspaceName"
-                      ReadOnly="true"
-                      Disabled="false"
-                      Variant="Variant.Outlined"
-                      HelperText="@Localizer["WorkspaceName_Description"]" />
-        <MudTextField Label="@Localizer["Description"]"
-                      Value="@_workspace.WorkspaceDescription"
-                      ReadOnly="true"
-                      Disabled="false"
-                      Variant="Variant.Outlined"
-                      HelperText="@Localizer["WorkspaceDescription_Description"]" />
-        <MudTextField Label="@Localizer["Subject"]"
-                      Value="@_workspace.Subject"
-                      ReadOnly="true"
-                      Disabled="false"
-                      Variant="Variant.Outlined"
-                      HelperText="@Localizer["Subject_Description"]" />
-        <MudTextField Label="@Localizer["Keywords"]"
-                      Value="@_workspace.Keywords"
-                      ReadOnly="true"
-                      Disabled="false"
-                      Variant="Variant.Outlined"
-                      HelperText="@Localizer["Keywords_Description"]" />
+        <GcdsHeading Tag="h2">@Localizer["GC Hosting Details"]</GcdsHeading>
+        <GcdsInput Id="gc-hosting-id" Name="gc-hosting-id"
+                   Label="@Localizer["GC Hosting ID"]" Hint="@Localizer["GCHostingId_Description"]"
+                   Value="@_workspace.GcHostingId" ValueExpression="@(() => _workspace.GcHostingId)" ReadOnly />
+        <GcdsInput Id="department-name" Name="department-name"
+                   Label="@Localizer["Department Name"]" Hint="@Localizer["DepartmentName_Description"]"
+                   Value="@_workspace.DepartmentName" ValueExpression="@(() => _workspace.DepartmentName)" ReadOnly />
 
-        <h4>@Localizer["Lead Info"]</h4>
-        <MudTextField Label="@Localizer["Lead Name"]"
-                      Value="@($"{_workspace.LeadFirstName} {_workspace.LeadLastName}")"
-                      ReadOnly="true"
-                      Disabled="false"
-                      Variant="Variant.Outlined"
-                      HelperText="@Localizer["LeadName_Description"]" />
-        <MudTextField Label="@Localizer["Lead Email"]"
-                      Value="@_workspace.LeadEmail"
-                      ReadOnly="true"
-                      Disabled="false"
-                      Variant="Variant.Outlined"
-                      HelperText="@Localizer["LeadEmail_Description"]" />
+        <GcdsHeading Tag="h2">@Localizer["Workspace Details"]</GcdsHeading>
+        <GcdsInput Id="workspace-name" Name="workspace-name"
+                   Label="@Localizer["Workspace Name"]" Hint="@Localizer["WorkspaceName_Description"]"
+                   Value="@_workspace.WorkspaceName" ValueExpression="@(() => _workspace.WorkspaceName)" ReadOnly />
+        <GcdsTextarea Id="workspace-description" Name="workspace-description"
+                      Label="@Localizer["Description"]" Hint="@Localizer["WorkspaceDescription_Description"]"
+                      Value="@_workspace.WorkspaceDescription" ValueExpression="@(() => _workspace.WorkspaceDescription)"
+                      Rows="5" ReadOnly />
+        <GcdsInput Id="workspace-subject" Name="workspace-subject"
+                   Label="@Localizer["Subject"]" Hint="@Localizer["Subject_Description"]"
+                   Value="@_workspace.Subject" ValueExpression="@(() => _workspace.Subject)" ReadOnly />
+        <GcdsInput Id="workspace-keywords" Name="workspace-keywords"
+                   Label="@Localizer["Keywords"]" Hint="@Localizer["Keywords_Description"]"
+                   Value="@_workspace.Keywords" ValueExpression="@(() => _workspace.Keywords)" ReadOnly />
 
-        <h4>@Localizer["Financial Authority"]</h4>
-        <MudTextField Label="@Localizer["Name"]"
-                      Value="@($"{_workspace.FinancialAuthorityFirstName} {_workspace.FinancialAuthorityLastName}")"
-                      ReadOnly="true"
-                      Disabled="false"
-                      Variant="Variant.Outlined"
-                      HelperText="@Localizer["FinancialAuthorityName_Description"]" />
-        <MudTextField Label="@Localizer["Email"]"
-                      Value="@_workspace.FinancialAuthorityEmail"
-                      ReadOnly="true"
-                      Disabled="false"
-                      Variant="Variant.Outlined"
-                      HelperText="@Localizer["FinancialAuthorityEmail_Description"]" />
-        <MudTextField Label="@Localizer["Commitment ISRef"]"
-                      Value="@_workspace.FinancialAuthorityCommitmentIsRef"
-                      ReadOnly="true"
-                      Disabled="false"
-                      Variant="Variant.Outlined"
-                      HelperText="@Localizer["CommitmentISRef_Description"]" />
-        <MudTextField Label="@Localizer["Commitment ISOrg"]"
-                      Value="@_workspace.FinancialAuthorityCommitmentIsOrg"
-                      ReadOnly="true"
-                      Disabled="false"
-                      Variant="Variant.Outlined"
-                      HelperText="@Localizer["CommitmentISOrg_Description"]" />
+        <GcdsHeading Tag="h2">@Localizer["Project Details"]</GcdsHeading>
+        <GcdsInput Id="project-title" Name="project-title"
+                   Label="@Localizer["Project Title"]" Hint="@Localizer["ProjectTitle_Description"]"
+                   Value="@ProjectTitle" ValueExpression="@(() => ProjectTitle)" ReadOnly />
+        <GcdsTextarea Id="project-description" Name="project-description"
+                      Label="@Localizer["Project Description"]" Hint="@Localizer["ProjectDescription_Description"]"
+                      Value="@ProjectDescription" ValueExpression="@(() => ProjectDescription)" Rows="5" ReadOnly />
 
-        <h4>@Localizer["Budget & Retention"]</h4>
-        <MudTextField Label="@Localizer["Budget"]"
-                      Value="@_workspace.WorkspaceBudget"
-                      ReadOnly="true"
-                      Disabled="false"
-                      Variant="Variant.Outlined"
-                      HelperText="@Localizer["WorkspaceBudget_Description"]" />
-        <MudTextField Label="@Localizer["Retention Period"]"
-                      Value="@_workspace.RetentionPeriodYears.ToString()"
-                      ReadOnly="true"
-                      Disabled="false"
-                      Variant="Variant.Outlined"
-                      HelperText="@Localizer["RetentionPeriod_Description"]" />
-        <MudTextField Label="@Localizer["Retention Start Date"]"
-                      Value="@_workspace.RetentionPeriodStartDate.ToShortDateString()"
-                      ReadOnly="true"
-                      Disabled="false"
-                      Variant="Variant.Outlined"
-                      HelperText="@Localizer["RetentionStartDate_Description"]" />
-        <MudTextField Label="@Localizer["Retention Value"]"
-                      Value="@_workspace.RetentionValue"
-                      ReadOnly="true"
-                      Disabled="false"
-                      Variant="Variant.Outlined"
-                      HelperText="@Localizer["RetentionValue_Description"]" />
+        <GcdsHeading Tag="h2">@Localizer["Lead Info"]</GcdsHeading>
+        <GcdsInput Id="lead-name" Name="lead-name"
+                   Label="@Localizer["Lead Name"]" Hint="@Localizer["LeadName_Description"]"
+                   Value="@LeadName" ValueExpression="@(() => LeadName)" ReadOnly />
+        <GcdsInput Id="lead-email" Name="lead-email"
+                   Label="@Localizer["Lead Email"]" Hint="@Localizer["LeadEmail_Description"]"
+                   Value="@_workspace.LeadEmail" ValueExpression="@(() => _workspace.LeadEmail)" ReadOnly />
 
-        <h4>@Localizer["Security"]</h4>
-        <MudTextField Label="@Localizer["Security Classification"]"
-                      Value="@_workspace.SecurityClassification"
-                      ReadOnly="true"
-                      Disabled="false"
-                      Variant="Variant.Outlined"
-                      HelperText="@Localizer["SecurityClassification_Description"]" />
+        <GcdsHeading Tag="h2">@Localizer["Financial Authority"]</GcdsHeading>
+        <GcdsInput Id="financial-authority-name" Name="financial-authority-name"
+                   Label="@Localizer["Name"]" Hint="@Localizer["FinancialAuthorityName_Description"]"
+                   Value="@FinancialAuthorityName" ValueExpression="@(() => FinancialAuthorityName)" ReadOnly />
+        <GcdsInput Id="financial-authority-email" Name="financial-authority-email"
+                   Label="@Localizer["Email"]" Hint="@Localizer["FinancialAuthorityEmail_Description"]"
+                   Value="@_workspace.FinancialAuthorityEmail" ValueExpression="@(() => _workspace.FinancialAuthorityEmail)" ReadOnly />
+        <GcdsInput Id="commitment-is-ref" Name="commitment-is-ref"
+                   Label="@Localizer["Commitment ISRef"]" Hint="@Localizer["CommitmentISRef_Description"]"
+                   Value="@_workspace.FinancialAuthorityCommitmentIsRef" ValueExpression="@(() => _workspace.FinancialAuthorityCommitmentIsRef)" ReadOnly />
+        <GcdsInput Id="commitment-is-org" Name="commitment-is-org"
+                   Label="@Localizer["Commitment ISOrg"]" Hint="@Localizer["CommitmentISOrg_Description"]"
+                   Value="@_workspace.FinancialAuthorityCommitmentIsOrg" ValueExpression="@(() => _workspace.FinancialAuthorityCommitmentIsOrg)" ReadOnly />
+
+        <GcdsHeading Tag="h2">@Localizer["CBR Details"]</GcdsHeading>
+        <GcdsInput Id="cbr-id" Name="cbr-id"
+                   Label="@Localizer["CBR ID"]" Hint="@Localizer["CBRID_Description"]"
+                   Value="@_workspace.CBRID" ValueExpression="@(() => _workspace.CBRID)" ReadOnly />
+        <GcdsInput Id="cbr-name" Name="cbr-name"
+                   Label="@Localizer["CBR Name"]" Hint="@Localizer["CBRName_Description"]"
+                   Value="@_workspace.CBRName" ValueExpression="@(() => _workspace.CBRName)" ReadOnly />
+
+        <GcdsHeading Tag="h2">@Localizer["Budget & Retention"]</GcdsHeading>
+        <GcdsInput Id="workspace-budget" Name="workspace-budget"
+                   Label="@Localizer["Budget"]" Hint="@Localizer["WorkspaceBudget_Description"]"
+                   Value="@WorkspaceBudget" ValueExpression="@(() => WorkspaceBudget)" ReadOnly />
+        <GcdsInput Id="retention-period" Name="retention-period"
+                   Label="@Localizer["Retention Period"]" Hint="@Localizer["RetentionPeriod_Description"]"
+                   Value="@RetentionPeriod" ValueExpression="@(() => RetentionPeriod)" ReadOnly />
+        <GcdsInput Id="retention-start-date" Name="retention-start-date"
+                   Label="@Localizer["Retention Start Date"]" Hint="@Localizer["RetentionStartDate_Description"]"
+                   Value="@RetentionStartDate" ValueExpression="@(() => RetentionStartDate)" ReadOnly />
+        <GcdsInput Id="retention-value" Name="retention-value"
+                   Label="@Localizer["Retention Value"]" Hint="@Localizer["RetentionValue_Description"]"
+                   Value="@_workspace.RetentionValue" ValueExpression="@(() => _workspace.RetentionValue)" ReadOnly />
+        <GcdsInput Id="generates-information-business-value" Name="generates-information-business-value"
+                   Label="@Localizer["Generates Information Business Value"]" Hint="@Localizer["GeneratesInfoBusinessValue_Description"]"
+                   Value="@GeneratesInformationBusinessValue" ValueExpression="@(() => GeneratesInformationBusinessValue)" ReadOnly />
+
+        <GcdsHeading Tag="h2">@Localizer["Security"]</GcdsHeading>
+        <GcdsInput Id="security-classification" Name="security-classification"
+                   Label="@Localizer["Security Classification"]" Hint="@Localizer["SecurityClassification_Description"]"
+                   Value="@SecurityClassification" ValueExpression="@(() => SecurityClassification)" ReadOnly />
     </div>
-
 }
 else
 {
-    <div>@_message</div>
+    <GcdsText>@_message</GcdsText>
 }
 
 @code {
     [Parameter]
-    public string ProjectAcronym { get; set; }
+    public string? ProjectAcronym { get; set; }
 
-    private GCHostingWorkspaceDetails _workspace;
-    private string _message;
+    private GCHostingWorkspaceDetails? _workspace;
+    private string? _message;
+    private bool _loaded;
 
-    private bool _loaded = false;
+    private string ProjectTitle => _workspace?.ProjectTitle ?? string.Empty;
+    private string ProjectDescription => _workspace?.ProjectDescription ?? string.Empty;
+    private string LeadName => FormatName(_workspace?.LeadFirstName, _workspace?.LeadLastName);
+    private string FinancialAuthorityName => FormatName(
+        _workspace?.FinancialAuthorityFirstName,
+        _workspace?.FinancialAuthorityLastName);
+    private string WorkspaceBudget => _workspace?.WorkspaceBudget.ToString(CultureInfo.CurrentCulture) ?? string.Empty;
+    private string RetentionPeriod => _workspace?.RetentionPeriodYears.ToString(CultureInfo.CurrentCulture) ?? string.Empty;
+    private string RetentionStartDate => _workspace?.RetentionPeriodStartDate.ToString("d", CultureInfo.CurrentCulture) ?? string.Empty;
+    private string GeneratesInformationBusinessValue => _workspace is null
+        ? string.Empty
+        : Localizer[_workspace.GeneratesInfoBusinessValue ? "Yes" : "No"];
+    private string SecurityClassification => _workspace is null
+        ? string.Empty
+        : Localizer[_workspace.SecurityClassification.ToSpacedString()];
+
     protected override async Task OnParametersSetAsync()
     {
         _loaded = false;
         _workspace = null;
-        _message = Localizer["WorkspaceNoMetadata"]; 
+        _message = Localizer["WorkspaceNoMetadata"];
 
         if (string.IsNullOrWhiteSpace(ProjectAcronym))
         {
@@ -150,28 +140,28 @@ else
 
         try
         {
-            using var context = await ContextFactory.CreateDbContextAsync();
-
-            var project = await context.Projects.Include(p => p.Resources)
-                .AsSingleQuery()
+            await using var context = await ContextFactory.CreateDbContextAsync();
+            var project = await context.Projects
+                .AsNoTracking()
                 .FirstOrDefaultAsync(p => p.Project_Acronym_CD == ProjectAcronym);
 
-            if (project is not null && project.ParentGCHostingBudgetId.HasValue)
-            { 
+            if (project?.ParentGCHostingBudgetId is int parentBudgetId)
+            {
                 _workspace = await context.GCHostingWorkspaceDetails
                     .AsNoTracking()
-                    .Include(b => b.WorkspacesInBudget)
-                    .FirstOrDefaultAsync(b => b.Id == project.ParentGCHostingBudgetId); 
+                    .FirstOrDefaultAsync(workspace => workspace.Id == parentBudgetId);
             }
         }
-        catch (Exception ex)
+        catch (Exception exception)
         {
-            Logger.LogError(ex, "Error loading workspace metadata."); 
+            Logger.LogError(exception, "Error loading workspace metadata.");
             _workspace = null;
-            Console.WriteLine("Exception: " + ex);
         }
-        _loaded = true;
-        StateHasChanged(); 
+        finally
+        {
+            _loaded = true;
+        }
     }
 
+    private static string FormatName(string? firstName, string? lastName) => $"{firstName} {lastName}".Trim();
 }

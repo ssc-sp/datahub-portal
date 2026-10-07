@@ -1,4 +1,4 @@
-﻿@*ProjectMetadata.razor*@
+@*ProjectMetadata.razor*@
 
 
 @using Datahub.Core.Services.Projects;
@@ -12,6 +12,7 @@
 @using Datahub.Shared.Entities
 @using Datahub.Portal.Components
 @using Datahub.Portal.Components.Projects
+@using GcdsWrapper.Blazor
 
 @inject IMetadataBrokerService MetadataBrokerService
 @inject IDbContextFactory<DatahubProjectDBContext> _dbContextFactory
@@ -23,8 +24,11 @@
 <MudPaper Class="py-4 px-6">
     <MudStack>
         <DHMainContentTitle>
-            <MudText Typo="Typo.h1" Class="mb-6">@Localizer["Workspace"] @WorkspaceAcronym @Localizer["Metadata"]</MudText>
+            @Localizer["Workspace"] @WorkspaceAcronym @Localizer["Metadata"]
         </DHMainContentTitle>
+        <GcdsHeading Tag="h2">@Localizer["Workspace Information"]</GcdsHeading>
+
+        <GcdsHeading Tag="h2">@Localizer["CBR Metadata"]</GcdsHeading>
         <WorkspaceObjectMetadata ProjectAcronym="@WorkspaceAcronym" />
     </MudStack>
 </MudPaper>
