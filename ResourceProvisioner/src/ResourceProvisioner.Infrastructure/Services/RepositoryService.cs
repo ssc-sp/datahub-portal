@@ -191,8 +191,11 @@ public partial class RepositoryService(
             pullRequestMessage.Events
                 .Where(x => x.StatusCode == MessageStatusCode.Error)
                 .ToList()
-                .ForEach(x => logger.LogError($"Error in resource run: {x.Message}", x));
-            throw new Exception("Error while handling resource run request");
+                .ForEach(x => logger.LogError(
+                    "Error in PR for resource run: {ResourceRunMessage}. Resource run details: {@RepositoryUpdateEvent}",
+                    x.Message,
+                    x));
+            throw new Exception("Error while handling resource run PR request");
         }
         finally
         {
@@ -250,8 +253,10 @@ public partial class RepositoryService(
 
             if (repoTag == null)
             {
-                logger.LogInformation("Tag {BranchOrTag} does not exist, checking out default branch",
-                    repoTag);
+                logger.LogInformation(
+                    "Tag or branch {BranchOrTag} does not exist, checking out default branch {DefaultBranch}",
+                    version,
+                    ModuleRepositoryConfiguration.DefaultBranch);
                 var branchTag = repo.Branches[ModuleRepositoryConfiguration.DefaultBranch];
                 Commands.Checkout(repo, branchTag);
             }
