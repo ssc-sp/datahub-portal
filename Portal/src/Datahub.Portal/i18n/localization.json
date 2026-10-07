@@ -2726,5 +2726,17 @@
   "Feature interests must be 128 characters or less": "Feature interests must be 128 characters or less",
   "Creating workspace…": "Creating workspace…",
   "An error occurred while generating the workspace acronym": "An error occurred while generating the workspace acronym",
-  "An error occurred while validating the workspace": "An error occurred while validating the workspace"
+  "An error occurred while validating the workspace": "An error occurred while validating the workspace",
+  "Project Acronym": "Project Acronym",
+  "Project Title English": "Project Title English",
+  "Project Title French": "Project Title French",
+  "Project Description English": "Project Description English",
+  "Project Description French": "Project Description French",
+  "Project Budget": "Project Budget",
+  "Saving...": "Saving...",
+  "WorkspaceProjectNoMetadata": "No workspace project information is available.",
+  "Project description English is required.": "Project description English is required.",
+  "Project description French is required.": "Project description French is required.",
+  "Workspace project information saved successfully.": "Workspace project information saved successfully.",
+  "Unable to save workspace project information. Please try again.": "Unable to save workspace project information. Please try again."
 }

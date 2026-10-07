@@ -3690,5 +3690,17 @@
   "Feature interests must be 128 characters or less": "Les fonctionnalités souhaitées doivent comporter au maximum 128 caractères",
   "Creating workspace…": "Création de l'espace de travail…",
   "An error occurred while generating the workspace acronym": "Une erreur s'est produite lors de la génération de l'acronyme de l'espace de travail",
-  "An error occurred while validating the workspace": "Une erreur s'est produite lors de la validation de l'espace de travail"
+  "An error occurred while validating the workspace": "Une erreur s'est produite lors de la validation de l'espace de travail",
+  "Project Acronym": "Acronyme du projet",
+  "Project Title English": "Titre du projet en anglais",
+  "Project Title French": "Titre du projet en français",
+  "Project Description English": "Description du projet en anglais",
+  "Project Description French": "Description du projet en français",
+  "Project Budget": "Budget du projet",
+  "Saving...": "Enregistrement...",
+  "WorkspaceProjectNoMetadata": "Aucun renseignement sur le projet de l'espace de travail n'est disponible.",
+  "Project description English is required.": "La description du projet en anglais est obligatoire.",
+  "Project description French is required.": "La description du projet en français est obligatoire.",
+  "Workspace project information saved successfully.": "Les renseignements sur le projet de l'espace de travail ont été enregistrés.",
+  "Unable to save workspace project information. Please try again.": "Impossible d'enregistrer les renseignements sur le projet de l'espace de travail. Veuillez réessayer."
 }
