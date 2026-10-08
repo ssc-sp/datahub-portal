@@ -35,6 +35,32 @@ public class ProjectUserAddExternalUserCommandTests
         Assert.Contains(validationResults, result => result.MemberNames.Contains(nameof(ProjectUserAddExternalUserCommand.Email)));
     }
 
+    [Theory]
+    [InlineData(-1)]
+    [InlineData(0)]
+    public void Validate_Fails_WhenAccountExpiryIsNotInTheFuture(int dayOffset)
+    {
+        var command = CreateValidCommand();
+        command.AccountExpiry = global::System.DateTime.Today.AddDays(dayOffset);
+
+        var validationResults = Validate(command);
+
+        var result = Assert.Single(validationResults,
+            result => result.MemberNames.Contains(nameof(ProjectUserAddExternalUserCommand.AccountExpiry)));
+        Assert.Equal("Account expiry date must be in the future.", result.ErrorMessage);
+    }
+
+    [Fact]
+    public void Validate_Succeeds_WhenAccountExpiryIsTomorrow()
+    {
+        var command = CreateValidCommand();
+        command.AccountExpiry = global::System.DateTime.Today.AddDays(1);
+
+        var validationResults = Validate(command);
+
+        Assert.Empty(validationResults);
+    }
+
     [Fact]
     public void Validate_Succeeds_ForValidCommand()
     {
