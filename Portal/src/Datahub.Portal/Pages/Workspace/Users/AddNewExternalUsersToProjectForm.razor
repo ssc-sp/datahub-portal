@@ -82,7 +82,8 @@
                 <GcdsDateInput Name="external-user-account-expiry"
                                Legend="@Localizer["Account Expiry"]"
                                Required
-                               Disabled="@(_existingExternalPortalUser is not null)"
+                               Min="@MinimumAccountExpiryValue"
+                               ErrorMessage="@AccountExpiryValidationMessage"
                                @bind-Value="AccountExpiryValue" />
         }
         else if (_page == 3)
@@ -176,7 +177,7 @@
              && HasMinimumTrimmedLength(_command.LastName, 2)
              && HasMinimumTrimmedLength(_command.Organization, 2)
              && _command.Role is not null
-             && _command.AccountExpiry is not null,
+             && IsAccountExpiryInFuture,
         3 => !string.IsNullOrWhiteSpace(_command.CollaborationObjectives),
         _ => true
     };
@@ -201,6 +202,16 @@
                 ? date
                 : null;
     }
+
+    private string MinimumAccountExpiryValue => DateTime.Today.AddDays(1)
+        .ToString("yyyy-MM-dd", System.Globalization.CultureInfo.InvariantCulture);
+
+    private bool IsAccountExpiryInFuture => _command.AccountExpiry?.Date > DateTime.Today;
+
+    private string? AccountExpiryValidationMessage =>
+        _command.AccountExpiry.HasValue && !IsAccountExpiryInFuture
+            ? Localizer["Account expiry date must be in the future."]
+            : null;
 
     private string StepHeading => _page switch
     {
@@ -283,7 +294,7 @@
         _command.FirstName = string.Empty;
         _command.LastName = string.Empty;
         _command.Organization = string.Empty;
-        _command.AccountExpiry = DateTime.Today;
+        _command.AccountExpiry = null;
     }
 
     private void LoadExistingExternalUserDetails(PortalUser portalUser)
@@ -293,7 +304,7 @@
         _command.FirstName = portalUser.ExternalUser!.FirstName;
         _command.LastName = portalUser.ExternalUser.LastName;
         _command.Organization = portalUser.ExternalUser.Organization;
-        _command.AccountExpiry = portalUser.ExternalUser.UserExpiryDate.UtcDateTime;
+        _command.AccountExpiry = portalUser.ExternalUser.UserExpiryDate.UtcDateTime.Date;
     }
 
     private async Task ValidateEmailAsync()
@@ -327,6 +338,12 @@
             return;
         }
 
+        if (!IsAccountExpiryInFuture)
+        {
+            _snackbar.Add(Localizer["Account expiry date must be in the future."], Severity.Error);
+            return;
+        }
+
         if (_command.Role is null)
         {
             _snackbar.Add(Localizer["User role is required"], Severity.Error);
@@ -347,17 +364,26 @@
                 .Include(p => p.ExternalUser)
                 .FirstOrDefaultAsync(p => p.Email == _command.Email && p.ExternalUser != null);
 
+            var accountExpiry = new DateTimeOffset(
+                DateTime.SpecifyKind(_command.AccountExpiry.Value.Date, DateTimeKind.Utc));
+
             var portalUser = existingPortalUser ?? await _userInformationService.CreatePortalExternalUserAsync(
                 null,
                 _command.FirstName,
                 _command.LastName,
                 _command.Organization,
                 _command.Email,
-                new DateTimeOffset(DateTime.SpecifyKind(_command.AccountExpiry.Value, DateTimeKind.Utc)));
+                accountExpiry);
 
             if (portalUser?.ExternalUser is null)
             {
                 throw new InvalidOperationException("Unable to create external user profile.");
+            }
+
+            if (existingPortalUser is not null)
+            {
+                existingPortalUser.ExternalUser!.UserExpiryDate = accountExpiry;
+                await context.SaveChangesAsync();
             }
 
             _command.ExternalUser = portalUser.ExternalUser;

@@ -10,8 +10,11 @@
             <MudDatePicker Label="@Localizer["Account Expiry"]"
                            @bind-Date="_newExpiryDate"
                            Required="true"
+                           RequiredError="@Localizer["Account expiry date is required"]"
                            ShowToolbar="false"
-                           IsDateDisabledFunc="@((DateTime dt) => dt.Date < DateTime.Today)" />
+                           Error="@HasInvalidAccountExpiry"
+                           ErrorText="@Localizer["Account expiry date must be in the future."]"
+                           IsDateDisabledFunc="@((DateTime date) => date.Date <= DateTime.Today)" />
         </MudStack>
     </DialogContent>
     <DialogActions>
@@ -56,6 +59,12 @@
             return;
         }
 
+        if (!IsAccountExpiryInFuture)
+        {
+            _snackbar.Add(Localizer["Account expiry date must be in the future."], Severity.Error);
+            return;
+        }
+
         await using var context = await _dbFactory.CreateDbContextAsync();
 
         var externalUser = SelectedUser;
@@ -70,4 +79,8 @@
 
         MudDialog.Close(DialogResult.Ok(externalUser));
     }
+
+    private bool IsAccountExpiryInFuture => _newExpiryDate?.Date > DateTime.Today;
+
+    private bool HasInvalidAccountExpiry => _newExpiryDate.HasValue && !IsAccountExpiryInFuture;
 }

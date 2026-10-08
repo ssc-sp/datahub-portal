@@ -130,6 +130,7 @@
   "Account": "Account",
   "Account Expiry": "Account Expiry",
   "Account expiry date is required": "Account expiry date is required",
+  "Account expiry date must be in the future.": "Account expiry date must be in the future.",
   "Account Expiry:": "Account Expiry:",
   "Account Key": "Account Key",
   "Account Kind": "Account Kind",
