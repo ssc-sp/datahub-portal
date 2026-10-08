@@ -3708,5 +3708,9 @@
   "ProjectTitleFrench_Description": "Le titre de l'espace de travail en français",
   "ProjectDescriptionEnglish_Description": "La description de l'espace de travail en anglais",
   "ProjectDescriptionFrench_Description": "La description de l'espace de travail en français",
+  "CBR Metadata": "Renseignements sur le BOI",
+  "Workspace Information": "Renseignements sur l'espace de travail",
+  "This metadata is specific for this workspace. You can update the description.": "Ces renseignements sont spécifiques à cet espace de travail. Vous pouvez mettre à jour la description.",
+  "This metadata is from the CBR for this workspace and cannot be changed. This metadata may apply to multiple workspaces with the same CBR.": "Ces renseignements sont provenants du BOI pour cet espace de travail et ne peuvent être modifiés. Ces renseignements peuvent s'appliquer à plusieurs espaces de travail ayant le même BOI.",
   "ProjectBudget_Description": "Le budget alloué à l’espace de travail. Ce budget représente une partie du budget total du BOI. Vous pouvez ajuster le budget de l’espace de travail dans les paramètres du BOI."
 }

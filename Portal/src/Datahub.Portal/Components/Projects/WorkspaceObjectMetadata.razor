@@ -13,7 +13,7 @@
 else if (_workspace is not null)
 {
     <div class="workspace-metadata">
-        <GcdsHeading Tag="h3">@Localizer["GC Hosting Details"]</GcdsHeading>
+        <GcdsHeading Tag="h3" MarginTop="100">@Localizer["GC Hosting Details"]</GcdsHeading>
         <GcdsInput Id="gc-hosting-id" Name="gc-hosting-id"
                    Label="@Localizer["GC Hosting ID"]" Hint="@Localizer["GCHostingId_Description"]"
                    Value="@_workspace.GcHostingId" ValueExpression="@(() => _workspace.GcHostingId)" Disabled />

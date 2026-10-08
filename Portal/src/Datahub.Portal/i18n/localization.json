@@ -2744,5 +2744,9 @@
   "ProjectTitleFrench_Description": "The French title of the workspace.",
   "ProjectDescriptionEnglish_Description": "A brief summary of the workspace in English.",
   "ProjectDescriptionFrench_Description": "A brief summary of the workspace in French.",
+  "CBR Metadata": "CBR Metadata",
+  "Workspace Information": "Workspace Information",
+  "This metadata is specific for this workspace. You can update the description.": "This metadata is specific for this workspace. You can update the description.",
+  "This metadata is from the CBR for this workspace and cannot be changed. This metadata may apply to multiple workspaces with the same CBR.": "This metadata is from the CBR for this workspace and cannot be changed. This metadata may apply to multiple workspaces with the same CBR.",
   "ProjectBudget_Description": "The allocated budget for the workspace. This budget is some portion of the total CBR budget. You can adjust the workspace budget in the CBR settings."
 }
