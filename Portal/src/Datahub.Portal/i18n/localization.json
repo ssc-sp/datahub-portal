@@ -2738,5 +2738,11 @@
   "Project description English is required.": "Project description English is required.",
   "Project description French is required.": "Project description French is required.",
   "Workspace project information saved successfully.": "Workspace project information saved successfully.",
-  "Unable to save workspace project information. Please try again.": "Unable to save workspace project information. Please try again."
+  "Unable to save workspace project information. Please try again.": "Unable to save workspace project information. Please try again.",
+  "ProjectAcronym_Description": "A unique alphanumeric acronym to identify the workspace within the FSDH.",
+  "ProjectTitleEnglish_Description": "The English title of the workspace.",
+  "ProjectTitleFrench_Description": "The French title of the workspace.",
+  "ProjectDescriptionEnglish_Description": "A brief summary of the workspace in English.",
+  "ProjectDescriptionFrench_Description": "A brief summary of the workspace in French.",
+  "ProjectBudget_Description": "The allocated budget for the workspace. This budget is some portion of the total CBR budget. You can adjust the workspace budget in the CBR settings."
 }

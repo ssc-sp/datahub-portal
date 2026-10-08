@@ -16,85 +16,85 @@ else if (_workspace is not null)
         <GcdsHeading Tag="h3">@Localizer["GC Hosting Details"]</GcdsHeading>
         <GcdsInput Id="gc-hosting-id" Name="gc-hosting-id"
                    Label="@Localizer["GC Hosting ID"]" Hint="@Localizer["GCHostingId_Description"]"
-                   Value="@_workspace.GcHostingId" ValueExpression="@(() => _workspace.GcHostingId)" ReadOnly />
+                   Value="@_workspace.GcHostingId" ValueExpression="@(() => _workspace.GcHostingId)" Disabled />
         <GcdsInput Id="department-name" Name="department-name"
                    Label="@Localizer["Department Name"]" Hint="@Localizer["DepartmentName_Description"]"
-                   Value="@_workspace.DepartmentName" ValueExpression="@(() => _workspace.DepartmentName)" ReadOnly />
+                   Value="@_workspace.DepartmentName" ValueExpression="@(() => _workspace.DepartmentName)" Disabled />
 
         <GcdsHeading Tag="h3">@Localizer["Workspace Details"]</GcdsHeading>
         <GcdsInput Id="workspace-name" Name="workspace-name"
                    Label="@Localizer["Workspace Name"]" Hint="@Localizer["WorkspaceName_Description"]"
-                   Value="@_workspace.WorkspaceName" ValueExpression="@(() => _workspace.WorkspaceName)" ReadOnly />
+                   Value="@_workspace.WorkspaceName" ValueExpression="@(() => _workspace.WorkspaceName)" Disabled />
         <GcdsTextarea Id="workspace-description" Name="workspace-description"
                       Label="@Localizer["Description"]" Hint="@Localizer["WorkspaceDescription_Description"]"
                       Value="@_workspace.WorkspaceDescription" ValueExpression="@(() => _workspace.WorkspaceDescription)"
-                      Rows="5" ReadOnly />
+                      Rows="5" Disabled />
         <GcdsInput Id="workspace-subject" Name="workspace-subject"
                    Label="@Localizer["Subject"]" Hint="@Localizer["Subject_Description"]"
-                   Value="@_workspace.Subject" ValueExpression="@(() => _workspace.Subject)" ReadOnly />
+                   Value="@_workspace.Subject" ValueExpression="@(() => _workspace.Subject)" Disabled />
         <GcdsInput Id="workspace-keywords" Name="workspace-keywords"
                    Label="@Localizer["Keywords"]" Hint="@Localizer["Keywords_Description"]"
-                   Value="@_workspace.Keywords" ValueExpression="@(() => _workspace.Keywords)" ReadOnly />
+                   Value="@_workspace.Keywords" ValueExpression="@(() => _workspace.Keywords)" Disabled />
 
         <GcdsHeading Tag="h3">@Localizer["Project Details"]</GcdsHeading>
         <GcdsInput Id="project-title" Name="project-title"
                    Label="@Localizer["Project Title"]" Hint="@Localizer["ProjectTitle_Description"]"
-                   Value="@ProjectTitle" ValueExpression="@(() => ProjectTitle)" ReadOnly />
+                   Value="@ProjectTitle" ValueExpression="@(() => ProjectTitle)" Disabled />
         <GcdsTextarea Id="project-description" Name="project-description"
                       Label="@Localizer["Project Description"]" Hint="@Localizer["ProjectDescription_Description"]"
-                      Value="@ProjectDescription" ValueExpression="@(() => ProjectDescription)" Rows="5" ReadOnly />
+                      Value="@ProjectDescription" ValueExpression="@(() => ProjectDescription)" Rows="5" Disabled />
 
         <GcdsHeading Tag="h3">@Localizer["Lead Info"]</GcdsHeading>
         <GcdsInput Id="lead-name" Name="lead-name"
                    Label="@Localizer["Lead Name"]" Hint="@Localizer["LeadName_Description"]"
-                   Value="@LeadName" ValueExpression="@(() => LeadName)" ReadOnly />
+                   Value="@LeadName" ValueExpression="@(() => LeadName)" Disabled />
         <GcdsInput Id="lead-email" Name="lead-email"
                    Label="@Localizer["Lead Email"]" Hint="@Localizer["LeadEmail_Description"]"
-                   Value="@_workspace.LeadEmail" ValueExpression="@(() => _workspace.LeadEmail)" ReadOnly />
+                   Value="@_workspace.LeadEmail" ValueExpression="@(() => _workspace.LeadEmail)" Disabled />
 
         <GcdsHeading Tag="h3">@Localizer["Financial Authority"]</GcdsHeading>
         <GcdsInput Id="financial-authority-name" Name="financial-authority-name"
                    Label="@Localizer["Name"]" Hint="@Localizer["FinancialAuthorityName_Description"]"
-                   Value="@FinancialAuthorityName" ValueExpression="@(() => FinancialAuthorityName)" ReadOnly />
+                   Value="@FinancialAuthorityName" ValueExpression="@(() => FinancialAuthorityName)" Disabled />
         <GcdsInput Id="financial-authority-email" Name="financial-authority-email"
                    Label="@Localizer["Email"]" Hint="@Localizer["FinancialAuthorityEmail_Description"]"
-                   Value="@_workspace.FinancialAuthorityEmail" ValueExpression="@(() => _workspace.FinancialAuthorityEmail)" ReadOnly />
+                   Value="@_workspace.FinancialAuthorityEmail" ValueExpression="@(() => _workspace.FinancialAuthorityEmail)" Disabled />
         <GcdsInput Id="commitment-is-ref" Name="commitment-is-ref"
                    Label="@Localizer["Commitment ISRef"]" Hint="@Localizer["CommitmentISRef_Description"]"
-                   Value="@_workspace.FinancialAuthorityCommitmentIsRef" ValueExpression="@(() => _workspace.FinancialAuthorityCommitmentIsRef)" ReadOnly />
+                   Value="@_workspace.FinancialAuthorityCommitmentIsRef" ValueExpression="@(() => _workspace.FinancialAuthorityCommitmentIsRef)" Disabled />
         <GcdsInput Id="commitment-is-org" Name="commitment-is-org"
                    Label="@Localizer["Commitment ISOrg"]" Hint="@Localizer["CommitmentISOrg_Description"]"
-                   Value="@_workspace.FinancialAuthorityCommitmentIsOrg" ValueExpression="@(() => _workspace.FinancialAuthorityCommitmentIsOrg)" ReadOnly />
+                   Value="@_workspace.FinancialAuthorityCommitmentIsOrg" ValueExpression="@(() => _workspace.FinancialAuthorityCommitmentIsOrg)" Disabled />
 
         <GcdsHeading Tag="h3">@Localizer["CBR Details"]</GcdsHeading>
         <GcdsInput Id="cbr-id" Name="cbr-id"
                    Label="@Localizer["CBR ID"]" Hint="@Localizer["CBRID_Description"]"
-                   Value="@_workspace.CBRID" ValueExpression="@(() => _workspace.CBRID)" ReadOnly />
+                   Value="@_workspace.CBRID" ValueExpression="@(() => _workspace.CBRID)" Disabled />
         <GcdsInput Id="cbr-name" Name="cbr-name"
                    Label="@Localizer["CBR Name"]" Hint="@Localizer["CBRName_Description"]"
-                   Value="@_workspace.CBRName" ValueExpression="@(() => _workspace.CBRName)" ReadOnly />
+                   Value="@_workspace.CBRName" ValueExpression="@(() => _workspace.CBRName)" Disabled />
 
         <GcdsHeading Tag="h3">@Localizer["Budget & Retention"]</GcdsHeading>
         <GcdsInput Id="workspace-budget" Name="workspace-budget"
                    Label="@Localizer["Budget"]" Hint="@Localizer["WorkspaceBudget_Description"]"
-                   Value="@WorkspaceBudget" ValueExpression="@(() => WorkspaceBudget)" ReadOnly />
+                   Value="@WorkspaceBudget" ValueExpression="@(() => WorkspaceBudget)" Disabled />
         <GcdsInput Id="retention-period" Name="retention-period"
                    Label="@Localizer["Retention Period"]" Hint="@Localizer["RetentionPeriod_Description"]"
-                   Value="@RetentionPeriod" ValueExpression="@(() => RetentionPeriod)" ReadOnly />
+                   Value="@RetentionPeriod" ValueExpression="@(() => RetentionPeriod)" Disabled />
         <GcdsInput Id="retention-start-date" Name="retention-start-date"
                    Label="@Localizer["Retention Start Date"]" Hint="@Localizer["RetentionStartDate_Description"]"
-                   Value="@RetentionStartDate" ValueExpression="@(() => RetentionStartDate)" ReadOnly />
+                   Value="@RetentionStartDate" ValueExpression="@(() => RetentionStartDate)" Disabled />
         <GcdsInput Id="retention-value" Name="retention-value"
                    Label="@Localizer["Retention Value"]" Hint="@Localizer["RetentionValue_Description"]"
-                   Value="@_workspace.RetentionValue" ValueExpression="@(() => _workspace.RetentionValue)" ReadOnly />
+                   Value="@_workspace.RetentionValue" ValueExpression="@(() => _workspace.RetentionValue)" Disabled />
         <GcdsInput Id="generates-information-business-value" Name="generates-information-business-value"
                    Label="@Localizer["Generates Information Business Value"]" Hint="@Localizer["GeneratesInfoBusinessValue_Description"]"
-                   Value="@GeneratesInformationBusinessValue" ValueExpression="@(() => GeneratesInformationBusinessValue)" ReadOnly />
+                   Value="@GeneratesInformationBusinessValue" ValueExpression="@(() => GeneratesInformationBusinessValue)" Disabled />
 
         <GcdsHeading Tag="h3">@Localizer["Security"]</GcdsHeading>
         <GcdsInput Id="security-classification" Name="security-classification"
                    Label="@Localizer["Security Classification"]" Hint="@Localizer["SecurityClassification_Description"]"
-                   Value="@SecurityClassification" ValueExpression="@(() => SecurityClassification)" ReadOnly />
+                   Value="@SecurityClassification" ValueExpression="@(() => SecurityClassification)" Disabled />
     </div>
 }
 else

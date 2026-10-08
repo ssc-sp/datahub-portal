@@ -3702,5 +3702,11 @@
   "Project description English is required.": "La description du projet en anglais est obligatoire.",
   "Project description French is required.": "La description du projet en français est obligatoire.",
   "Workspace project information saved successfully.": "Les renseignements sur le projet de l'espace de travail ont été enregistrés.",
-  "Unable to save workspace project information. Please try again.": "Impossible d'enregistrer les renseignements sur le projet de l'espace de travail. Veuillez réessayer."
+  "Unable to save workspace project information. Please try again.": "Impossible d'enregistrer les renseignements sur le projet de l'espace de travail. Veuillez réessayer.",
+  "ProjectAcronym_Description": "Un acronyme alphanumérique unique pour identifier l'espace de travail dans la PFDS.",
+  "ProjectTitleEnglish_Description": "Le titre de l'espace de travail en anglais",
+  "ProjectTitleFrench_Description": "Le titre de l'espace de travail en français",
+  "ProjectDescriptionEnglish_Description": "La description de l'espace de travail en anglais",
+  "ProjectDescriptionFrench_Description": "La description de l'espace de travail en français",
+  "ProjectBudget_Description": "Le budget alloué à l’espace de travail. Ce budget représente une partie du budget total du BOI. Vous pouvez ajuster le budget de l’espace de travail dans les paramètres du BOI."
 }
