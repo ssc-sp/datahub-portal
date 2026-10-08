@@ -111,19 +111,19 @@ public class WorkspaceObjectMetadataSteps(ScenarioContext scenarioContext) : Bun
         textareas["project-description"].Instance.Value.Should().Be("Detailed project description");
     }
 
-    [Then("every GC Hosting metadata control is a read-only GCDS control")]
-    public void ThenEveryGcHostingMetadataControlIsAReadOnlyGcdsControl()
+    [Then("every GC Hosting metadata control is a disabled GCDS control")]
+    public void ThenEveryGcHostingMetadataControlIsADisabledGcdsControl()
     {
         var component = GetComponent();
 
-        component.FindComponents<GcdsInput>().Should().OnlyContain(input => input.Instance.ReadOnly);
-        component.FindAll("gcds-textarea").Should().OnlyContain(textarea => textarea.HasAttribute("readonly"));
+        component.FindComponents<GcdsInput>().Should().OnlyContain(input => input.Instance.Disabled);
+        component.FindComponents<GcdsTextarea>().Should().OnlyContain(textarea => textarea.Instance.Disabled);
         component.FindComponents<GcdsHeading>().Should().HaveCount(8);
         component.Markup.Should().NotContain("mud-input");
     }
 
-    [Then("the optional project metadata values are empty and read-only")]
-    public void ThenTheOptionalProjectMetadataValuesAreEmptyAndReadOnly()
+    [Then("the optional project metadata values are empty and disabled")]
+    public void ThenTheOptionalProjectMetadataValuesAreEmptyAndDisabled()
     {
         var component = GetComponent();
         var projectTitle = component.FindComponents<GcdsInput>()
@@ -132,9 +132,9 @@ public class WorkspaceObjectMetadataSteps(ScenarioContext scenarioContext) : Bun
             .Single(textarea => textarea.Instance.Id == "project-description");
 
         projectTitle.Value.Should().BeEmpty();
-        projectTitle.ReadOnly.Should().BeTrue();
+        projectTitle.Disabled.Should().BeTrue();
         projectDescription.Instance.Value.Should().BeEmpty();
-        projectDescription.Find("gcds-textarea").HasAttribute("readonly").Should().BeTrue();
+        projectDescription.Instance.Disabled.Should().BeTrue();
     }
 
     [Then("the GC Hosting metadata empty state is displayed")]

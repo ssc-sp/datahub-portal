@@ -26,10 +26,10 @@ The workspace metadata page displays project information from Datahub_Project an
         Then the required project description error is displayed
         And the workspace project information is not persisted or synchronized
 
-    Scenario: A nullable project budget is displayed as an empty read-only value
+    Scenario: A nullable project budget is displayed as an empty disabled value
         Given a workspace has project information without a budget
         When the workspace project information is rendered
-        Then the project budget value is empty and read-only
+        Then the project budget value is empty and disabled
 
     Scenario Outline: Missing workspace project information displays the empty state
         Given <workspace_state>

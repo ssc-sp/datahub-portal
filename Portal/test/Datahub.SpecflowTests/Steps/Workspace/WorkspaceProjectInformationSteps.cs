@@ -118,9 +118,9 @@ public class WorkspaceProjectInformationSteps(ScenarioContext scenarioContext) :
     [Then("only the workspace project descriptions are editable")]
     public void ThenOnlyTheWorkspaceProjectDescriptionsAreEditable()
     {
-        GetComponent().FindComponents<GcdsInput>().Should().OnlyContain(input => input.Instance.ReadOnly);
+        GetComponent().FindComponents<GcdsInput>().Should().OnlyContain(input => input.Instance.Disabled);
         GetTextareas().Values.Should().OnlyContain(textarea => textarea.Instance.Required);
-        GetComponent().FindAll("gcds-textarea").Should().OnlyContain(textarea => !textarea.HasAttribute("readonly"));
+        GetTextareas().Values.Should().OnlyContain(textarea => !textarea.Instance.Disabled);
     }
 
     [Then("the project information save action is initially disabled")]
@@ -179,13 +179,13 @@ public class WorkspaceProjectInformationSteps(ScenarioContext scenarioContext) :
         await catalog.DidNotReceive().AddCatalogObject(Arg.Any<CatalogObject>());
     }
 
-    [Then("the project budget value is empty and read-only")]
-    public void ThenTheProjectBudgetValueIsEmptyAndReadOnly()
+    [Then("the project budget value is empty and disabled")]
+    public void ThenTheProjectBudgetValueIsEmptyAndDisabled()
     {
         var budget = GetComponent().FindComponents<GcdsInput>()
             .Single(input => input.Instance.Id == "project-budget").Instance;
         budget.Value.Should().BeEmpty();
-        budget.ReadOnly.Should().BeTrue();
+        budget.Disabled.Should().BeTrue();
     }
 
     [Then("the workspace project information empty state is displayed")]
