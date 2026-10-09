@@ -49,10 +49,14 @@
                 <MudSelectItem Value="8">@Localizer["Storage"]</MudSelectItem>
                 <MudSelectItem Value="9">@Localizer["Web App and Storage"]</MudSelectItem>
             </MudSelect>
-            <MudDatePicker Label="Account Expiry"
+            <MudDatePicker Label="@Localizer["Account Expiry"]"
                             @bind-Date="accountExpiry"
                             Required="true"
-                            ShowToolbar="false" />
+                            RequiredError="@Localizer["Account expiry date is required"]"
+                            ShowToolbar="false"
+                            Error="@HasInvalidAccountExpiry"
+                            ErrorText="@Localizer["Account expiry date must be in the future."]"
+                            IsDateDisabledFunc="@((DateTime date) => date.Date <= DateTime.Today)" />
         </MudStack>
     </DialogContent>
     <DialogActions>
@@ -107,6 +111,11 @@
 
     private async Task SaveUserChanges()
     {
+        if (!IsAccountExpiryInFuture)
+        {
+            return;
+        }
+
         await using var context = await _dbFactory.CreateDbContextAsync();
 
         var userRoleLinks = context.UserRolesLinks.Where(p => p.ProjectUser_ID == SelectedExternalUser.ProjectUser_ID).Include(u=>u.PortalUser).ThenInclude(u=>u.ExternalUser).ToList();
@@ -118,7 +127,8 @@
             if (userRoleLink.PortalUser.ExternalUser != null)
             {
                 userRoleLink.PortalUser.ExternalUser.Organization = organization;
-                userRoleLink.PortalUser.ExternalUser.UserExpiryDate = (accountExpiry.HasValue ? DateTime.SpecifyKind(accountExpiry.Value, DateTimeKind.Utc) : userRoleLink.PortalUser.ExternalUser.UserExpiryDate);
+                userRoleLink.PortalUser.ExternalUser.UserExpiryDate = new DateTimeOffset(
+                    DateTime.SpecifyKind(accountExpiry!.Value.Date, DateTimeKind.Utc));
                 userRoleLink.RoleId = role;
             }
             else
@@ -132,6 +142,10 @@
         await context.SaveChangesAsync();
         UpdateProject();
     }
+
+    private bool IsAccountExpiryInFuture => accountExpiry?.Date > DateTime.Today;
+
+    private bool HasInvalidAccountExpiry => accountExpiry.HasValue && !IsAccountExpiryInFuture;
 
     private void UpdateProject()
     {

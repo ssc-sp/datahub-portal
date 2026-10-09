@@ -152,6 +152,7 @@
   "Account": "Compte",
   "Account Expiry": "Expiration du compte",
   "Account expiry date is required": "Date d'expiration du compte est requise",
+  "Account expiry date must be in the future.": "La date d'expiration du compte doit être ultérieure à aujourd'hui.",
   "Account Expiry:": "Expiration du compte\u00a0:",
   "Account Key": "Clé du compte",
   "Account Kind": "Type de compte",

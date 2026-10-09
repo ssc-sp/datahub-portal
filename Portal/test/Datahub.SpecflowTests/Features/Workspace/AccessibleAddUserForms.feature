@@ -35,3 +35,50 @@ The forms used to add workspace users should be part of the page and usable with
         And the external add-user form advances to user details
         Then the external role is selected with a GCDS select
         And the external account expiry uses a GCDS date input
+
+    Scenario Outline: The external user expiry must be in the future
+        Given the external add-user form is rendered
+        When a valid external email address is entered
+        And the external add-user form advances to user details
+        And valid external user details are entered with an expiry <expiry>
+        Then the external expiry validation is <validation>
+
+        Examples:
+            | expiry   | validation |
+            | today    | rejected   |
+            | past     | rejected   |
+            | tomorrow | accepted   |
+
+    Scenario: An existing external user's expiry can be corrected while inviting them
+        Given the external add-user form is rendered
+        And an existing external user has an expired account
+        When the existing external user's email address is entered
+        And the external add-user form advances to user details
+        Then the existing external user's expiry is editable
+        When valid external user details are entered with an expiry tomorrow
+        And the external invitation is completed
+        Then the existing external user's future expiry is persisted
+
+    Scenario Outline: External user dialogs reject expiry dates that are not in the future
+        Given the <dialog> external user expiry dialog is rendered
+        When the account expiry is changed to <expiry> and saved
+        Then the external user expiry change is rejected
+
+        Examples:
+            | dialog | expiry |
+            | manage | blank  |
+            | manage | past   |
+            | manage | today  |
+            | extend | blank  |
+            | extend | past   |
+            | extend | today  |
+
+    Scenario Outline: External user dialogs save future expiry dates
+        Given the <dialog> external user expiry dialog is rendered
+        When the account expiry is changed to tomorrow and saved
+        Then the external user's future expiry is persisted by the dialog
+
+        Examples:
+            | dialog |
+            | manage |
+            | extend |
