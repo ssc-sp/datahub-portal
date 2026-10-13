@@ -1,30 +1,20 @@
-﻿@*ProjectMetadata.razor*@
-
-
-@using Datahub.Core.Services.Projects;
-@using Datahub.Metadata.Model
-@using System.Text.Json
-@using Datahub.Application.Services.Metadata
-@using Datahub.Application.Services.UserManagement
-@using Datahub.Core.Model.Projects
-@using Datahub.Infrastructure.Services.Security
-@using Datahub.Shared
-@using Datahub.Shared.Entities
-@using Datahub.Portal.Components
 @using Datahub.Portal.Components.Projects
-
-@inject IMetadataBrokerService MetadataBrokerService
-@inject IDbContextFactory<DatahubProjectDBContext> _dbContextFactory
-@inject ILogger<WorkspaceMetadataPage> Logger
-@inject IServiceAuthManager _serviceAuthManager
-@inject IUserInformationService _userInformationService
-@inject ICultureService CultureService
+@using GcdsWrapper.Blazor
 
 <MudPaper Class="py-4 px-6">
     <MudStack>
-        <DHMainContentTitle>
-            <MudText Typo="Typo.h1" Class="mb-6">@Localizer["Workspace"] @WorkspaceAcronym @Localizer["Metadata"]</MudText>
-        </DHMainContentTitle>
+        <DHMainContentTitle Title="@_title" />
+        
+        <GcdsHeading Tag="h2" MarginTop="100">@Localizer["Workspace Information"]</GcdsHeading>
+        <GcdsText>
+            @Localizer["This metadata is specific for this workspace. You can update the description."]
+        </GcdsText>
+        <WorkspaceProjectInformation ProjectAcronym="@WorkspaceAcronym" />
+
+        <GcdsHeading Tag="h2">@Localizer["CBR Metadata"]</GcdsHeading>
+        <GcdsText>
+            @Localizer["This metadata is from the CBR for this workspace and cannot be changed. This metadata may apply to multiple workspaces with the same CBR."]
+        </GcdsText>
         <WorkspaceObjectMetadata ProjectAcronym="@WorkspaceAcronym" />
     </MudStack>
 </MudPaper>
@@ -34,49 +24,11 @@
     [Parameter] public string WorkspaceAcronym { get; set; }
     [Parameter] public bool ElevatedWorkspaceAccessEnabled { get; set; } = false;
 
-    protected override async Task OnInitializedAsync()
+    private string _title;
+
+    protected override void OnInitialized()
     {
-        await base.OnInitializedAsync();
-
-        var user = await _userInformationService.GetCurrentGraphUserAsync();
+        _title = $"{Localizer["Workspace"]} {WorkspaceAcronym} {Localizer["Metadata"]}";
+        base.OnInitialized();
     }
-
-    private void HandleMetadataSaved(Datahub_Project project)
-    {
-        try
-        {
-            using var ctx = _dbContextFactory.CreateDbContext();
-            var databricksTemplateName = TerraformTemplate.GetTerraformServiceType(TerraformTemplate.AzureDatabricks);
-            var projectDatabricks = ctx.Project_Resources2
-                .Where(r => r.ProjectId == project.Project_ID)
-                .FirstOrDefault(r => r.ResourceType == databricksTemplateName);
-
-            if (projectDatabricks is { CreatedAt: not null })
-            {
-                var databricksUrlVariable = TerraformVariableExtraction.ExtractDatabricksUrl(projectDatabricks, CultureService.IsFrench);
-
-                MetadataBrokerService.CreateChildMetadata(project.Project_Acronym_CD, $"{project.Project_Acronym_CD}-Databricks",
-                    MetadataObjectType.Databricks, databricksUrlVariable, true);
-            }
-
-            foreach (var db in GetDbs(project))
-            {
-                MetadataBrokerService.CreateChildMetadata(project.Project_Acronym_CD, db.ResourceId.ToString(),
-                    MetadataObjectType.Database, project.Project_Acronym_CD, true);
-            }
-        }
-        catch (Exception ex)
-        {
-            Logger.LogError(ex, "Internal error updating project child metadata");
-        }
-    }
-
-    private IEnumerable<Project_Resources2> GetDbs(Datahub_Project project)
-    {
-        return project.Resources
-            .Where(r => r.ResourceType == TerraformTemplate.GetTerraformServiceType(TerraformTemplate.AzurePostgres))
-            .ToList();
-    }
-
-
 }

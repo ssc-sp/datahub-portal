@@ -1,0 +1,210 @@
+@using System.Globalization
+@using Datahub.Core.Model.Catalog
+@using Datahub.Core.Model.Projects
+@using Datahub.Core.Services.CatalogSearch
+@using GcdsWrapper.Blazor
+
+@inject IDbContextFactory<DatahubProjectDBContext> ContextFactory
+@inject IDatahubCatalogSearch CatalogSearch
+@inject ILogger<WorkspaceProjectInformation> Logger
+
+@if (!_loaded)
+{
+    <GcdsText>@Localizer["Loading..."]</GcdsText>
+}
+else if (_project is null)
+{
+    <GcdsText>@Localizer["WorkspaceProjectNoMetadata"]</GcdsText>
+}
+else
+{
+    <div class="workspace-project-information">
+        <GcdsInput Id="project-acronym" Name="project-acronym"
+                   Label="@Localizer["Project Acronym"]"
+                   Value="@_project.Project_Acronym_CD"
+                   Hint="@Localizer["ProjectAcronym_Description"]"
+                   ValueExpression="@(() => _project.Project_Acronym_CD)" Disabled />
+        <GcdsInput Id="project-title-english" Name="project-title-english"
+                   Label="@Localizer["Project Title English"]"
+                   Value="@ProjectTitleEnglish"
+                   Hint="@Localizer["ProjectTitleEnglish_Description"]"
+                   ValueExpression="@(() => ProjectTitleEnglish)" Disabled />
+        <GcdsInput Id="project-title-french" Name="project-title-french"
+                   Label="@Localizer["Project Title French"]"
+                   Value="@ProjectTitleFrench"
+                   Hint="@Localizer["ProjectTitleFrench_Description"]"
+                   ValueExpression="@(() => ProjectTitleFrench)" Disabled />
+        <GcdsTextarea Id="project-description-english" Name="project-description-english"
+                      Label="@Localizer["Project Description English"]"
+                      Hint="@Localizer["ProjectDescriptionEnglish_Description"]"
+                      Required Rows="5" ErrorMessage="@_englishDescriptionError"
+                      @bind-Value="_englishDescription" @bind-Value:after="ClearStatus" />
+        <GcdsTextarea Id="project-description-french" Name="project-description-french"
+                      Label="@Localizer["Project Description French"]"
+                      Hint="@Localizer["ProjectDescriptionFrench_Description"]"
+                      Required Rows="5" ErrorMessage="@_frenchDescriptionError"
+                      @bind-Value="_frenchDescription" @bind-Value:after="ClearStatus" />
+        <GcdsInput Id="project-budget" Name="project-budget"
+                   Label="@Localizer["Project Budget"]"
+                   Value="@ProjectBudget"
+                     Hint="@Localizer["ProjectBudget_Description"]"
+                   ValueExpression="@(() => ProjectBudget)" Disabled />
+
+        <GcdsButton Id="save-project-information" Type="GcdsButtonType.Button"
+                    Disabled="@(!HasChanges || _saving)" OnClick="SaveAsync">
+            @Localizer[_saving ? "Saving..." : "Save Changes"]
+        </GcdsButton>
+
+        @if (_statusMessage is not null)
+        {
+            <div role="status" aria-live="polite">
+                <GcdsNotice NoticeRole="@_statusRole" NoticeTitle="@Localizer[_statusRole == "success" ? "Success" : "Error"]" NoticeTitleTag="h3">
+                    <GcdsText>@_statusMessage</GcdsText>
+                </GcdsNotice>
+            </div>
+        }
+    </div>
+}
+
+@code {
+    [Parameter]
+    public string? ProjectAcronym { get; set; }
+
+    private Datahub_Project? _project;
+    private string? _englishDescription;
+    private string? _frenchDescription;
+    private string? _originalEnglishDescription;
+    private string? _originalFrenchDescription;
+    private string? _englishDescriptionError;
+    private string? _frenchDescriptionError;
+    private string? _statusMessage;
+    private string _statusRole = "success";
+    private bool _loaded;
+    private bool _saving;
+
+    private string ProjectTitleEnglish => _project?.Project_Name ?? string.Empty;
+    private string ProjectTitleFrench => _project?.Project_Name_Fr ?? string.Empty;
+    private string ProjectBudget => _project?.Project_Budget?.ToString(CultureInfo.CurrentCulture) ?? string.Empty;
+    private bool HasChanges => _englishDescription != _originalEnglishDescription
+                               || _frenchDescription != _originalFrenchDescription;
+
+    protected override async Task OnParametersSetAsync()
+    {
+        _loaded = false;
+        _project = null;
+        ClearStatus();
+
+        if (string.IsNullOrWhiteSpace(ProjectAcronym))
+        {
+            _loaded = true;
+            return;
+        }
+
+        try
+        {
+            await using var context = await ContextFactory.CreateDbContextAsync();
+            _project = await context.Projects
+                .AsNoTracking()
+                .FirstOrDefaultAsync(project => project.Project_Acronym_CD == ProjectAcronym);
+
+            if (_project is not null)
+            {
+                _englishDescription = _project.Project_Summary_Desc;
+                _frenchDescription = _project.Project_Summary_Desc_Fr;
+                SetOriginalDescriptions();
+            }
+        }
+        catch (Exception exception)
+        {
+            Logger.LogError(exception, "Error loading project information for workspace {ProjectAcronym}.", ProjectAcronym);
+            _project = null;
+        }
+        finally
+        {
+            _loaded = true;
+        }
+    }
+
+    private async Task SaveAsync()
+    {
+        if (_project is null || _saving || !HasChanges || !ValidateDescriptions())
+        {
+            return;
+        }
+
+        _saving = true;
+        ClearStatus(clearValidation: false);
+
+        try
+        {
+            await using var context = await ContextFactory.CreateDbContextAsync();
+            var project = await context.Projects
+                .FirstOrDefaultAsync(candidate => candidate.Project_ID == _project.Project_ID);
+
+            if (project is null)
+            {
+                throw new InvalidOperationException($"Workspace project {ProjectAcronym} no longer exists.");
+            }
+
+            project.Project_Summary_Desc = _englishDescription;
+            project.Project_Summary_Desc_Fr = _frenchDescription;
+            await context.SaveChangesAsync();
+
+            await CatalogSearch.AddCatalogObject(new CatalogObject
+            {
+                ObjectType = CatalogObjectType.Workspace,
+                ObjectId = project.Project_Acronym_CD,
+                Name_English = project.Project_Name,
+                Name_French = project.Project_Name_Fr,
+                Desc_English = project.Project_Summary_Desc,
+                Desc_French = project.Project_Summary_Desc_Fr
+            });
+
+            _project.Project_Summary_Desc = _englishDescription;
+            _project.Project_Summary_Desc_Fr = _frenchDescription;
+            SetOriginalDescriptions();
+            _statusRole = "success";
+            _statusMessage = Localizer["Workspace project information saved successfully."];
+        }
+        catch (Exception exception)
+        {
+            Logger.LogError(exception, "Error saving project information for workspace {ProjectAcronym}.", ProjectAcronym);
+            _statusRole = "danger";
+            _statusMessage = Localizer["Unable to save workspace project information. Please try again."];
+        }
+        finally
+        {
+            _saving = false;
+        }
+    }
+
+    private bool ValidateDescriptions()
+    {
+        _englishDescriptionError = string.IsNullOrWhiteSpace(_englishDescription)
+            ? Localizer["Project description English is required."]
+            : null;
+        _frenchDescriptionError = string.IsNullOrWhiteSpace(_frenchDescription)
+            ? Localizer["Project description French is required."]
+            : null;
+
+        return _englishDescriptionError is null && _frenchDescriptionError is null;
+    }
+
+    private void SetOriginalDescriptions()
+    {
+        _originalEnglishDescription = _englishDescription;
+        _originalFrenchDescription = _frenchDescription;
+    }
+
+    private void ClearStatus() => ClearStatus(clearValidation: true);
+
+    private void ClearStatus(bool clearValidation)
+    {
+        _statusMessage = null;
+        if (clearValidation)
+        {
+            _englishDescriptionError = null;
+            _frenchDescriptionError = null;
+        }
+    }
+}
