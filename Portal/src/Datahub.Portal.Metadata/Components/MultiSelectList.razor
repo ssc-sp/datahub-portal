@@ -1,10 +1,10 @@
-﻿@using Datahub.Metadata
+@using Datahub.Metadata
 @using Datahub.Metadata.Model
 
 @if (FieldValue != null && FieldDefinition != null)
 {
     <MudSelect T="string"
-               MultiSelectionTextFunc="@(new Func<List<string>, string>(GetMultiSelectionText))"
+               MultiSelectionTextFunc="@(new Func<IReadOnlyList<string>, string>(GetMultiSelectionText))"
                SelectedValues=@_selection
                SelectedValuesChanged=@HandleSelectedValuesChanged
                Label=@FieldDefinition.Name
@@ -64,7 +64,7 @@
         OnFieldChanged.InvokeAsync(FieldValue);
     }
 
-    private string GetMultiSelectionText(List<string> selectedValues)
+    private string GetMultiSelectionText(IReadOnlyList<string> selectedValues)
     {
         var selection = new HashSet<string>(selectedValues);
         List<string> labels = new();
