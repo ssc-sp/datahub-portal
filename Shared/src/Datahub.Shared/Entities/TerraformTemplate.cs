@@ -10,13 +10,17 @@ public class TerraformTemplate
     public const string NewProjectTemplate = "new-project-template";
     public const string VariableUpdate = "variable-update";
     public const string AzureDatabricks = "azure-databricks";
+    public const string AzureDatabricksEnhanced = "azure-databricks-enhanced";
     public const string AzureVirtualMachine = "azure-virtual-machine";
     public const string AzureAppService = "azure-app-service";
+    public const string AzureAppServiceEnhanced = "azure-app-service-enhanced";
     public const string AzurePostgres = "azure-postgres";
+    public const string AzurePostgresEnhanced = "azure-postgres-enhanced";
     public const string ContactUs = "contact-us";
     public const string AzureArcGis = "azure-arcgis";
     public const string AzureAPI = "azure-api";
-
+    public const string AzureAPIEnhanced = "azure-api-enhanced";
+    public const string NewProjectTemplateEnhanced = "new-project-template-enhanced";
     public const string AzurePostgresTemplateFile = "azure-postgresql";
 
     public const string NewProjectTemplateFile = "main";
@@ -126,15 +130,21 @@ public class TerraformTemplate
     }
 
 #nullable enable
-    public static IEnumerable<string>? GetDependencyNames(string toolName) => toolName switch
+    public static IEnumerable<string>? GetDependencyNames(string toolName)
     {
-        NewProjectTemplate => [],
-        VariableUpdate => [],
-        AzureDatabricks => [NewProjectTemplate],
-        AzureAppService => [NewProjectTemplate],
-        AzurePostgres => [NewProjectTemplate],
-        _ => null
-    };
+        return toolName switch
+        {
+            NewProjectTemplate => [],
+            VariableUpdate => [],
+            AzureDatabricks => [NewProjectTemplate],
+            AzureAppService => [NewProjectTemplate],
+            AzurePostgres => [NewProjectTemplate],
+            AzureDatabricksEnhanced => [NewProjectTemplate],
+            AzureAppServiceEnhanced => [NewProjectTemplate],
+            AzurePostgresEnhanced => [NewProjectTemplate],
+            _ => null
+        };
+    }
 #nullable disable
 
     public static List<TerraformTemplate> GetDependenciesToCreate(string name)
