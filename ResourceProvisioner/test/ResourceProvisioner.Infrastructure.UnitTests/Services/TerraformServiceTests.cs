@@ -23,13 +23,13 @@ public class TerraformServiceTests : TemplateTestCollection
     }
     
     [Test]
-    public void ShouldThrowExceptionWhenProjectNotInitialized()
+    public async System.Threading.Tasks.Task ShouldThrowExceptionWhenProjectNotInitialized()
     {
         var workspaceAcronym = GenerateWorkspaceAcronym();
         var command = GenerateTestWorkspaceDefinition(workspaceAcronym, new () { TerraformTemplate.NewProjectTemplate });
         var moduleDestinationPath = Path.Join(AppDomain.CurrentDomain.BaseDirectory, _resourceProvisionerConfiguration.InfrastructureRepository.LocalPath, DirectoryUtils.tempDirectory, _resourceProvisionerConfiguration.ModuleRepository.Name);
         Assert.That(Directory.Exists(moduleDestinationPath), Is.False);
-        Assert.ThrowsAsync<ProjectNotInitializedException>(async () =>
+        await Assert.ThrowsAsync<ProjectNotInitializedException>(async () =>
         {
             await _terraformService.CopyTemplateAsync(TerraformTemplate.AzureDatabricks, command);
         });
