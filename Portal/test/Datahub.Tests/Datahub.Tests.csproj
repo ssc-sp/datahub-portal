@@ -41,7 +41,7 @@
 		<PackageReference Include="Xunit.DependencyInjection" />
 		<PackageReference Include="xunit.v3.assert" />
 		<PackageReference Include="xunit.v3.core" />
-		<PackageReference Include="coverlet.MTP"/>
+		<PackageReference Include="coverlet.MTP" />
 		<PackageReference Include="Microsoft.Data.SqlClient" />
 	</ItemGroup>
 	<ItemGroup>
