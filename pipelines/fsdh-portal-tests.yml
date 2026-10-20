@@ -24,7 +24,7 @@ steps:
       command: 'test'
       projects: 'ServerlessOperations/test/Datahub.Functions.UnitTests/Datahub.Functions.UnitTests.csproj'
       testRunTitle: 'Datahub Function Unit Tests'
-      arguments: '-- --coverage --coverage-output-format cobertura --coverage-output $(Agent.WorkFolder)/coverage/Datahub.Functions.UnitTests'
+      arguments: '--configuration $(buildConfiguration) --coverlet --coverlet-output-format cobertura'
 
   - task: DotNetCoreCLI@2
     displayName: 'Datahub Infrastructure Unit Tests'
@@ -33,7 +33,7 @@ steps:
       command: 'test'
       projects: 'Portal/test/Datahub.Infrastructure.UnitTests/Datahub.Infrastructure.UnitTests.csproj'
       testRunTitle: 'Datahub Infrastructure Unit Tests'
-      arguments: '-- --coverage --coverage-output-format cobertura --coverage-output $(Agent.WorkFolder)/coverage/Datahub.Infrastructure.UnitTests'
+      arguments: '--configuration $(buildConfiguration) --coverlet --coverlet-output-format cobertura'
 
   - task: DotNetCoreCLI@2
     displayName: 'Datahub Specflow Tests'
@@ -42,7 +42,7 @@ steps:
       command: 'test'
       projects: 'Portal/test/Datahub.SpecflowTests/Datahub.SpecflowTests.csproj'
       testRunTitle: 'Datahub Specflow Tests'
-      arguments: '-- --coverage --coverage-output-format cobertura --coverage-output $(Agent.WorkFolder)/coverage/Datahub.SpecflowTests'
+      arguments: '--configuration $(buildConfiguration) --coverlet --coverlet-output-format cobertura'
 
   # - task: DotNetCoreCLI@2
   #   displayName: 'Datahub Specs Playwright Tests'
@@ -51,7 +51,7 @@ steps:
   #     command: 'test'
   #     projects: 'Portal/test/Datahub.Specs/Datahub.Specs.csproj'
   #     testRunTitle: 'Datahub Specs Tests'
-  #     arguments: '--configuration $(buildConfiguration) -- --coverage --coverage-output-format cobertura --coverage-output $(Agent.WorkFolder)/coverage/Datahub.Specs'
+  #     arguments: '--configuration $(buildConfiguration) --coverlet --coverlet-output-format cobertura --coverlet-output $(Agent.WorkFolder)/coverage/Datahub.Specs'
 
   - task: DotNetCoreCLI@2
     displayName: 'Datahub Unit Tests'
@@ -60,7 +60,7 @@ steps:
       command: 'test'
       projects: 'Portal/test/Datahub.Tests/Datahub.Tests.csproj'
       testRunTitle: 'Datahub Unit Tests'
-      arguments: '-- --coverage --coverage-output-format cobertura --coverage-output $(Agent.WorkFolder)/coverage/Datahub.Tests'
+      arguments: '--configuration $(buildConfiguration) --coverlet --coverlet-output-format cobertura'
       
   - script: |
         dotnet tool install -g dotnet-reportgenerator-globaltool

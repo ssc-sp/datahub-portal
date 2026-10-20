@@ -31,10 +31,7 @@
     <PackageReference Include="FluentAssertions" />
     <PackageReference Include="Reqnroll" />
     <PackageReference Include="Reqnroll.xUnit.v3" />
-    <PackageReference Include="coverlet.collector">      
-      <PrivateAssets>all</PrivateAssets>
-      <IncludeAssets>runtime; build; native; contentfiles; analyzers; buildtransitive</IncludeAssets>
-    </PackageReference>
+    <PackageReference Include="coverlet.MTP"/>
     <PackageReference Include="xunit.v3" />
   </ItemGroup>
 
