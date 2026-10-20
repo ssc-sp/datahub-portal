@@ -42,8 +42,10 @@ using Xunit;
 
 namespace Datahub.Tests;
 
+[Collection("EnvironmentSensitive")]
 public class ErrorBoundaryTests
 {
+    private static readonly object EnvironmentLock = new();
     private readonly IDbContextFactory<DatahubProjectDBContext> _dbConextFactoryMock;
     private readonly IWebHostEnvironment _hostingMock;
     private readonly Mock<IDatahubCatalogSearch> _datahubCatalogSearchMock;
