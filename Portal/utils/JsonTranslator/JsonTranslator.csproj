@@ -16,4 +16,8 @@
     <ProjectReference Include="..\..\src\Datahub.Core\Datahub.Core.csproj" />
   </ItemGroup>
 
+  <ItemGroup>
+    <PackageReference Include="System.Security.Cryptography.Xml" />
+  </ItemGroup>
+
 </Project>
