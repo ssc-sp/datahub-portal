@@ -112,7 +112,7 @@ namespace Datahub.Functions.UnitTests.Services
             act.Should().Throw<ArgumentNullException>().WithMessage("*AzureDevOpsConfiguration:ClientSecret*");
         }
 
-        [Ignore("This test is ignored because of complex dependencies and setup required for MassTransit and Azure Functions. It serves as a placeholder for future integration tests.")]
+        [Test]
         public void AddDatahubConfigurationFromFunctionFormat_ShouldAddConfigurationToServices_WhenAllValuesAreProvided()
         {
             // Arrange
