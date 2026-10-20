@@ -181,14 +181,13 @@ namespace Datahub.Infrastructure.UnitTests.Services
         }
 
         [Test]
-        public void ListFoldersPropagatesStorageFailures()
+        public async System.Threading.Tasks.Task ListFoldersPropagatesStorageFailures()
         {
             var client = new Mock<StorageClient>();
             client.Setup(storage => storage.ListObjectsAsync(
                     "bucket", "", It.IsAny<ListObjectsOptions>()))
                 .Throws(new InvalidOperationException("Access denied"));
-
-            Assert.ThrowsAsync<InvalidOperationException>(() =>
+            await Assert.ThrowsAsync<InvalidOperationException>(() =>
                 _manager.ListFoldersAsync(client.Object, "bucket", ""));
         }
 
@@ -225,11 +224,10 @@ namespace Datahub.Infrastructure.UnitTests.Services
         [TestCase("REGIONAL")]
         [TestCase("MULTI_REGIONAL")]
         [TestCase("DURABLE_REDUCED_AVAILABILITY")]
-        public void InvalidDestinationDoesNotCallGoogleCloud(string storageClass)
+        public async System.Threading.Tasks.Task InvalidDestinationDoesNotCallGoogleCloud(string storageClass)
         {
             var client = new Mock<StorageClient>(MockBehavior.Strict);
-
-            Assert.ThrowsAsync<StorageTierChangeException>(() =>
+            await Assert.ThrowsAsync<StorageTierChangeException>(() =>
                 _manager.SetFileStorageTierAsync(client.Object, "bucket", "nested/file.txt", storageClass));
             client.VerifyNoOtherCalls();
         }
@@ -273,7 +271,7 @@ namespace Datahub.Infrastructure.UnitTests.Services
         }
 
         [Test]
-        public void ClassChangeFailsWhenGoogleCloudIgnoresTheRequestedClass()
+        public async System.Threading.Tasks.Task ClassChangeFailsWhenGoogleCloudIgnoresTheRequestedClass()
         {
             var client = ObjectClient(new GObject { StorageClass = "STANDARD", Generation = 42 });
             client.Setup(c => c.CopyObjectAsync(
@@ -281,7 +279,7 @@ namespace Datahub.Infrastructure.UnitTests.Services
                     It.IsAny<CopyObjectOptions>(), It.IsAny<CancellationToken>()))
                 .ReturnsAsync(new GObject { StorageClass = "STANDARD" });
 
-            var exception = Assert.ThrowsAsync<StorageTierChangeException>(() =>
+            var exception = await Assert.ThrowsAsync<StorageTierChangeException>(() =>
                 _manager.SetFileStorageTierAsync(client.Object, "bucket", "nested/file.txt", "ARCHIVE"));
 
             Assert.That(exception!.Message, Does.Contain("Autoclass"));
@@ -289,28 +287,26 @@ namespace Datahub.Infrastructure.UnitTests.Services
         }
 
         [Test]
-        public void LookupFailuresPropagateWithoutRewriting()
+        public async System.Threading.Tasks.Task LookupFailuresPropagateWithoutRewriting()
         {
             var client = new Mock<StorageClient>(MockBehavior.Strict);
             client.Setup(c => c.GetObjectAsync(
                     "bucket", "nested/file.txt", It.IsAny<GetObjectOptions>(), It.IsAny<CancellationToken>()))
                 .ThrowsAsync(new InvalidOperationException("Access denied"));
-
-            Assert.ThrowsAsync<InvalidOperationException>(() =>
+            await Assert.ThrowsAsync<InvalidOperationException>(() =>
                 _manager.SetFileStorageTierAsync(client.Object, "bucket", "nested/file.txt", "NEARLINE"));
             client.VerifyAll();
         }
 
         [Test]
-        public void RewriteFailuresPropagate()
+        public async System.Threading.Tasks.Task RewriteFailuresPropagate()
         {
             var client = ObjectClient(new GObject { StorageClass = "STANDARD", Generation = 42 });
             client.Setup(c => c.CopyObjectAsync(
                     It.IsAny<string>(), It.IsAny<string>(), It.IsAny<string>(), It.IsAny<string>(),
                     It.IsAny<CopyObjectOptions>(), It.IsAny<CancellationToken>()))
                 .ThrowsAsync(new InvalidOperationException("Rewrite failed"));
-
-            Assert.ThrowsAsync<InvalidOperationException>(() =>
+            await Assert.ThrowsAsync<InvalidOperationException>(() =>
                 _manager.SetFileStorageTierAsync(client.Object, "bucket", "nested/file.txt", "NEARLINE"));
             client.VerifyAll();
         }

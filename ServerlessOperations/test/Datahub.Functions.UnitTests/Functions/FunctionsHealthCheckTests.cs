@@ -6,6 +6,7 @@ using Microsoft.Azure.Functions.Worker;
 using Microsoft.Azure.Functions.Worker.Http;
 using Microsoft.Extensions.Logging;
 using Microsoft.Extensions.Caching.Memory;
+using Microsoft.Extensions.Logging.Abstractions;
 using NSubstitute;
 using NUnit.Framework;
 using FluentAssertions;
@@ -23,9 +24,7 @@ namespace Datahub.Functions.UnitTests
         [SetUp]
         public void SetUp()
         {
-            _loggerFactory = Substitute.For<ILoggerFactory>();
-            _loggerFactory.CreateLogger<FunctionsHealthCheck>()
-                .Returns(Substitute.For<ILogger<FunctionsHealthCheck>>());
+            _loggerFactory = NullLoggerFactory.Instance;
 
             _gcNotifyService = Substitute.For<IGCNotifyService>();
             _gcNotifyService.CheckHealthAsync().Returns(Task.FromResult(true));
