@@ -1,56 +1,49 @@
 <Project Sdk="Microsoft.NET.Sdk.Razor">
 
-    <PropertyGroup>
-        <TargetFramework>net10.0</TargetFramework>
-        <Nullable>enable</Nullable>
-        <ImplicitUsings>enable</ImplicitUsings>
-        <InterceptorsNamespaces>$(InterceptorsNamespaces);Bunit</InterceptorsNamespaces>
-        <RootNamespace>Datahub.SpecflowTests</RootNamespace>
-		<IsTestProject>true</IsTestProject>
-      <UserSecretsId>0e5da883-04b1-4ef6-87a0-33f222cc5391</UserSecretsId>
-      <!-- Workaround for Reqnroll with .NET 9 SDK -->
-      <ReqnrollGeneratorRuntime>NetCore</ReqnrollGeneratorRuntime>
+  <PropertyGroup>
+    <TargetFramework>net10.0</TargetFramework>
+    <Nullable>enable</Nullable>
+    <ImplicitUsings>enable</ImplicitUsings>
+    <InterceptorsNamespaces>$(InterceptorsNamespaces);Bunit</InterceptorsNamespaces>
+    <RootNamespace>Datahub.SpecflowTests</RootNamespace>
+    <IsTestProject>true</IsTestProject>
+    <UserSecretsId>0e5da883-04b1-4ef6-87a0-33f222cc5391</UserSecretsId>
+    <!-- Workaround for Reqnroll with .NET 9 SDK -->
+    <ReqnrollGeneratorRuntime>NetCore</ReqnrollGeneratorRuntime>
+    <OutputType>Exe</OutputType>
   </PropertyGroup>
 
-    <ItemGroup>
-        <PackageReference Include="Azure.Messaging.ServiceBus" />
-        <PackageReference Include="Azure.ResourceManager.Billing" />
-        <PackageReference Include="Azure.ResourceManager.Consumption" />
-        <PackageReference Include="Azure.ResourceManager.Resources" />
-        <PackageReference Include="bunit" />
-		<PackageReference Include="bunit.generators" />
-        <PackageReference Include="Deque.AxeCore.Commons" />
-        <PackageReference Include="Microsoft.EntityFrameworkCore.InMemory" />
-        <PackageReference Include="Microsoft.NET.Test.Sdk" />
-        <PackageReference Include="NSubstitute" />
-        <PackageReference Include="NSubstitute.Analyzers.CSharp">
-          <PrivateAssets>all</PrivateAssets>
-          <IncludeAssets>runtime; build; native; contentfiles; analyzers; buildtransitive</IncludeAssets>
-        </PackageReference>
-        <PackageReference Include="NUnit.ConsoleRunner" />
-        <PackageReference Include="FluentAssertions" />
-        <PackageReference Include="Reqnroll" />
-        <PackageReference Include="Reqnroll.xUnit.v3" />
-		<PackageReference Include="coverlet.collector">
-            <PrivateAssets>all</PrivateAssets>
-            <IncludeAssets>runtime; build; native; contentfiles; analyzers; buildtransitive</IncludeAssets>
-        </PackageReference>
-		<PackageReference Include="xunit.v3" />
-		<PackageReference Include="xunit.runner.visualstudio">
-			<PrivateAssets>all</PrivateAssets>
-			<IncludeAssets>runtime; build; native; contentfiles; analyzers; buildtransitive</IncludeAssets>
-		</PackageReference>
-	</ItemGroup>
+  <ItemGroup>
+    <PackageReference Include="Azure.Messaging.ServiceBus" />
+    <PackageReference Include="Azure.ResourceManager.Billing" />
+    <PackageReference Include="Azure.ResourceManager.Consumption" />
+    <PackageReference Include="Azure.ResourceManager.Resources" />
+    <PackageReference Include="bunit" />
+    <PackageReference Include="bunit.generators" />
+    <PackageReference Include="Deque.AxeCore.Commons" />
+    <PackageReference Include="Microsoft.EntityFrameworkCore.InMemory" />
+    <PackageReference Include="Microsoft.Testing.Extensions.TrxReport" />
+    <PackageReference Include="NSubstitute" />
+    <PackageReference Include="NSubstitute.Analyzers.CSharp">
+      <PrivateAssets>all</PrivateAssets>
+      <IncludeAssets>runtime; build; native; contentfiles; analyzers; buildtransitive</IncludeAssets>
+    </PackageReference>
+    <PackageReference Include="FluentAssertions" />
+    <PackageReference Include="Reqnroll" />
+    <PackageReference Include="Reqnroll.xUnit.v3" />
+    <PackageReference Include="coverlet.MTP"/>
+    <PackageReference Include="xunit.v3" />
+  </ItemGroup>
 
-    <ItemGroup>
-      <ProjectReference Include="..\..\..\ServerlessOperations\src\Datahub.Functions\Datahub.Functions.csproj" />
-      <ProjectReference Include="..\..\src\Datahub.Infrastructure.Offline\Datahub.Infrastructure.Offline.csproj" />
-      <ProjectReference Include="..\..\src\Datahub.Portal\Datahub.Portal.csproj" />
-    </ItemGroup>
+  <ItemGroup>
+    <ProjectReference Include="..\..\..\ServerlessOperations\src\Datahub.Functions\Datahub.Functions.csproj" />
+    <ProjectReference Include="..\..\src\Datahub.Infrastructure.Offline\Datahub.Infrastructure.Offline.csproj" />
+    <ProjectReference Include="..\..\src\Datahub.Portal\Datahub.Portal.csproj" />
+  </ItemGroup>
 
-    <ItemGroup>
-        <Content Include="Features\**\*.feature" />
-    </ItemGroup>
+  <ItemGroup>
+    <Content Include="Features\**\*.feature" />
+  </ItemGroup>
 
 </Project>
 
