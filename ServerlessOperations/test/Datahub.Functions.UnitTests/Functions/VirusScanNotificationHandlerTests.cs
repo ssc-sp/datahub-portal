@@ -15,6 +15,7 @@ using MassTransit;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.Logging;
+using Moq;
 using NSubstitute;
 using System.Text;
 using System.Text.Json;
@@ -25,21 +26,6 @@ namespace Datahub.Functions.UnitTests.Functions;
 public class VirusScanNotificationHandlerTests
 {
     private readonly ILogger<VirusScanNotificationHandler> _logger = Substitute.For<ILogger<VirusScanNotificationHandler>>();
-
-    private sealed class DbContextFactoryStub : IDbContextFactory<DatahubProjectDBContext>
-    {
-        private readonly DbContextOptions<SqlServerDatahubContext> _options;
-
-        public DbContextFactoryStub(DbContextOptions<SqlServerDatahubContext> options)
-        {
-            _options = options;
-        }
-
-        public DatahubProjectDBContext CreateDbContext() => new SqlServerDatahubContext(_options);
-
-        public ValueTask<DatahubProjectDBContext> CreateDbContextAsync(CancellationToken cancellationToken = default)
-            => ValueTask.FromResult<DatahubProjectDBContext>(new SqlServerDatahubContext(_options));
-    }
 
     [Test]
     public async Task RunAsync_WhenScanIsClean_QueuesStatusAndMovesBlobToUsersContainer()
@@ -219,10 +205,14 @@ public class VirusScanNotificationHandlerTests
             .UseInMemoryDatabase(Guid.NewGuid().ToString())
             .Options;
 
-        var contextFactory = new DbContextFactoryStub(options);
+        var mockFactory = new Mock<IDbContextFactory<DatahubProjectDBContext>>();
+        mockFactory
+            .Setup(f => f.CreateDbContextAsync(CancellationToken.None))
+            .ReturnsAsync(() => new SqlServerDatahubContext(options));
+
         SeedContextAsync(userGuid, options).GetAwaiter().GetResult();
 
-        return contextFactory;
+        return mockFactory.Object;
     }
 
     private static IDbContextFactory<DatahubProjectDBContext> CreateDbContextFactoryForPathExtraction()
@@ -231,10 +221,14 @@ public class VirusScanNotificationHandlerTests
             .UseInMemoryDatabase(Guid.NewGuid().ToString())
             .Options;
 
-        var contextFactory = new DbContextFactoryStub(options);
+        var mockFactory = new Mock<IDbContextFactory<DatahubProjectDBContext>>();
+        mockFactory
+            .Setup(f => f.CreateDbContextAsync(CancellationToken.None))
+            .ReturnsAsync(() => new SqlServerDatahubContext(options));
+
         SeedContextForPathExtractionAsync(options).GetAwaiter().GetResult();
 
-        return contextFactory;
+        return mockFactory.Object;
     }
 
     private static async Task SeedContextAsync(string userGuid, DbContextOptions<SqlServerDatahubContext> options)
