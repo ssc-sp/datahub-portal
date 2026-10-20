@@ -24,7 +24,7 @@ steps:
       command: 'test'
       projects: 'Portal/test/Datahub.Functions.UnitTests/Datahub.Functions.UnitTests.csproj'
       testRunTitle: 'Datahub Function Unit Tests'
-      arguments: '--configuration $(buildConfiguration) --collect:"XPlat Code Coverage"'
+      arguments: '--report-trx --configuration $(buildConfiguration) --collect:"XPlat Code Coverage"'
 
   - task: DotNetCoreCLI@2
     displayName: 'Datahub Infrastructure Unit Tests'
@@ -33,7 +33,7 @@ steps:
       command: 'test'
       projects: 'Portal/test/Datahub.Infrastructure.UnitTests/Datahub.Infrastructure.UnitTests.csproj'
       testRunTitle: 'Datahub Infrastructure Unit Tests'
-      arguments: '--configuration $(buildConfiguration) --collect:"XPlat Code Coverage"'
+      arguments: '--report-trx --configuration $(buildConfiguration) --collect:"XPlat Code Coverage"'
 
   - task: DotNetCoreCLI@2
     displayName: 'Datahub Specflow Tests'
@@ -42,7 +42,7 @@ steps:
       command: 'test'
       projects: 'Portal/test/Datahub.SpecflowTests/Datahub.SpecflowTests.csproj'
       testRunTitle: 'Datahub Specflow Tests'
-      arguments: '--configuration $(buildConfiguration) --collect:"XPlat Code Coverage"'
+      arguments: '--report-trx --configuration $(buildConfiguration) --collect:"XPlat Code Coverage"'
 
   # - task: DotNetCoreCLI@2
   #   displayName: 'Datahub Specs Playwright Tests'
@@ -60,7 +60,7 @@ steps:
       command: 'test'
       projects: 'Portal/test/Datahub.Tests/Datahub.Tests.csproj'
       testRunTitle: 'Datahub Unit Tests'
-      arguments: '--configuration $(buildConfiguration) --collect:"XPlat Code Coverage"'
+      arguments: '--report-trx --configuration $(buildConfiguration) --collect:"XPlat Code Coverage"'
       
   - script: |
         dotnet tool install -g dotnet-reportgenerator-globaltool
