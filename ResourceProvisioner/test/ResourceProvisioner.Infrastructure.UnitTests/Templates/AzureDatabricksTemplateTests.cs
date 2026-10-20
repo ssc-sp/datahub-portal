@@ -40,8 +40,7 @@ public class AzureDatabricksTemplateTests : TemplateTestCollection
         await _repositoryService.FetchRepositoriesAndCheckoutProjectBranch(command.Workspace);
 
         var module = GenerateTerraformTemplate(TerraformTemplate.AzureDatabricks);
-
-        Assert.ThrowsAsync<ProjectNotInitializedException>(async () =>
+        await Assert.ThrowsAsync<ProjectNotInitializedException>(async () =>
         {
             await _terraformService.CopyTemplateAsync(module.Name, command);
         });
