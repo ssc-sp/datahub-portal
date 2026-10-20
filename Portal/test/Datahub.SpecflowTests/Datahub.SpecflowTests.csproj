@@ -1,4 +1,4 @@
-<Project Sdk="Microsoft.NET.Sdk.Razor">
+﻿<Project Sdk="Microsoft.NET.Sdk.Razor">
 
   <PropertyGroup>
     <TargetFramework>net10.0</TargetFramework>
@@ -10,6 +10,8 @@
     <UserSecretsId>0e5da883-04b1-4ef6-87a0-33f222cc5391</UserSecretsId>
     <!-- Workaround for Reqnroll with .NET 9 SDK -->
     <ReqnrollGeneratorRuntime>NetCore</ReqnrollGeneratorRuntime>
+    <EnableNUnitRunner>true</EnableNUnitRunner>
+    <OutputType>Exe</OutputType>
   </PropertyGroup>
 
   <ItemGroup>
@@ -29,6 +31,7 @@
       <IncludeAssets>runtime; build; native; contentfiles; analyzers; buildtransitive</IncludeAssets>
     </PackageReference>
     <PackageReference Include="NUnit.ConsoleRunner" />
+    <PackageReference Include="NUnit3TestAdapter" />
     <PackageReference Include="FluentAssertions" />
     <PackageReference Include="Reqnroll" />
     <PackageReference Include="Reqnroll.xUnit.v3" />
