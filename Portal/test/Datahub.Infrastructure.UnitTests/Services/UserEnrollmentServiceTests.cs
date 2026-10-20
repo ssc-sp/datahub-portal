@@ -40,7 +40,7 @@ public class UserEnrollmentServiceTests
 
         var result = await userEnrollmentService.SendUserDatahubPortalInvite(TestUserEmail, default);
 
-        Assert.That(result, Is.Not.Null.Or.Empty);
+        Assert.That(result, Is.Not.Null.And.Not.Empty);
         Assert.That(result, Is.EqualTo(TestUserGraphGuid));
     }
 
@@ -74,7 +74,7 @@ public class UserEnrollmentServiceTests
 
         var result = await userEnrollmentService.SendUserDatahubPortalInvite(GuestUserEmail, default);
 
-        Assert.That(result, Is.Not.Null.Or.Empty);
+        Assert.That(result, Is.Not.Null.And.Not.Empty);
         Assert.That(result, Is.EqualTo(TestUserGraphGuid));
     }
 
@@ -82,13 +82,12 @@ public class UserEnrollmentServiceTests
     [TestCase("fake@email.com")]
     [TestCase("fake@canada.com")]
     [TestCase("fake@gc.canada.ca")]
-    public Task UserCanNotEnrollWithoutAGovernmentEmailTest(string? email)
+    public async Task UserCanNotEnrollWithoutAGovernmentEmailTest(string? email)
     {
-        Assert.ThrowsAsync<InvalidOperationException>(async () =>
+        await Assert.ThrowsAsync<InvalidOperationException>(async () =>
         {
             await _userEnrollmentService.SendUserDatahubPortalInvite(email, default);
-        });
-        return Task.CompletedTask;
+        });        
     }
 
     [Test]
@@ -117,7 +116,7 @@ public class UserEnrollmentServiceTests
             httpClientFactory.Object, _datahubPortalConfiguration, null);
         var result = await userEnrollmentService.SendUserDatahubPortalInvite(TestUserEmail, default);
 
-        Assert.That(result, Is.Not.Null.Or.Empty);
+        Assert.That(result, Is.Not.Null.And.Not.Empty);
         Assert.That(result, Is.EqualTo(fakeReturnId));
     }
 
