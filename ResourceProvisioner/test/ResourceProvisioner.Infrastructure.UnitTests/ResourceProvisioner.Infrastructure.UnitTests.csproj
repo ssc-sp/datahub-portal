@@ -4,7 +4,8 @@
         <TargetFramework>net10.0</TargetFramework>
         <ImplicitUsings>enable</ImplicitUsings>
         <Nullable>enable</Nullable>
-
+      <EnableNUnitRunner>true</EnableNUnitRunner>
+      <OutputType>Exe</OutputType>
         <IsPackable>false</IsPackable>
       <UserSecretsId>9edf3516-5557-48c6-aace-523038fd4848</UserSecretsId>
   </PropertyGroup>
@@ -23,10 +24,7 @@
           <PrivateAssets>all</PrivateAssets>
           <IncludeAssets>runtime; build; native; contentfiles; analyzers; buildtransitive</IncludeAssets>
         </PackageReference>
-        <PackageReference Include="coverlet.collector">
-          <PrivateAssets>all</PrivateAssets>
-          <IncludeAssets>runtime; build; native; contentfiles; analyzers; buildtransitive</IncludeAssets>
-        </PackageReference>
+      <PackageReference Include="coverlet.MTP"/>
     </ItemGroup>
 
     <ItemGroup>
