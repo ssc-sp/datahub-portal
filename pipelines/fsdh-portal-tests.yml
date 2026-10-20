@@ -22,7 +22,7 @@ steps:
     condition: succeededOrFailed()
     inputs:
       command: 'test'
-      projects: 'Portal/test/Datahub.Functions.UnitTests/Datahub.Functions.UnitTests.csproj'
+      projects: 'ServerlessOperations/test/Datahub.Functions.UnitTests/Datahub.Functions.UnitTests.csproj'
       testRunTitle: 'Datahub Function Unit Tests'
       arguments: '--configuration $(buildConfiguration) --collect:"XPlat Code Coverage"'
 
