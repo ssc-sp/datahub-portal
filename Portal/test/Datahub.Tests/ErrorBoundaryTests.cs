@@ -42,8 +42,10 @@ using Xunit;
 
 namespace Datahub.Tests;
 
+[Collection("EnvironmentSensitive")]
 public class ErrorBoundaryTests
 {
+    private static readonly object EnvironmentLock = new();
     private readonly IDbContextFactory<DatahubProjectDBContext> _dbConextFactoryMock;
     private readonly IWebHostEnvironment _hostingMock;
     private readonly Mock<IDatahubCatalogSearch> _datahubCatalogSearchMock;
@@ -123,81 +125,100 @@ public class ErrorBoundaryTests
     [Fact]
     public async Task ReportIssue_ExceptionHandled()
     {
-        // Arrange
-        var ex = new Exception("test");
-        var corrlationId = Guid.NewGuid().ToString();
-        var fakePortalUser = new PortalUser
+        var previousAspNetCoreEnvironment = Environment.GetEnvironmentVariable("ASPNETCORE_ENVIRONMENT");
+        var previousDotNetEnvironment = Environment.GetEnvironmentVariable("DOTNET_ENVIRONMENT");
+
+        lock (EnvironmentLock)
         {
-            Id = 1,
-            Email = "john.doe@ssc-spc.gc.ca",
-            DisplayName = "Test User",
-            EntraUser = new EntraUser
+            Environment.SetEnvironmentVariable("ASPNETCORE_ENVIRONMENT", "Production");
+            Environment.SetEnvironmentVariable("DOTNET_ENVIRONMENT", "Production");
+        }
+
+        try
+        {
+            // Arrange
+            var ex = new Exception("test");
+            var corrlationId = Guid.NewGuid().ToString();
+            var fakePortalUser = new PortalUser
             {
-                GraphGuid = Guid.NewGuid().ToString(),
-                PortalUser = null!
-            }
-        };
-        _snackBarMock.Setup(x => x.Configuration).Returns(new SnackbarConfiguration());
-        _stringLocalizerMock.Setup(x => x[It.IsAny<string>()]).Returns(new LocalizedString("test","test"));
+                Id = 1,
+                Email = "john.doe@ssc-spc.gc.ca",
+                DisplayName = "Test User",
+                EntraUser = new EntraUser
+                {
+                    GraphGuid = Guid.NewGuid().ToString(),
+                    PortalUser = null!
+                }
+            };
+            _snackBarMock.Setup(x => x.Configuration).Returns(new SnackbarConfiguration());
+            _stringLocalizerMock.Setup(x => x[It.IsAny<string>()]).Returns(new LocalizedString("test", "test"));
 
-        _hostingMock.EnvironmentName.Returns("Hosting:PortalUnitTestingEnvironment");
+            _hostingMock.EnvironmentName.Returns("Hosting:PortalUnitTestingEnvironment");
 
-        _jsModuleMock.Setup(x => x.InvokeAsync<string>(It.IsAny<string>(), 
-            It.IsAny<object[]>())).ReturnsAsync("data");
-        _jsRuntimeMock.Setup(x => x.InvokeAsync<IJSObjectReference>(It.IsAny<string>(),
-            It.IsAny<object[]>())).ReturnsAsync(_jsModuleMock.Object);
+            _jsModuleMock.Setup(x => x.InvokeAsync<string>(It.IsAny<string>(),
+                It.IsAny<object[]>())).ReturnsAsync("data");
+            _jsRuntimeMock.Setup(x => x.InvokeAsync<IJSObjectReference>(It.IsAny<string>(),
+                It.IsAny<object[]>())).ReturnsAsync(_jsModuleMock.Object);
 
-        var context = new DefaultHttpContext();
-        context.Request.Headers["User-Agent"] = "fake_user_agent"; 
-        _httpContextAccessorMock.Setup(x => x.HttpContext).Returns(context);
+            var context = new DefaultHttpContext();
+            context.Request.Headers["User-Agent"] = "fake_user_agent";
+            _httpContextAccessorMock.Setup(x => x.HttpContext).Returns(context);
 
-        var configuration = new ConfigurationBuilder()
-            .AddEnvironmentVariables()
-            .AddJsonFile("appsettings.test.json", optional: true)
-            .Build();
+            var configuration = new ConfigurationBuilder()
+                .AddEnvironmentVariables()
+                .AddJsonFile("appsettings.test.json", optional: true)
+                .Build();
 
-        var datahubPortalConfiguration = new DatahubPortalConfiguration();
-        configuration.Bind(datahubPortalConfiguration);
+            var datahubPortalConfiguration = new DatahubPortalConfiguration();
+            configuration.Bind(datahubPortalConfiguration);
 
-        await using var ctx = new Bunit.BunitContext();
-        ctx.Services.AddSingleton(_dbConextFactoryMock);
-        ctx.Services.AddSingleton<IConfiguration>(configuration);
-        ctx.Services.AddSingleton(datahubPortalConfiguration);
-        ctx.Services.AddSingleton(_datahubCatalogSearchMock.Object);
-        ctx.Services.AddSingleton(_auditingServiceMock.Object);
-        ctx.Services.AddSingleton(_hostingMock);
-        ctx.Services.AddSingleton(_userInformationMock.Object);
-        ctx.Services.AddSingleton(_userSettingsMock.Object);
-        ctx.Services.AddSingleton(_cultureServiceMock.Object);
-        ctx.Services.AddSingleton(_httpContextAccessorMock.Object);
-        ctx.Services.AddSingleton(_jsRuntimeMock.Object);
-        ctx.Services.AddSingleton(_localStorageMock.Object);
-        ctx.Services.AddSingleton(_navigationManagerMock.Object);
-        ctx.Services.AddSingleton<NavigationManager, FakeNavigationManager>();
-        ctx.Services.AddSingleton(_mediatrMock.Object);
-        ctx.Services.AddSingleton(_stringLocalizerMock.Object);
-        ctx.Services.AddSingleton(_portalUserTelemetryServiceMock.Object);
-        ctx.Services.AddSingleton(_sessionStorageMock.Object);
-        ctx.Services.AddSingleton(_serviceAuthManager.Object);
-        ctx.Services.AddSingleton(_lockedUserManagementServiceMock.Object);
-        ctx.Services.AddSingleton(_authorizationPolicyProvider.Object);
-        ctx.Services.AddScoped<AuthenticationStateProvider, TestAuthStateProvider>();
-        ctx.Services.AddAuthorizationCore();
-        var authContext = ctx.AddAuthorization();
-        authContext.SetAuthorizing();
-        ctx.Services.AddMudServices();
+            await using var ctx = new Bunit.BunitContext();
+            ctx.Services.AddSingleton(_dbConextFactoryMock);
+            ctx.Services.AddSingleton<IConfiguration>(configuration);
+            ctx.Services.AddSingleton(datahubPortalConfiguration);
+            ctx.Services.AddSingleton(_datahubCatalogSearchMock.Object);
+            ctx.Services.AddSingleton(_auditingServiceMock.Object);
+            ctx.Services.AddSingleton(_hostingMock);
+            ctx.Services.AddSingleton(_userInformationMock.Object);
+            ctx.Services.AddSingleton(_userSettingsMock.Object);
+            ctx.Services.AddSingleton(_cultureServiceMock.Object);
+            ctx.Services.AddSingleton(_httpContextAccessorMock.Object);
+            ctx.Services.AddSingleton(_jsRuntimeMock.Object);
+            ctx.Services.AddSingleton(_localStorageMock.Object);
+            ctx.Services.AddSingleton(_navigationManagerMock.Object);
+            ctx.Services.AddSingleton<NavigationManager, FakeNavigationManager>();
+            ctx.Services.AddSingleton(_mediatrMock.Object);
+            ctx.Services.AddSingleton(_stringLocalizerMock.Object);
+            ctx.Services.AddSingleton(_portalUserTelemetryServiceMock.Object);
+            ctx.Services.AddSingleton(_sessionStorageMock.Object);
+            ctx.Services.AddSingleton(_serviceAuthManager.Object);
+            ctx.Services.AddSingleton(_lockedUserManagementServiceMock.Object);
+            ctx.Services.AddSingleton(_authorizationPolicyProvider.Object);
+            ctx.Services.AddScoped<AuthenticationStateProvider, TestAuthStateProvider>();
+            ctx.Services.AddAuthorizationCore();
+            var authContext = ctx.AddAuthorization();
+            authContext.SetAuthorizing();
+            ctx.Services.AddMudServices();
 
-        // Act - wrap PortalLayout in CascadingAuthenticationState so AuthorizeView gets AuthenticationState
-        var cut = ctx.Render<CascadingAuthenticationState>(parameters =>
+            // Act - wrap PortalLayout in CascadingAuthenticationState so AuthorizeView gets AuthenticationState
+            var cut = ctx.Render<CascadingAuthenticationState>(parameters =>
+            {
+                parameters.AddChildContent<PortalLayout>();
+            });
+
+            var portalLayout = cut.FindComponent<PortalLayout>();
+            await portalLayout.Instance.ReportIssue(ex, corrlationId);
+
+            await ctx.DisposeComponentsAsync();
+            _mediatrMock.Verify(m => m.Send(It.IsAny<BugReportMessage>(), default), Times.Once);
+        }
+        finally
         {
-            parameters.AddChildContent<PortalLayout>();
-        });
-
-        var portalLayout = cut.FindComponent<PortalLayout>();
-        await portalLayout.Instance.ReportIssue(ex, corrlationId);
-
-        await ctx.DisposeComponentsAsync();
-        // Note: Do not call ctx.Dispose() here as BunitContext is being asynchronously disposed via await using
-        _mediatrMock.Verify(m => m.Send(It.IsAny<BugReportMessage>(), default), Times.Once);
+            lock (EnvironmentLock)
+            {
+                Environment.SetEnvironmentVariable("ASPNETCORE_ENVIRONMENT", previousAspNetCoreEnvironment);
+                Environment.SetEnvironmentVariable("DOTNET_ENVIRONMENT", previousDotNetEnvironment);
+            }
+        }
     }
 }
