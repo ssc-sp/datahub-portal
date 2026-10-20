@@ -35,7 +35,7 @@ public class AzureVirtualMachineTemplateTests : TemplateTestCollection
                     TerraformTemplate.NewProjectTemplate,
                     TerraformTemplate.NewProjectTemplate
             });
-        Assert.ThrowsAsync<ProjectNotInitializedException>(async () =>
+        await Assert.ThrowsAsync<ProjectNotInitializedException>(async () =>
         {
             await _terraformService.CopyTemplateAsync(module.Name, command);
         });
