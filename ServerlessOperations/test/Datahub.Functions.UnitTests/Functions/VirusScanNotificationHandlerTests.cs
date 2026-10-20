@@ -26,6 +26,21 @@ public class VirusScanNotificationHandlerTests
 {
     private readonly ILogger<VirusScanNotificationHandler> _logger = Substitute.For<ILogger<VirusScanNotificationHandler>>();
 
+    private sealed class DbContextFactoryStub : IDbContextFactory<DatahubProjectDBContext>
+    {
+        private readonly DbContextOptions<SqlServerDatahubContext> _options;
+
+        public DbContextFactoryStub(DbContextOptions<SqlServerDatahubContext> options)
+        {
+            _options = options;
+        }
+
+        public DatahubProjectDBContext CreateDbContext() => new SqlServerDatahubContext(_options);
+
+        public ValueTask<DatahubProjectDBContext> CreateDbContextAsync(CancellationToken cancellationToken = default)
+            => ValueTask.FromResult<DatahubProjectDBContext>(new SqlServerDatahubContext(_options));
+    }
+
     [Test]
     public async Task RunAsync_WhenScanIsClean_QueuesStatusAndMovesBlobToUsersContainer()
     {
@@ -192,7 +207,6 @@ public class VirusScanNotificationHandlerTests
             storageManagementService ?? Substitute.For<IWorkspaceStorageManagementService>());
     }
 
-
     private static ServiceBusReceivedMessage CreateServiceBusMessage(ClamAVMessage message)
     {
         var payload = JsonSerializer.Serialize(message);
@@ -205,10 +219,7 @@ public class VirusScanNotificationHandlerTests
             .UseInMemoryDatabase(Guid.NewGuid().ToString())
             .Options;
 
-        var contextFactory = Substitute.For<IDbContextFactory<DatahubProjectDBContext>>();
-        contextFactory.CreateDbContextAsync(Arg.Any<CancellationToken>())
-            .Returns(_ => Task.FromResult<DatahubProjectDBContext>(new SqlServerDatahubContext(options)));
-
+        var contextFactory = new DbContextFactoryStub(options);
         SeedContextAsync(userGuid, options).GetAwaiter().GetResult();
 
         return contextFactory;
@@ -220,10 +231,7 @@ public class VirusScanNotificationHandlerTests
             .UseInMemoryDatabase(Guid.NewGuid().ToString())
             .Options;
 
-        var contextFactory = Substitute.For<IDbContextFactory<DatahubProjectDBContext>>();
-        contextFactory.CreateDbContextAsync(Arg.Any<CancellationToken>())
-            .Returns(_ => Task.FromResult<DatahubProjectDBContext>(new SqlServerDatahubContext(options)));
-
+        var contextFactory = new DbContextFactoryStub(options);
         SeedContextForPathExtractionAsync(options).GetAwaiter().GetResult();
 
         return contextFactory;
