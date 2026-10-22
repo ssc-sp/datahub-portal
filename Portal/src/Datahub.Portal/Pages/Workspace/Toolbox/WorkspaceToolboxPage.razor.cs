@@ -3,6 +3,7 @@ using System.Text.Json;
 using Datahub.Application.Services;
 using Datahub.Application.Services.Toolbox;
 using Datahub.Infrastructure.Services.Toolbox;
+using Datahub.Metadata.Model;
 using Datahub.Portal.Layout;
 using Datahub.Portal.Pages.Workspace.Toolbox.ConfigurationForms;
 using Datahub.Shared;
@@ -592,10 +593,11 @@ namespace Datahub.Portal.Pages.Workspace.Toolbox
         /// <summary>
         /// Populates the tool catalog with tools that are not already in the workspace definition.
         /// </summary>
-        private void PopulateCatalog()
+        private void PopulateCatalog(ClassificationType classificationType)
         {
             var existingTools = GetExistingWorkspaceTools();
-            _toolCatalog.AddRange(WorkspaceToolCatalog.VersionAwareTools.Keys.Where(t => !existingTools.Contains(t)));
+            var isPB = classificationType == ClassificationType.ProtectedB;
+            _toolCatalog.AddRange(WorkspaceToolCatalog.VersionAwareTools.Where(v => v.Value.EnhancedPB == isPB && !existingTools.Contains(v.Key)).Select(kvp => kvp.Key));
         }
 
         /// <summary>

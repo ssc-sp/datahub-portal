@@ -8,6 +8,7 @@ public class TerraformTemplate
     public static string GetTerraformServiceType(string templateName) => $"terraform:{templateName}";
 
     public const string NewProjectTemplate = "new-project-template";
+    public const string NewProjectTemplateEnhanced = "new-project-template-enhanced";
     public const string VariableUpdate = "variable-update";
     public const string AzureDatabricks = "azure-databricks";
     public const string AzureDatabricksEnhanced = "azure-databricks-enhanced";
@@ -20,7 +21,6 @@ public class TerraformTemplate
     public const string AzureArcGis = "azure-arcgis";
     public const string AzureAPI = "azure-api";
     public const string AzureAPIEnhanced = "azure-api-enhanced";
-    public const string NewProjectTemplateEnhanced = "new-project-template-enhanced";
     public const string AzurePostgresTemplateFile = "azure-postgresql";
 
     public const string NewProjectTemplateFile = "main";

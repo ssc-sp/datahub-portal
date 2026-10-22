@@ -175,19 +175,18 @@ public class WorkspaceCreationService(
         }
         else
         {
-            await CreateNewTemplateWorkspaceResourceAsync(project.Project_ID);
+            await CreateNewTemplateWorkspaceResourceAsync(project.Project_ID, project.Data_Sensitivity == ClassificationType.ProtectedB);
         }
     }
 
-    public async Task CreateNewTemplateWorkspaceResourceAsync(int projectId)
+    public async Task CreateNewTemplateWorkspaceResourceAsync(int projectId, bool isProtectedB)
     {
         await using var context = await datahubProjectDbFactory.CreateDbContextAsync();
-
+        var template = isProtectedB ? TerraformTemplate.NewProjectTemplateEnhanced : TerraformTemplate.NewProjectTemplate;
         var exists = context.Project_Resources2
             .Any(r => r.ProjectId == projectId
                       && r.ResourceType ==
-                      TerraformTemplate.GetTerraformServiceType(TerraformTemplate.NewProjectTemplate));
-
+                      TerraformTemplate.GetTerraformServiceType(template));
         if (exists) return;
 
         var project = await context.Projects

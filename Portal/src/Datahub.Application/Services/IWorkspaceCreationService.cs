@@ -24,8 +24,9 @@ public interface IWorkspaceCreationService
     /// This is temporary until all existing workspaces have this configured
     /// </summary>
     /// <param name="projectId"></param>
+    /// <param name="isProtectedB"></param> 
     /// <returns></returns>
-    public Task CreateNewTemplateWorkspaceResourceAsync(int projectId);
+    public Task CreateNewTemplateWorkspaceResourceAsync(int projectId, bool isProtectedB);
     
     /// <summary>
     /// This is temporary until all existing workspaces have this configured
