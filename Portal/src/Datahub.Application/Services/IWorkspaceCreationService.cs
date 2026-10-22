@@ -1,5 +1,6 @@
 using Datahub.Core.Model.Onboarding;
 using Datahub.Core.Model.Users;
+using Datahub.Metadata.Model;
 
 namespace Datahub.Application.Services;
 
@@ -14,8 +15,8 @@ public interface IWorkspaceCreationService
     //token needs to be acquired by component so that exception handling can be done there
     //(handling exception causes force refresh through navigation manager)
     public Task CreateWorkspaceCloudHostingEndPointAsync(string projectName, string acronym, string organization, PortalUser portalUser, decimal budget, string cbrId);
-    public Task<bool> CreateWorkspaceAsync(string projectName, string acronym, string organization, int? gcHostingDetailsId = null, decimal? budget = null); 
-    public Task<bool> CreateWorkspaceAsync(string projectName, string organization, int? gcHostingDetailsId = null);
+    public Task<bool> CreateWorkspaceAsync(string projectName, string acronym, string organization, int? gcHostingDetailsId = null, decimal? budget = null, ClassificationType classification = ClassificationType.Unclassified); 
+    public Task<bool> CreateWorkspaceAsync(string projectName, string organization, int? gcHostingDetailsId = null, ClassificationType classification = ClassificationType.Unclassified);
     
     public Task SaveWorkspaceCreationDetailsAsync(string projectAcronym, string? interestedFeatures = null);
 

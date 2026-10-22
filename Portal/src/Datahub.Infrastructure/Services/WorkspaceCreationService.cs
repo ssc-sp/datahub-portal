@@ -12,6 +12,7 @@ using Datahub.Core.Model.Projects;
 using Datahub.Core.Model.Users;
 using Datahub.Core.Services.CatalogSearch;
 using Datahub.Metadata.DTO;
+using Datahub.Metadata.Model;
 using Datahub.Metadata.Utils;
 using Datahub.Shared;
 using Datahub.Shared.Entities;
@@ -80,10 +81,10 @@ public class WorkspaceCreationService(
         return await Task.FromResult(acronym);
     }
 
-    public async Task<bool> CreateWorkspaceAsync(string projectName, string organization, int? gcHostingDetailsId = null)
+    public async Task<bool> CreateWorkspaceAsync(string projectName, string organization, int? gcHostingDetailsId = null, ClassificationType classification = ClassificationType.Unclassified)
     {
         var acronym = await GenerateWorkspaceAcronymAsync(projectName);
-        return await CreateWorkspaceAsync(projectName, acronym, organization, gcHostingDetailsId);
+        return await CreateWorkspaceAsync(projectName, acronym, organization, gcHostingDetailsId, classification: classification);
     }
 
     public async Task SaveWorkspaceCreationDetailsAsync(string projectAcronym, string? interestedFeatures = null)
@@ -137,14 +138,14 @@ public class WorkspaceCreationService(
         
     }
 
-    public async Task<bool> CreateWorkspaceAsync(string projectName, string? acronym, string organization, int? gcHostingDetailsId = null, decimal? budget = null)
+    public async Task<bool> CreateWorkspaceAsync(string projectName, string? acronym, string organization, int? gcHostingDetailsId = null, decimal? budget = null, ClassificationType classification = ClassificationType.Unclassified)
     {
         try
         {
             acronym ??= await GenerateWorkspaceAcronymAsync(projectName);
             var currentPortalUser = await userInformationService.GetCurrentPortalUserAsync();
 
-            await AddProjectToDb(currentPortalUser, projectName, acronym, organization, budget, gcHostingDetailsId);
+            await AddProjectToDb(currentPortalUser, projectName, acronym, organization, budget, gcHostingDetailsId, classification);
 
             await CreateNewTemplateWorkspaceResourceAsync(acronym);
 
@@ -216,7 +217,7 @@ public class WorkspaceCreationService(
         await context.TrackSaveChangesAsync(auditingService);
     }
 
-    private async Task AddProjectToDb(PortalUser portalUser, string projectName, string acronym, string organization, decimal? budget = null, int? gcHostingId = null)
+    private async Task AddProjectToDb(PortalUser portalUser, string projectName, string acronym, string organization, decimal? budget = null, int? gcHostingId = null, ClassificationType classification = ClassificationType.Unclassified)
     {
         await using var db = await datahubProjectDbFactory.CreateDbContextAsync();
 
@@ -235,6 +236,7 @@ public class WorkspaceCreationService(
             Project_Budget = budget ?? portalConfiguration.DefaultProjectBudget,
             ParentGCHostingBudgetId = gcHostingId,
             DatahubAzureSubscriptionId = subscription.Id,
+            Data_Sensitivity = classification,
             Created_DT = DateTime.UtcNow,
             Version = await workspaceVersionService.GetLatestVersionAsync()
         };
@@ -298,7 +300,7 @@ public class WorkspaceCreationService(
     public async Task<IEnumerable<GCHostingWorkspaceDetails>> GetGCHostingWorkspaceDetailsForCurrentUser()
     {
         var currentPortalUser = await userInformationService.GetCurrentPortalUserAsync();
-        return await GetGCHostingWorkspaceDetailsForUser(currentPortalUser);
+        return await GetGCHostingDetailsInternal(currentPortalUser.Email, false);
     }
 
     public async Task<IEnumerable<GCHostingWorkspaceDetails>> GetAllGCHostingWorkspaceDetails()
