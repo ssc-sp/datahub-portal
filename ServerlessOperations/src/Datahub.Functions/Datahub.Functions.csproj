@@ -45,6 +45,7 @@
 		<PackageReference Include="CommunityToolkit.Diagnostics" />
 		<PackageReference Include="MassTransit" />
 		<PackageReference Include="MassTransit.WebJobs.ServiceBus" />
+    <PackageReference Include="Microsoft.Data.SqlClient.Extensions.Azure" />    
 		<PackageReference Include="Microsoft.Azure.Functions.Worker" />
     <PackageReference Include="Microsoft.Azure.Functions.Worker.ApplicationInsights" />
 		<PackageReference Include="Microsoft.Azure.Functions.Worker.Extensions.Http" />
