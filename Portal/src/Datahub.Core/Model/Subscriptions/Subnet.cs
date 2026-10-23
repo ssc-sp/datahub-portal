@@ -1,9 +1,12 @@
+using Microsoft.EntityFrameworkCore;
+
 namespace Datahub.Core.Model.Subscriptions;
 
 /// <summary>
 /// Represents an Azure subnet within a VNet.
 /// A subnet can be mapped to one or more workspaces via <see cref="WorkspaceSubnet"/>.
 /// </summary>
+[Index(nameof(VNetId), nameof(SubnetGroup), IsUnique = true)]
 public class Subnet
 {
     /// <summary>

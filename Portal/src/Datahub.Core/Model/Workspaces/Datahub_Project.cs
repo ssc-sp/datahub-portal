@@ -438,7 +438,7 @@ public class Datahub_Project : IComparable<Datahub_Project>
             Users = users,
             SubscriptionId = DatahubAzureSubscription?.SubscriptionId ?? throw new InvalidOperationException("Azure subscription not found."),
             IsProtectedB = Data_Sensitivity == ClassificationType.ProtectedB,
-            SubnetGroupNumber = WorkspaceSubnets.FirstOrDefault()?.Subnet.SubnetName
+            SubnetGroupNumber = WorkspaceSubnets.FirstOrDefault()?.Subnet.SubnetGroup
         };
     }
 
