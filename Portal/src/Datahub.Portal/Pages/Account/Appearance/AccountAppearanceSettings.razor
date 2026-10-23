@@ -12,10 +12,6 @@
 
     <Authorized>
         <MudStack Spacing="8" Class="mb-16">
-            <MudStack>
-                <DHMainContentTitle Title="@Localizer["Portal Appearance"]" />
-                <MudDivider/>
-            </MudStack>
             <SettingsField Label="@Localizer["Theme Preferences"]" Description="@Localizer["Choose how DataHub looks to you. Select a single theme, or sync with your operating system automatically."]">
                 <MudSelect T="string" Label="@Localizer["Current Theme"]" Variant="Variant.Outlined" Value="@ViewedUser.UserSettings.Theme" ValueChanged="HandleThemeChanged">
                     <MudSelectItem T="string" Value="@Localizer["Light mode"]" />
