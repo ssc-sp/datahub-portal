@@ -9,6 +9,7 @@ using Datahub.Core.Data;
 using Datahub.Core.Model.Context;
 using Datahub.Core.Model.Onboarding;
 using Datahub.Core.Model.Projects;
+using Datahub.Core.Model.Subscriptions;
 using Datahub.Core.Model.Users;
 using Datahub.Core.Services.CatalogSearch;
 using Datahub.Metadata.DTO;
@@ -216,6 +217,34 @@ public class WorkspaceCreationService(
         await context.TrackSaveChangesAsync(auditingService);
     }
 
+    private async Task AllocateProtectedBWorkspaceSubnetAsync(DatahubProjectDBContext db, Datahub_Project project)
+    {
+        var allocatedSubnetIds = await db.WorkspaceSubnets
+            .AsNoTracking()
+            .Select(ws => ws.SubnetId)
+            .Distinct()
+            .ToListAsync();
+
+        var freeSubnet = await db.Subnets
+            .Where(s => !allocatedSubnetIds.Contains(s.Id))
+            .OrderBy(s => s.Id)
+            .FirstOrDefaultAsync();
+
+        if (freeSubnet is null)
+        {
+            throw new InvalidOperationException($"No unallocated subnet is available for Protected B workspace '{project.Project_Acronym_CD}'.");
+        }
+
+        var workspaceSubnet = new WorkspaceSubnet
+        {
+            Project = project,
+            Subnet = freeSubnet
+        };
+
+        project.WorkspaceSubnets.Add(workspaceSubnet);
+        await db.WorkspaceSubnets.AddAsync(workspaceSubnet);
+    }
+
     private async Task AddProjectToDb(PortalUser portalUser, string projectName, string acronym, string organization, decimal? budget = null, int? gcHostingId = null, ClassificationType classification = ClassificationType.Unclassified)
     {
         await using var db = await datahubProjectDbFactory.CreateDbContextAsync();
@@ -264,7 +293,14 @@ public class WorkspaceCreationService(
         };
         await db.Project_Whitelists.AddAsync(projectWhiteList);
 
-        await db.TrackSaveChangesAsync(auditingService); // causing a crash right now
+        await db.TrackSaveChangesAsync(auditingService);
+
+        if (classification == ClassificationType.ProtectedB)
+        {
+            await AllocateProtectedBWorkspaceSubnetAsync(db, project);
+            await db.TrackSaveChangesAsync(auditingService);
+        }
+
         serviceAuthManager.InvalidateAuthCache();
 
         var catalogObject = new Core.Model.Catalog.CatalogObject()
