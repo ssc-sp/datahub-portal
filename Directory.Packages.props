@@ -70,9 +70,9 @@
     <PackageVersion Include="Lucene.Net.QueryParser" Version="4.8.0-beta00017" />
     <PackageVersion Include="MailKit" Version="4.18.1" />
     <PackageVersion Include="Markdig" Version="1.4.2" />
-    <PackageVersion Include="MassTransit" Version="9.2.3" />
-    <PackageVersion Include="MassTransit.Azure.ServiceBus.Core" Version="9.2.3" />
-    <PackageVersion Include="MassTransit.WebJobs.ServiceBus" Version="9.2.3" />
+    <PackageVersion Include="MassTransit" Version="8.5.10" />
+    <PackageVersion Include="MassTransit.Azure.ServiceBus.Core" Version="8.5.10" />
+    <PackageVersion Include="MassTransit.WebJobs.ServiceBus" Version="8.5.10" />
     <PackageVersion Include="MediatR" Version="14.2.0" />
     <PackageVersion Include="Microsoft.ApplicationInsights.AspNetCore" Version="2.23.0" />
     <PackageVersion Include="Microsoft.ApplicationInsights.WorkerService" Version="2.23.0" />
