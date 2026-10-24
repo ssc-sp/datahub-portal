@@ -19,7 +19,7 @@
         </div>
         @if (_page == 1)
         {
-            <GcdsSelect Id="workspace-classification" Name="workspace-classification" Label="@Localizer["Security classification"]"
+            <GcdsSelect Id="workspace-classification" Name="workspace-classification" Label="@Localizer["Security Requirements"]"
                         DefaultValue="@Localizer["Please Select"]" Required @bind-Value="SelectedClassification" Disabled="@_isCreating">
                 @foreach (var classification in Enum.GetValues<ClassificationType>())
                 {
