@@ -15,7 +15,7 @@ namespace Datahub.Core.Migrations.SqliteDatahub
         protected override void BuildModel(ModelBuilder modelBuilder)
         {
 #pragma warning disable 612, 618
-            modelBuilder.HasAnnotation("ProductVersion", "10.0.9");
+            modelBuilder.HasAnnotation("ProductVersion", "10.0.13");
 
             modelBuilder.Entity("Datahub.Core.Model.Achievements.Achievement", b =>
                 {
@@ -1526,7 +1526,8 @@ namespace Datahub.Core.Migrations.SqliteDatahub
 
                     b.HasKey("Id");
 
-                    b.HasIndex("VNetId");
+                    b.HasIndex("VNetId", "SubnetGroup")
+                        .IsUnique();
 
                     b.ToTable("Subnets", (string)null);
                 });
