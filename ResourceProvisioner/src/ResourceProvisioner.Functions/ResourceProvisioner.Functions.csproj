@@ -17,6 +17,7 @@
         <PackageReference Include="Microsoft.Azure.Functions.Worker.Extensions.Storage" />
         <PackageReference Include="Microsoft.Azure.Functions.Worker.Extensions.Storage.Queues" />
         <PackageReference Include="Microsoft.Azure.Functions.Worker.Sdk" />
+      <PackageReference Include="Microsoft.Data.SqlClient.Extensions.Azure" />      
     </ItemGroup>
     <ItemGroup>
         <None Update="host.json">

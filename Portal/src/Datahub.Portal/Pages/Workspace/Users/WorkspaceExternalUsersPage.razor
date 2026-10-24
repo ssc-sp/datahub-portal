@@ -343,6 +343,9 @@ else
 
     private (string enURL, string frURL) GetCodeAcceptancePageUrl(WorkspaceInvitation invitation)
     {
+        // Save current culture to return to afterwards
+        var currentCulture = CultureInfo.CurrentUICulture;
+
         // Force French (fr) for this lookup
         CultureInfo.CurrentUICulture = new CultureInfo("fr");
         try
@@ -360,7 +363,7 @@ else
         finally
         {
             // Reset to the original culture after generating the URL
-            CultureInfo.CurrentUICulture = CultureInfo.InvariantCulture;
+            CultureInfo.CurrentUICulture = currentCulture;
         }
     }
 
