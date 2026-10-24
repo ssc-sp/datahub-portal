@@ -116,7 +116,7 @@ public class ProjectCreationTests
 
         services.AddLogging();
         services.AddMemoryCache();
-        var dbName = databaseName ?? "datahubProjects";
+        var dbName = databaseName ?? $"datahubProjects-{Guid.NewGuid():N}";
         services.AddPooledDbContextFactory<DatahubProjectDBContext>(options => options.UseInMemoryDatabase(dbName));
         services.AddPortalConfiguration(configuration);
         services.AddScoped<IWorkspaceCreationService, WorkspaceCreationService>();

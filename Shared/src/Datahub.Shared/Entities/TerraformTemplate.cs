@@ -5,7 +5,51 @@ namespace Datahub.Shared.Entities;
 
 public class TerraformTemplate
 {
+    private static readonly string[] SupportedTemplateNames =
+    [
+        NewProjectTemplate,
+        NewProjectTemplateEnhanced,
+        VariableUpdate,
+        AzureDatabricks,
+        AzureDatabricksEnhanced,
+        AzureVirtualMachine,
+        AzureAppService,
+        AzureAppServiceEnhanced,
+        AzurePostgres,
+        AzurePostgresEnhanced,
+        ContactUs,
+        AzureArcGis,
+        AzureAPI,
+        AzureAPIEnhanced,
+        AzurePostgresTemplateFile,
+        "azure-storage-blob"
+    ];
+
+    private static readonly HashSet<string> ReleasedTemplateNames =
+    [
+        NewProjectTemplate,
+        NewProjectTemplateEnhanced,
+        VariableUpdate,
+        AzureDatabricks,
+        AzureDatabricksEnhanced,
+        AzureAppService,
+        AzureAppServiceEnhanced,
+        AzurePostgres,
+        AzurePostgresEnhanced
+    ];
+
     public static string GetTerraformServiceType(string templateName) => $"terraform:{templateName}";
+
+    public static bool IsReleased(string name)
+    {
+        if (string.IsNullOrWhiteSpace(name))
+        {
+            return false;
+        }
+
+        var normalizedName = NormalizeTemplateName(name);
+        return ReleasedTemplateNames.Contains(normalizedName, StringComparer.OrdinalIgnoreCase);
+    }
 
     public const string NewProjectTemplate = "new-project-template";
     public const string NewProjectTemplateEnhanced = "new-project-template-enhanced";
@@ -111,39 +155,57 @@ public class TerraformTemplate
 
     public static string NormalizeTemplateName(string name)
     {
-        var templateName = name.ToLower();
-        if (templateName.StartsWith("terraform:"))
+        if (string.IsNullOrWhiteSpace(name))
         {
-            templateName = templateName.Replace("terraform:", string.Empty);
+            throw new ArgumentException("Template name cannot be null or empty.", nameof(name));
         }
 
-        return templateName switch
+        var templateName = name.Trim();
+
+        if (templateName.StartsWith("terraform:", StringComparison.OrdinalIgnoreCase))
         {
-            NewProjectTemplate => NewProjectTemplate,
-            AzureDatabricks => AzureDatabricks,
-            AzureAppService => AzureAppService,
-            AzurePostgres => AzurePostgres,
-            //legacy - pre 7.1.0
-            "azure-storage-blob" => "azure-storage-blob",
-            _ => throw new ArgumentException($"Unknown template name: {name}")
-        };
+            templateName = templateName["terraform:".Length..];
+        }
+
+        var normalizedName = templateName.Trim();
+        var match = SupportedTemplateNames.FirstOrDefault(t =>
+            string.Equals(t, normalizedName, StringComparison.OrdinalIgnoreCase));
+
+        if (match is not null)
+        {
+            return match;
+        }
+
+        throw new ArgumentException($"Unknown template name: {name}");
     }
 
 #nullable enable
     public static IEnumerable<string>? GetDependencyNames(string toolName)
     {
-        return toolName switch
+        var normalizedName = NormalizeTemplateName(toolName);
+
+        var dependencyMap = new Dictionary<string, string[]>
         {
-            NewProjectTemplate => [],
-            VariableUpdate => [],
-            AzureDatabricks => [NewProjectTemplate],
-            AzureAppService => [NewProjectTemplate],
-            AzurePostgres => [NewProjectTemplate],
-            AzureDatabricksEnhanced => [NewProjectTemplate],
-            AzureAppServiceEnhanced => [NewProjectTemplate],
-            AzurePostgresEnhanced => [NewProjectTemplate],
-            _ => null
+            [NewProjectTemplate] = [],
+            [NewProjectTemplateEnhanced] = [NewProjectTemplate],
+            [VariableUpdate] = [],
+            [AzureDatabricks] = [NewProjectTemplate],
+            [AzureDatabricksEnhanced] = [NewProjectTemplateEnhanced],
+            [AzureVirtualMachine] = [NewProjectTemplate],
+            [AzureAppService] = [NewProjectTemplate],
+            [AzureAppServiceEnhanced] = [NewProjectTemplateEnhanced],
+            [AzurePostgres] = [NewProjectTemplate],
+            [AzurePostgresEnhanced] = [NewProjectTemplateEnhanced],
+            [ContactUs] = [NewProjectTemplate],
+            [AzureArcGis] = [NewProjectTemplate],
+            [AzureAPI] = [NewProjectTemplate],
+            [AzureAPIEnhanced] = [NewProjectTemplateEnhanced],
+            [AzurePostgresTemplateFile] = [NewProjectTemplate]
         };
+
+        return dependencyMap.TryGetValue(normalizedName, out var dependencies)
+            ? dependencies
+            : null;
     }
 #nullable disable
 
