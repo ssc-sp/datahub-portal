@@ -164,7 +164,7 @@ public partial class NetworkingManagementPage : ComponentBase
 
     private async Task SubmitAddSubnet()
     {
-        await _subnetForm.Validate();
+        await _subnetForm.ValidateAsync();
         if (!_subnetFormValid) return;
 
         try
@@ -215,19 +215,22 @@ public partial class NetworkingManagementPage : ComponentBase
             }
 
             var createdCount = 0;
-            foreach (var group in requestedGroups)
-            {
-                var subnet = new Subnet
+            var subnetsToCreate = requestedGroups
+                .Select(group => new Subnet
                 {
                     SubnetName = $"{_newSubnetRange.Name}-{group}",
                     AddressPrefix = _newSubnetRange.AddressId,
                     SubnetGroup = group,
                     VNetId = _selectedVNet!.Id
-                };
+                })
+                .ToList();
 
+            foreach (var subnet in subnetsToCreate)
+            {
                 await _networkingService.AddSubnetAsync(subnet);
-                createdCount++;
             }
+
+            createdCount = subnetsToCreate.Count;
 
             _snackbar.Add($"Created {createdCount} subnet(s) for group range {_newSubnetRange.StartSubnetGroup} to {_newSubnetRange.EndSubnetGroup}.", Severity.Success);
             _showAddSubnetRange = false;
