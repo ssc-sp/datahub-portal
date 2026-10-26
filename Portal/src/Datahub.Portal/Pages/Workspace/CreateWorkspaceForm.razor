@@ -2,6 +2,7 @@
 @using Datahub.Application.Services
 @using Datahub.Core.Model.Onboarding
 @using Datahub.Core.Model.Projects
+@using Datahub.Metadata.Model
 @using Datahub.Portal.Components
 @using GcdsWrapper.Blazor
 @inject IWorkspaceCreationService _projectCreationService
@@ -18,6 +19,13 @@
         </div>
         @if (_page == 1)
         {
+            <GcdsSelect Id="workspace-classification" Name="workspace-classification" Label="@Localizer["Security Requirements"]"
+                        DefaultValue="@Localizer["Please Select"]" Required @bind-Value="SelectedClassification" Disabled="@_isCreating">
+                @foreach (var classification in Enum.GetValues<ClassificationType>())
+                {
+                    <option value="@classification.ToString()">@classification.ToSpacedString()</option>
+                }
+            </GcdsSelect>
             <GcdsInput Id="@WORKSPACE_TITLE_INPUT_TAG" Name="workspace-title" Label="@Localizer["Workspace Title"]"
                        Hint="@Localizer["Enter a descriptive title for the workspace"]" Required MaxLength="100"
                        @bind-Value="_projectTitle" @bind-Value:after="TitleChangedAsync" ErrorMessage="@_titleError" Disabled="@_isCreating" />
@@ -104,6 +112,7 @@
     private GCHostingWorkspaceDetails? _currentGcHostingPlan;
     private string? _projectTitle = string.Empty;
     private string _projectAcronym = string.Empty;
+    private ClassificationType _classification = ClassificationType.Unclassified;
     private string? _budgetText;
     private string[]? _selectedFeatures = [];
     private string? _otherFeatures;
@@ -120,6 +129,21 @@
     {
         get => _projectAcronym;
         set { _inputRevision++; _projectAcronym = value?.ToUpperInvariant() ?? string.Empty; _acronymError = null; }
+    }
+    private string SelectedClassification
+    {
+        get => _classification.ToString();
+        set
+        {
+            if (Enum.TryParse<ClassificationType>(value, true, out var classification))
+            {
+                _classification = classification;
+            }
+            else
+            {
+                _classification = ClassificationType.Unclassified;
+            }
+        }
     }
     private string? SelectedCbrId
     {
@@ -197,7 +221,7 @@
             if (FeaturesError is not null) return;
             TryBudget(out var budget);
             if (!_workspaceCreated)
-                _workspaceCreated = await _projectCreationService.CreateWorkspaceAsync(_projectTitle!, _projectAcronym, "Unspecified", _currentGcHostingPlan!.Id, budget);
+                _workspaceCreated = await _projectCreationService.CreateWorkspaceAsync(_projectTitle!, _projectAcronym, "Unspecified", _currentGcHostingPlan!.Id, budget, _classification);
             if (!_workspaceCreated) { _errorMessage = Localizer["An error occurred while creating the workspace"]; return; }
             await _projectCreationService.SaveWorkspaceCreationDetailsAsync(_projectAcronym, SerializedFeatures);
             _navigationManager.NavigateTo(PageRoutes.WorkspaceDefault.Replace("{WorkspaceAcronymParam}", _projectAcronym), forceLoad: true);
