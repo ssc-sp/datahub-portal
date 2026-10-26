@@ -152,7 +152,11 @@
         { TerraformTemplate.GetTerraformServiceType(TerraformTemplate.AzureDatabricks), typeof(DatabricksCard) },
         { TerraformTemplate.GetTerraformServiceType(TerraformTemplate.NewProjectTemplate), typeof(StorageCard) },
         { TerraformTemplate.GetTerraformServiceType(TerraformTemplate.AzurePostgres), typeof(PostgreSQLCard) },
-        { TerraformTemplate.GetTerraformServiceType(TerraformTemplate.AzureAppService), typeof(AppServiceCard) }
+        { TerraformTemplate.GetTerraformServiceType(TerraformTemplate.AzureAppService), typeof(AppServiceCard) },
+        { TerraformTemplate.GetTerraformServiceType(TerraformTemplate.AzureDatabricksEnhanced), typeof(DatabricksCard) },
+        { TerraformTemplate.GetTerraformServiceType(TerraformTemplate.NewProjectTemplateEnhanced), typeof(StorageCard) },
+        { TerraformTemplate.GetTerraformServiceType(TerraformTemplate.AzurePostgresEnhanced), typeof(PostgreSQLCard) },
+        { TerraformTemplate.GetTerraformServiceType(TerraformTemplate.AzureAppServiceEnhanced), typeof(AppServiceCard) }
     };
 
     private List<ProjectRepository> _projectRepositories = new();
