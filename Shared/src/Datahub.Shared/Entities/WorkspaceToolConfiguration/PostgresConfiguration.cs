@@ -5,6 +5,14 @@ using System.Text.Json.Nodes;
 
 namespace Datahub.Shared.Entities.WorkspaceToolConfiguration
 {
+    public class PostgresConfigurationEnhanced : PostgresConfiguration
+    {
+        public static new IWorkspaceToolConfiguration ReadFromWorkspaceDefinition(WorkspaceDefinition workspaceDefinition)
+        {
+            return workspaceDefinition.AppData.PostgresConfiguration ?? new PostgresConfigurationEnhanced();
+        }
+    }
+
     public class PostgresConfiguration : IWorkspaceToolConfiguration, IWorkspaceToolWithSuffix
     {
         public const string PGSQL_JSON_SKU = "postgres_sku";
