@@ -3,6 +3,7 @@
 @using Datahub.Application.Services.Publishing;
 @using Datahub.Shared.Entities
 @inject IOpenDataPublishingService _publishingService
+@inject DatahubPortalConfiguration _config
 
 <MudDialog>
     <DialogContent>
@@ -52,6 +53,12 @@
                     <MudSelectItem Value=@t />
                 }
             </MudSelect>
+            <MudSelect T="string" @bind-Value="@_config.CkanConfiguration.BaseUrl" ToStringFunc="@GetURLName">
+                @foreach (var u in _urls)
+                {
+                    <MudSelectItem Value="@(u)" />
+                }
+            </MudSelect>
         </MudForm>
     </DialogContent>
     <DialogActions>
@@ -84,6 +91,8 @@
 
     private MudForm _form;
     private bool IsReadyToSubmit => !string.IsNullOrWhiteSpace(_datasetTitle) || IsExistingSubmissionSelected;
+
+    private IEnumerable<string> _urls = new string[] { "https://registry-staging.open.canada.ca/", "https://registry.open.canada.ca/" };
 
     private OpenDataSubmission SelectedSubmission
     {
@@ -137,5 +146,12 @@
             MudDialog.Close(DialogResult.Ok(result));
         }
     }
+
+    private string GetURLName(string name) => name switch
+    {
+        "https://registry-staging.open.canada.ca/" => "Staging",
+        "https://registry.open.canada.ca/" => "Production",
+        _ => name
+    };
 
 }
