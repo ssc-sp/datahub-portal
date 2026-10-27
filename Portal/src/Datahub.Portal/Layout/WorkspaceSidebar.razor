@@ -33,7 +33,7 @@
         </SkipLink>
         @if (Drawer.Open)
         {
-            @if (_project is not null && _allProjects is not null && _allProjects.Select(p => p.Project_Acronym_CD).Contains(WorkspaceAcronym))
+            @if (_project is not null && _allCurrentProjects is not null && _allCurrentProjects.Select(p => p.Project_Acronym_CD).Contains(WorkspaceAcronym))
             {
                 <span class="sr-only">
                     @Localizer["Workspace selected. Selecting a new workspace from this dropdown will navigate to the selected workspace."]
@@ -43,7 +43,7 @@
                            Label="@Localizer["Current workspace"]"
                            title="@Localizer["Workspace selected. Selecting a new workspace from this dropdown will navigate to the selected workspace."]"
                            Dense Variant="Variant.Outlined">
-                    @foreach (var project in _allProjects)
+                    @foreach (var project in _allCurrentProjects)
                     {
                         <MudSelectItem Value="@project.Project_Acronym_CD">
                             <MudStack Row AlignItems="AlignItems.Center">
@@ -183,10 +183,12 @@
 
     [Parameter] public required string WorkspaceAcronym { get; set; } = null!;
     [Parameter] public bool ElevatedWorkspaceAccessEnabled { get; set; } = false;
+    [Parameter] public required PortalUser PortalUser { get; set; } = null!;
     [CascadingParameter] private DHSidebarDrawer Drawer { get; set; } = null!;
 
     private Datahub_Project _project = null!;
     private List<Datahub_Project> _allProjects = new();
+    private List<Datahub_Project> _allCurrentProjects = new();
     private bool _isPublishingBlockedForWorkspace = false;
     private int _externalProjectUsersCount;
     private bool _isExternalUser;
@@ -313,7 +315,12 @@ System.Net.HttpStatusCode.NotFound);
 
         _allProjects = await _projectUserManagementService.GetProjectsForUser(graphUserGuid: entraUserGuid, gccfUserId:
 gccfUserId);
-    }
+
+    // Excluding any projects from which the user has been removed
+    _allCurrentProjects = _allProjects
+                          .Where(p => p.UserRoles.All(u => u.RoleId != (int)Project_Role.RoleNames.Removed))
+                          .ToList();
+        }
 
     public async Task HandleProjectChange(string projectAcronym)
     {
