@@ -45,7 +45,10 @@ def remove_existing_role(client:AuthorizationManagementClient, scope, user_objec
     role_assignments = client.role_assignments.list_for_scope(scope)
     for role in role_assignments:
         if role.principal_id == user_object_id and _is_managed_blob_role(role.role_definition_id):
-            client.role_assignments.delete_at_scope(scope, role.name)
+            if hasattr(client.role_assignments, "delete"):
+                client.role_assignments.delete(scope, role.name)
+            else:
+                client.role_assignments.delete_at_scope(scope, role.name)
 
 def get_storage_reference(environment_name, definition_json):
     """Build the resource group and storage account names for the workspace environment."""

@@ -1,0 +1,91 @@
+@using GcdsWrapper.Blazor
+
+<section role="region" aria-labelledby="firewall-rule-form-heading" class="mb-12">
+    <GcdsHeading Id="firewall-rule-form-heading" Tag="h3">
+        @Localizer[IsEdit ? "Edit IP Address or Range" : "Add IP Address or Range"]
+    </GcdsHeading>
+    @if (IsEdit)
+    {
+        <GcdsInput Id="firewall-rule-name"
+                   Name="firewall-rule-name"
+                   Label="@Localizer["Name"]"
+                   Required
+                   Disabled="@Saving"
+                   Value="@RuleName"
+                   ValueChanged="@SetRuleName"
+                   ValueExpression="@(() => RuleName)" />
+    }
+    <GcdsInput Id="firewall-rule-start-ip"
+               Name="firewall-rule-start-ip"
+               Label="@Localizer["Start IP Address"]"
+               Required
+               Disabled="@Saving"
+               Value="@StartIpAddress"
+               ValueChanged="@SetStartIpAddress"
+               ValueExpression="@(() => StartIpAddress)" />
+    <GcdsInput Id="firewall-rule-end-ip"
+               Name="firewall-rule-end-ip"
+               Label="@Localizer["End IP Address"]"
+               Disabled="@Saving"
+               Value="@EndIpAddress"
+               ValueChanged="@SetEndIpAddress"
+               ValueExpression="@(() => EndIpAddress)" />
+    @if (!string.IsNullOrWhiteSpace(Error))
+    {
+        <GcdsErrorMessage MessageId="firewall-rule-form-error">
+            @Error
+        </GcdsErrorMessage>
+    }
+    <GcdsButton Type="GcdsButtonType.Button"
+                OnClick="@(() => OnSave.InvokeAsync())"
+                Disabled="@Saving">
+        @Localizer["Save"]
+    </GcdsButton>
+    <GcdsButton Type="GcdsButtonType.Button"
+                Role="GcdsButtonRole.Secondary"
+                OnClick="@(() => OnCancel.InvokeAsync())"
+                Disabled="@Saving">
+        @Localizer["Cancel"]
+    </GcdsButton>
+</section>
+
+@code {
+    [Parameter]
+    public bool IsEdit { get; set; }
+
+    [Parameter]
+    public string RuleName { get; set; } = string.Empty;
+
+    [Parameter]
+    public EventCallback<string> RuleNameChanged { get; set; }
+
+    [Parameter]
+    public string StartIpAddress { get; set; } = string.Empty;
+
+    [Parameter]
+    public EventCallback<string> StartIpAddressChanged { get; set; }
+
+    [Parameter]
+    public string EndIpAddress { get; set; } = string.Empty;
+
+    [Parameter]
+    public EventCallback<string> EndIpAddressChanged { get; set; }
+
+    [Parameter]
+    public string Error { get; set; } = string.Empty;
+
+    [Parameter]
+    public bool Saving { get; set; }
+
+    [Parameter]
+    public EventCallback OnSave { get; set; }
+
+    [Parameter]
+    public EventCallback OnCancel { get; set; }
+
+    private Task SetRuleName(string value) => RuleNameChanged.InvokeAsync(value);
+
+    private Task SetStartIpAddress(string value) => StartIpAddressChanged.InvokeAsync(value);
+
+    private Task SetEndIpAddress(string value) => EndIpAddressChanged.InvokeAsync(value);
+}

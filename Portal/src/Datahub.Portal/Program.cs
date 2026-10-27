@@ -5,7 +5,6 @@ using Datahub.Portal;
 using Microsoft.ApplicationInsights.Extensibility;
 using Microsoft.AspNetCore.Hosting.StaticWebAssets;
 using Microsoft.EntityFrameworkCore;
-using Microsoft.Extensions.Logging.ApplicationInsights;
 using System.Runtime.InteropServices;
 
 var builder = WebApplication.CreateBuilder(args);
@@ -21,10 +20,9 @@ if (RuntimeInformation.IsOSPlatform(OSPlatform.Windows))
 }
 
 // Application Insights logging filters
-builder.Logging.AddFilter<ApplicationInsightsLoggerProvider>(typeof(Program).FullName, LogLevel.Trace);
-builder.Logging.AddFilter<ApplicationInsightsLoggerProvider>(typeof(Startup).FullName, LogLevel.Trace);
+builder.Logging.AddFilter(typeof(Program).FullName, LogLevel.Trace);
+builder.Logging.AddFilter(typeof(Startup).FullName, LogLevel.Trace);
 builder.Logging.AddFilter("Microsoft.AspNetCore.HttpLogging.HttpLoggingMiddleware", LogLevel.Information);
-builder.Logging.AddFilter<ApplicationInsightsLoggerProvider>("Microsoft.AspNetCore.HttpLogging.HttpLoggingMiddleware", LogLevel.Information);
 
 // App configuration
 builder.Configuration.AddUserSecrets<Startup>();

@@ -1,5 +1,6 @@
 #!/usr/bin/env pwsh
 param(
+    [ValidateSet("test", "dev", "int", "poc")]
     [string]$Environment = $null
 )
 
@@ -43,11 +44,17 @@ function Read-VaultSecret($vault, $secretId)
 }
 
 $vaultName = Get-FSDHKeyVaultName -Environment $Environment
+$azureContext = Get-AzContext -ErrorAction Stop
+$env:AzureTenantId = if ($script:AzureTenantId) { $script:AzureTenantId } else { $azureContext.Tenant.Id }
+$env:AzureSubscriptionId = if ($script:AzureSubscriptionId) { $script:AzureSubscriptionId } else { $azureContext.Subscription.Id }
+
+Write-Output "Using vault $vaultName for environment $Environment"
 $env:AzureClientId = (Read-VaultSecret $vaultName "devops-client-id")
 $env:AzureClientSecret = (Read-VaultSecret $vaultName "devops-client-secret")
-$env:AzureTenantId = "8c1a4d93-d828-4d0e-9303-fd3bd611c822"
-$env:AzureSubscriptionId = (Read-VaultSecret $vaultName "datahub-portal-subscription-id")
 $env:DatahubServiceBus = (Read-VaultSecret $vaultName "service-bus-connection-string")
+$env:AzureWebJobsStorage = (Read-VaultSecret $vaultName "datahub-storage-queue-conn-str")
+$env:AzureWebJobsDashboard = $env:AzureWebJobsStorage
+$env:AzureWebJobsAzureStorageQueueConnectionString = $env:AzureWebJobsStorage
 
 Write-Output "Installing dependencies with Poetry..."
 poetry install

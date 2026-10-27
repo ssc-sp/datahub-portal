@@ -47,6 +47,7 @@ public class TerraformWorkspace
     /// When true, the resource provisioner will inject subnet configuration for VNet integration.
     /// </summary>
     public bool IsProtectedB { get; set; }
+    public int? SubnetGroupNumber { get; set; }
 
     public JsonNode ToUserList()
     {

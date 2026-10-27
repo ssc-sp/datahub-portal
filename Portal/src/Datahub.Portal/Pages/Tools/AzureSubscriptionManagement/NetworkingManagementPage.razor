@@ -65,31 +65,31 @@
             </MudTd>
             <MudTd>
                 <MudIconButton Icon="@SidebarIcons.Delete" Size="Size.Small" Color="Color.Error"
-                               OnClick="@(() => DeleteVNet(context))"/>
+                               OnClick="@(() => DeleteVNet(context))" />
             </MudTd>
         </RowTemplate>
         <RowEditingTemplate>
             <MudTd DataLabel="ID">@context.Id</MudTd>
             <MudTd DataLabel="Name">
-                <MudTextField @bind-Value="@context.VNetName" Required/>
+                <MudTextField @bind-Value="@context.VNetName" Required />
             </MudTd>
             <MudTd DataLabel="VNet Resource ID">
-                <MudTextField @bind-Value="@context.VNetId" Required/>
+                <MudTextField @bind-Value="@context.VNetId" Required />
             </MudTd>
             <MudTd DataLabel="Subscription">@GetSubscriptionLabel(context.SubscriptionId)</MudTd>
-            <MudTd/>
-            <MudTd/>
+            <MudTd />
+            <MudTd />
         </RowEditingTemplate>
         <EditButtonContent Context="button">
             <MudIconButton Size="@Size.Small" Icon="@SidebarIcons.Edit" Class="pa-0"
-                           OnClick="@button.ButtonAction" Disabled="@button.ButtonDisabled"/>
+                           OnClick="@button.ButtonAction" Disabled="@button.ButtonDisabled" />
         </EditButtonContent>
     </MudTable>
 
     @* ── Subnet section ── *@
     @if (_selectedVNet is not null)
     {
-        <MudDivider Class="my-2"/>
+        <MudDivider Class="my-2" />
         <MudStack Row AlignItems="AlignItems.Center" Justify="Justify.SpaceBetween">
             <MudText Typo="Typo.h3">
                 Subnets — <em>@_selectedVNet.VNetName</em>
@@ -99,8 +99,12 @@
                           OnClick="@OpenAddSubnetDialog">
                     Add Subnet
                 </DHButton>
+                <DHButton Variant="Variant.Outlined" Color="Color.Primary" StartIcon="@SidebarIcons.Plus"
+                          OnClick="@OpenAddSubnetRangeDialog">
+                    Add Subnet Range
+                </DHButton>
                 <MudIconButton Icon="@Icons.Material.Filled.Close" aria-label="Close subnets panel"
-                               OnClick="@(() => _selectedVNet = null)"/>
+                               OnClick="@(() => _selectedVNet = null)" />
             </MudStack>
         </MudStack>
 
@@ -148,25 +152,25 @@
                 <MudTd DataLabel="Subnet Group">@context.SubnetGroup</MudTd>
                 <MudTd>
                     <MudIconButton Icon="@SidebarIcons.Delete" Size="Size.Small" Color="Color.Error"
-                                   OnClick="@(() => DeleteSubnet(context))"/>
+                                   OnClick="@(() => DeleteSubnet(context))" />
                 </MudTd>
             </RowTemplate>
             <RowEditingTemplate>
                 <MudTd DataLabel="ID">@context.Id</MudTd>
                 <MudTd DataLabel="Name">
-                    <MudTextField @bind-Value="@context.SubnetName" Required/>
+                    <MudTextField @bind-Value="@context.SubnetName" Required />
                 </MudTd>
                 <MudTd DataLabel="Address Prefix">
-                    <MudTextField @bind-Value="@context.AddressPrefix" Placeholder="e.g. 10.0.1.64/28"/>
+                    <MudTextField @bind-Value="@context.AddressPrefix" Placeholder="e.g. 10.0.1.64/28" />
                 </MudTd>
                 <MudTd DataLabel="Subnet Group">
-                    <MudNumericField @bind-Value="@context.SubnetGroup" Min="1"/>
+                    <MudNumericField @bind-Value="@context.SubnetGroup" Min="1" />
                 </MudTd>
-                <MudTd/>
+                <MudTd />
             </RowEditingTemplate>
             <EditButtonContent Context="button">
                 <MudIconButton Size="@Size.Small" Icon="@SidebarIcons.Edit" Class="pa-0"
-                               OnClick="@button.ButtonAction" Disabled="@button.ButtonDisabled"/>
+                               OnClick="@button.ButtonAction" Disabled="@button.ButtonDisabled" />
             </EditButtonContent>
         </MudTable>
     }
@@ -188,10 +192,10 @@
                     }
                 </MudSelect>
                 <MudTextField Label="VNet Name" Required RequiredError="VNet name is required"
-                              @bind-Value="_newVNet.VNetName" Placeholder="e.g. workspace-vnet"/>
+                              @bind-Value="_newVNet.VNetName" Placeholder="e.g. workspace-vnet" />
                 <MudTextField Label="VNet Resource ID" Required RequiredError="VNet resource ID is required"
                               @bind-Value="_newVNet.VNetId"
-                              Placeholder="e.g. /subscriptions/.../virtualNetworks/workspace-vnet"/>
+                              Placeholder="e.g. /subscriptions/.../virtualNetworks/workspace-vnet" />
             </MudStack>
         </MudForm>
     </DialogContent>
@@ -214,12 +218,12 @@
             <MudStack Spacing="3">
                 <MudTextField Label="Subnet Name" Required RequiredError="Subnet name is required"
                               @bind-Value="_newSubnet.SubnetName"
-                              Placeholder="e.g. GcDcCNR-SSC_FSDHWorkspace_PEP-1-snet"/>
+                              Placeholder="e.g. GcDcCNR-SSC_FSDHWorkspace_PEP-1-snet" />
                 <MudTextField Label="Address Prefix" @bind-Value="_newSubnet.AddressPrefix"
-                              Placeholder="e.g. 10.0.1.64/28"/>
+                              Placeholder="e.g. 10.0.1.64/28" />
                 <MudNumericField T="int" Label="Subnet Group" Required RequiredError="Subnet group is required"
                                  @bind-Value="_newSubnet.SubnetGroup" Min="1"
-                                 HelperText="Set of 8 subnets assigned to one workspace share the same group number"/>
+                                 HelperText="Subnet assigned to one workspace" />
             </MudStack>
         </MudForm>
     </DialogContent>
@@ -228,6 +232,37 @@
         <DHButton Variant="Variant.Filled" Color="Color.Primary"
                   Disabled="@(!_subnetFormValid)" OnClick="@SubmitAddSubnet">
             Add Subnet
+        </DHButton>
+    </DialogActions>
+</MudDialog>
+
+@* ── Add Subnet Range dialog ── *@
+<MudDialog @bind-Visible="_showAddSubnetRange" Options="@(new DialogOptions { CloseOnEscapeKey = true, MaxWidth = MaxWidth.Small, FullWidth = true })">
+    <TitleContent>
+        <MudText Typo="Typo.h6">Add Subnet Range to @_selectedVNet?.VNetName</MudText>
+    </TitleContent>
+    <DialogContent>
+        <MudForm @ref="_subnetRangeForm" @bind-IsValid="_subnetRangeFormValid">
+            <MudStack Spacing="3">
+                <MudTextField Label="Range Name" Required RequiredError="Range name is required"
+                              @bind-Value="_newSubnetRange.Name"
+                              Placeholder="e.g. GcDcCNR-SSC_FSDHWorkspace_PEP" />
+                <MudTextField Label="Address ID / Prefix" Required RequiredError="Address ID is required"
+                              @bind-Value="_newSubnetRange.AddressId"
+                              Placeholder="e.g. 10.0.1.64/28" />
+                <MudNumericField T="int" Label="Start Subnet Group" Required RequiredError="Start subnet group is required"
+                                 @bind-Value="_newSubnetRange.StartSubnetGroup" Min="1" />
+                <MudNumericField T="int" Label="End Subnet Group" Required RequiredError="End subnet group is required"
+                                 @bind-Value="_newSubnetRange.EndSubnetGroup" Min="1" />
+            </MudStack>
+        </MudForm>
+    </DialogContent>
+    <DialogActions>
+        <MudButton OnClick="@(() => _showAddSubnetRange = false)">Cancel</MudButton>
+        <DHButton Variant="Variant.Filled" Color="Color.Primary"
+                  Disabled="@(!_subnetRangeFormValid || _newSubnetRange.StartSubnetGroup > _newSubnetRange.EndSubnetGroup)"
+                  OnClick="@SubmitAddSubnetRange">
+            Add Subnet Range
         </DHButton>
     </DialogActions>
 </MudDialog>

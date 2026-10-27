@@ -167,13 +167,13 @@ public class OpenDataPublishingServiceTests
     }
 
     [Test]
-    public void GetBlocklistEntryAsync_ShouldThrowWhenEntryNotFound()
+    public async System.Threading.Tasks.Task GetBlocklistEntryAsync_ShouldThrowWhenEntryNotFound()
     {
         // Arrange
         var service = GetPublishingService();
 
         // Act & Assert
-        var ex = Assert.ThrowsAsync<InvalidOperationException>(
+        var ex = await Assert.ThrowsAsync<InvalidOperationException>(
             async () => await service.GetBlocklistEntryAsync(999));
         Assert.That(ex.Message, Does.Contain("not found"));
     }
@@ -346,7 +346,7 @@ public class OpenDataPublishingServiceTests
     }
 
     [Test]
-    public void AddBlocklistEntryAsync_ShouldThrowWhenCurrentUserNotFound()
+    public async System.Threading.Tasks.Task AddBlocklistEntryAsync_ShouldThrowWhenCurrentUserNotFound()
     {
         // Arrange
         _mockUserInformationService
@@ -355,7 +355,7 @@ public class OpenDataPublishingServiceTests
         var service = GetPublishingService();
 
         // Act & Assert
-        var ex = Assert.ThrowsAsync<InvalidOperationException>(
+        var ex = await Assert.ThrowsAsync<InvalidOperationException>(
             async () => await service.AddBlocklistEntryAsync("Test", "@test.gc.ca", ""));
         Assert.That(ex.Message, Does.Contain("Current user not found"));
     }
@@ -479,13 +479,13 @@ public class OpenDataPublishingServiceTests
     }
 
     [Test]
-    public void UpdateBlocklistEntryAsync_ShouldThrowWhenEntryNotFound()
+    public async System.Threading.Tasks.Task UpdateBlocklistEntryAsync_ShouldThrowWhenEntryNotFound()
     {
         // Arrange
         var service = GetPublishingService();
 
         // Act & Assert
-        var ex = Assert.ThrowsAsync<InvalidOperationException>(
+        var ex = await Assert.ThrowsAsync<InvalidOperationException>(
             async () => await service.UpdateBlocklistEntryAsync(999, "Test", "@test.gc.ca", ""));
         Assert.That(ex.Message, Does.Contain("not found"));
     }
@@ -565,13 +565,13 @@ public class OpenDataPublishingServiceTests
     }
 
     [Test]
-    public void DeleteBlocklistEntryAsync_ShouldThrowWhenEntryNotFound()
+    public async System.Threading.Tasks.Task DeleteBlocklistEntryAsync_ShouldThrowWhenEntryNotFound()
     {
         // Arrange
         var service = GetPublishingService();
 
         // Act & Assert
-        var ex = Assert.ThrowsAsync<InvalidOperationException>(
+        var ex = await Assert.ThrowsAsync<InvalidOperationException>(
             async () => await service.DeleteBlocklistEntryAsync(999));
         Assert.That(ex.Message, Does.Contain("not found"));
     }
@@ -590,7 +590,7 @@ public class OpenDataPublishingServiceTests
         var service = GetPublishingService();
 
         // Act & Assert
-        var ex = Assert.ThrowsAsync<InvalidOperationException>(
+        var ex = await Assert.ThrowsAsync<InvalidOperationException>(
             async () => await service.DeleteBlocklistEntryAsync(existingEntry.Id));
         Assert.That(ex.Message, Does.Contain("Current user not found"));
     }
