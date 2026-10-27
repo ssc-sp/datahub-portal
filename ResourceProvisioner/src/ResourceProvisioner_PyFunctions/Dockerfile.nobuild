@@ -3,7 +3,7 @@ FROM mcr.microsoft.com/azure-functions/python:4-python3.12@sha256:b4162b6bbcdd57
 ENV AzureWebJobsScriptRoot=/home/site/wwwroot \
     AzureFunctionsJobHost__Logging__Console__IsEnabled=true \
     APPLICATIONINSIGHTS_CONNECTION_STRING= \
-    DataHub_ENVNAME=dev \   
+    DataHub_ENVNAME=dev \
     AzureWebJobsStorage= \
     AzureWebJobsDashboard= \
     AzureClientId= \
@@ -15,8 +15,8 @@ ENV AzureWebJobsScriptRoot=/home/site/wwwroot \
     AzureSubscriptionId= \
     AzureWebJobsFeatureFlags=EnableWorkerIndexing
 
-COPY requirements.txt /
+COPY pyproject.toml poetry.lock* /
 
-RUN pip install --upgrade pip && pip install -r requirements.txt    
+RUN pip install --upgrade pip poetry && poetry install --only main --no-root --compile    
 
 COPY . /home/site/wwwroot

@@ -110,6 +110,12 @@ public class RequestManagementService(
     {
         try
         {
+            if (!TerraformTemplate.IsReleased(terraformTemplate.Name))
+            {
+                logger.LogWarning("Ignoring unreleased terraform template {TerraformTemplateName} for project {ProjectAcronym}", terraformTemplate.Name, datahubProject.Project_Acronym_CD);
+                return false;
+            }
+
             await using var ctx = await dbContextFactory.CreateDbContextAsync();
             var project = await ctx.Projects
                 .Include(p => p.Resources)
@@ -133,25 +139,17 @@ public class RequestManagementService(
                 {
                     await ProcessRequest(project, requestingUser, terraformTemplate);
 
-                    var preCreatedTemplates = TerraformTemplate.GetPreCreatedResources(terraformTemplate.Name, TerraformStatus.Completed);
-                    foreach (var template in preCreatedTemplates)
-                    {
-                        await ProcessRequest(project, requestingUser, template);
-                    }
-
                     foreach (var template in dependencyTemplates)
                     {
                         await ProcessRequest(project, requestingUser, template);
                     }
                 }
-            
             }
 
             var workspaceDefinition =
                 await resourceMessagingService.CreateWorkspaceDefinition(project.Project_Acronym_CD,
                     requestingUser.Email);
 
-            
             await resourceMessagingService.SendToTerraformQueue(workspaceDefinition);
             return true;
         }

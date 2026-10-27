@@ -50,6 +50,7 @@
   "https://documentation.sds.canada.ca/en/storage/Import-Azure-Storage.html": "https://documentation.sds.canada.ca/en/storage/Import-Azure-Storage.html",
   "https://documentation.sds.canada.ca/en/storage/Import-GCP-Storage.html": "https://documentation.sds.canada.ca/en/storage/Import-GCP-Storage.html",
   "https://documentation.sds.canada.ca/en/storage/Import-Storage.html": "https://documentation.sds.canada.ca/en/storage/Import-Storage.html",
+  "http://documentation.sds.canada.ca/en/storage/Storage-Tiers.html": "http://documentation.sds.canada.ca/en/storage/Storage-Tiers.html",
   "https://documentation.sds.canada.ca/en/storage/Use-AzCopy.html": "https://documentation.sds.canada.ca/en/storage/Use-AzCopy.html",
   "locked-lt": "verrouille",
   "login-lt": "connexion",

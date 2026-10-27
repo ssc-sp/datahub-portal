@@ -8,6 +8,28 @@ Allows a user to add an IP address to the whitelist of a cloud resource
         When the workspace subscription id is retrieved
         Then the workspace subscription id should be the same as the azure subscription id
 
+    Scenario: Firewall rules use an accessible GCDS table
+        Given a rendered DatabaseIpWhitelistTable component
+        When a sample firewall rule is displayed
+        Then the firewall rules use a GCDS table
+        And the firewall table has localized accessible columns
+        And the firewall table supports filtering and sorting
+        And the firewall rule values are displayed as plain text
+
+    Scenario: Firewall rule actions require a selection
+        Given a rendered DatabaseIpWhitelistTable component
+        When a sample firewall rule is displayed
+        Then the firewall rule actions are disabled
+        When the sample firewall rule is selected
+        Then the firewall rule actions are enabled
+        When the selected firewall rule is edited
+        Then the firewall rule editor is an inline GCDS form
+
+    Scenario: Add firewall rules with an accessible inline form
+        Given a rendered DatabaseIpWhitelistTable component
+        When the add firewall rule form is opened
+        Then the add firewall rule editor is an inline GCDS form
+
 #    Scenario: Add my IP address to the whitelist
 #        Given a current user with a name of <name>
 #        And an IP address of <ip_address>

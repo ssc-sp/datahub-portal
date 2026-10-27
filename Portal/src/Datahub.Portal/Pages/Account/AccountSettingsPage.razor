@@ -1,0 +1,107 @@
+@using Datahub.Core.Model.Achievements
+@using Datahub.Core.Model.Users
+@using Datahub.Portal.Components.Sidebar
+@using Datahub.Portal.Components.User
+@using Datahub.Portal.Pages.Account.Achievements
+@using Datahub.Portal.Pages.Account.Appearance
+@using Datahub.Portal.Pages.Account.Notifications
+@using Datahub.Portal.Pages.Account.PublicProfile
+@using Datahub.Portal.Pages.Home
+
+@inherits ViewUserBase<AccountSettingsPage>
+
+@inject ISnackbar _snackbar
+@inject NavigationManager _navigationManager
+
+@attribute [Route(PageRoutes.AccountDefault)]
+@attribute [Route(PageRoutes.AccountDefault_FR)]
+@attribute [Route(PageRoutes.Account)]
+@attribute [Route(PageRoutes.Account_FR)]
+@attribute [ExternalUserPage]
+
+<PageTitle>
+    @Localizer["{0} - Profile - {1}", _title, Localizer["MainTitle"]]
+</PageTitle>
+
+<DatahubAuthView AuthLevel="DatahubAuthView.AuthLevels.DatahubSupport">
+    <DHSidebarDrawer>
+        <PersonalSidebar />
+    </DHSidebarDrawer>
+</DatahubAuthView>
+
+@if (_viewedPortalUser == null)
+{
+    <DHLoadingInitializer Message="@Localizer["Loading Settings"]" />
+    return;
+}
+else
+{
+    <DHMainContentTitle  Title="@Localizer["Account Settings"]"/>
+    <AccountPublicProfileSettings ViewedUser="@_viewedPortalUser"/>
+    <AccountAppearanceSettings ViewedUser="@_viewedPortalUser"/>
+    <DatahubAuthView AllowedUsers="DatahubAuthView.UserType.TrustedEntraOnly">
+        <AccountNotificationSettings ViewedUser="@_viewedPortalUser"/>
+    </DatahubAuthView>
+    <AchievementsPage ViewedUser="@_viewedPortalUser"/>
+
+    <DatahubAuthView AuthLevel="DatahubAuthView.AuthLevels.DatahubAdminGuestView">
+        <SettingsField Label="@Localizer["Admin Access"]" Description="@Localizer["Toggle admin access mode."]">
+            <MudSwitch T="bool"
+                       Color="Color.Primary"
+                       Value="@_isViewAsAdmin"
+                       ValueChanged="@ToggleAdminMode"
+                       Label="@Localizer["Admin Access Enabled"]" Style="text-wrap: nowrap" />
+        </SettingsField>
+    </DatahubAuthView>
+}
+
+@code {
+
+    [Parameter] public string Section { get; set; }
+
+    private PortalUser _viewedPortalUser;
+    private bool _isViewAsAdmin;
+
+    private string _title => _viewedPortalUser?.DisplayName != null
+        ? $"{_viewedPortalUser.DisplayName}"
+        : Localizer["Home"];
+
+
+        protected override async Task OnInitializedAsync()
+    {
+        _isViewAsAdmin = await _userInformationService.IsAdminModeEnabled();
+    }
+
+
+    protected override async Task OnParametersSetAsync()
+    {
+        await base.OnParametersSetAsync();
+
+        _viewedPortalUser = await GetViewedPortalUserWithAchievementsAsync();
+        StateHasChanged();
+    }
+
+    private async Task HandleViewedUserChanged(PortalUser updatedUser)
+    {
+        _viewedPortalUser = updatedUser;
+        var success = await _userInformationService.UpdatePortalUserAsync(updatedUser);
+        if (success)
+        {
+            _snackbar.Add(Localizer["User information updated"], Severity.Success);
+        }
+        else
+        {
+            _snackbar.Add(Localizer["Failed to update user information"], Severity.Error);
+        }
+
+        await InvokeAsync(StateHasChanged);
+    }
+
+    private async Task ToggleAdminMode()
+    {
+        _isViewAsAdmin = !_isViewAsAdmin;
+        await _userInformationService.SetAdminModeView(_isViewAsAdmin);
+        _navigationManager.NavigateTo(_navigationManager.Uri, true);
+    }
+
+}

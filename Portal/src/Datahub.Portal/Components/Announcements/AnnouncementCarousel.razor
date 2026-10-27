@@ -1,4 +1,5 @@
 @using Datahub.Application.Services.Announcements
+@using GcdsWrapper.Blazor
 @using MudBlazor.Utilities
 
 @inject IAnnouncementService _announcementService
@@ -16,31 +17,19 @@
             var preview = Previews[index];
             if (!preview.Preview.StartsWith("!["))
             {
+                var result = SplitTitleAndBody(preview.Preview);
+                // Remove any leading hash tag and space from the title if it exists
+                if (result.title.StartsWith("# "))
+                {
+                    result.title = result.title.Substring(2);
+                }
                 <li class="flex-1">
-                    <MudAlert Severity="_announcementService.GetSeverity(preview.Severity)" Style="color: #000;" NoIcon="true">
-                        <div style="display: flex;">
-                            <MudChip T="string" Variant="Variant.Text" Color="_announcementService.GetColor(preview.Severity, true)">
-                                <DHIcon Icon="@_announcementService.GetIcon(preview.Severity)" Class="mr-1" Color="_announcementService.GetColor(preview.Severity, true)" />
-                                <MudText Typo="Typo.button">@Localizer[_announcementService.GetText(preview.Severity)]</MudText>
-                            </MudChip>
-                        </div>
-                        <MudStack Justify="Justify.SpaceBetween" Style="height: 184px;" Spacing="1">
-                            <MudElement>
-                                <DHMarkdown Content="@preview.Preview" Style="@_descriptionTextStyle"/>
-                            </MudElement>
-                            <MudElement>
-                                <DHButton Href="@Localizer[PageRoutes.News]"
-                                Color="@Color.Primary"
-                                Variant="@Variant.Text"
-                                EndIcon="@Icons.Material.Filled.KeyboardDoubleArrowRight"
-                                Underline 
-                                NoWrap>
-                                    <span class="sr-only">@preview.Preview</span>
-                                    @Localizer["Read more"]
-                                </DHButton>
-                            </MudElement>
-                        </MudStack>
-                    </MudAlert>
+                    <GcdsNotice NoticeRole=@GetSeverity(preview.Severity) NoticeTitle="@result.title" NoticeTitleTag="h3">
+                        <DHMarkdown Content="@result.body" Style="@_descriptionTextStyle" />
+                        <GcdsText Size="small">
+                            <GcdsLink Href="@Localizer[PageRoutes.News]">@Localizer["Read more"]</GcdsLink>
+                        </GcdsText>
+                    </GcdsNotice>
                 </li>
             }
         }
@@ -63,7 +52,7 @@
 
         _descriptionTextStyle = new StyleBuilder()
             .AddStyle("overflow", "hidden")
-            .AddStyle("-webkit-line-clamp", "6")
+            .AddStyle("-webkit-line-clamp", "4")
             .AddStyle("-webkit-box-orient", "vertical")
             .AddStyle("display", "-webkit-box")
             .Build();
@@ -80,6 +69,37 @@
         // The # of columns for the announcements is displayed accordingly
         _previewCount = Math.Min(Previews.Count, 3);
         _isLoading = false;
+    }
+
+    public static (string title, string body) SplitTitleAndBody(string input)
+    {
+        if (string.IsNullOrEmpty(input))
+        {
+            return (string.Empty, string.Empty);
+        }
+
+        int newlineIndex = input.IndexOf('\n');
+    
+        if (newlineIndex == -1)
+        {
+            // No newline found - entire string is first line, remaining is empty
+            return (input, string.Empty);
+        }
+    
+        // Extract first line (everything before first newline)
+        string title = input.Substring(0, newlineIndex);
+    
+        // Extract remaining content (everything after first newline)
+        string body = input.Substring(newlineIndex + 1);
+    
+        return (title, body);
+    }
+
+    private string GetSeverity(int n)
+    {
+        if (n == 0) return "danger";
+        if (n == 1) return "warning";
+        return "info";
     }
 }
 

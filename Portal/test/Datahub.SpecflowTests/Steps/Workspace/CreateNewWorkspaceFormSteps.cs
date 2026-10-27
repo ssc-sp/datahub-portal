@@ -1,3 +1,5 @@
+using GcdsWrapper.Blazor;
+using System.Globalization;
 using Bunit;
 using Bunit.TestDoubles;
 using Datahub.Application.Configuration;
@@ -75,9 +77,11 @@ namespace Datahub.SpecflowTests.Steps.Workspace
             Services.AddSingleton(portalConfiguration);
 
             Services.AddMudServices();
+            Services.AddSingleton(Substitute.For<ICultureService>());
             Services.AddDatahubLocalization(portalConfiguration);
 
             JSInterop.SetupMudBlazor();
+            JSInterop.Mode = JSRuntimeMode.Loose;
         }
 
         private static IWorkspaceCreationService CreateMockedWorkspaceCreationService(
@@ -124,67 +128,17 @@ namespace Datahub.SpecflowTests.Steps.Workspace
             return createWorkspacePage!;
         }
 
-        private static IRenderedComponent<MudForm>? FindCreateWorkspaceForm(IRenderedComponent<CreateWorkspacePage> createWorkspacePage)
-        {
-            var forms = createWorkspacePage.FindComponents<MudForm>();
-            var form = forms.FirstOrDefault();
-            return form;
-        }
+        private static IRenderedComponent<CreateWorkspaceForm>? FindCreateWorkspaceForm(IRenderedComponent<CreateWorkspacePage> page)
+            => page.FindComponents<CreateWorkspaceForm>().FirstOrDefault();
 
-        private static IRenderedComponent<MudText>? FindNonCbrErrorMessage(IRenderedComponent<CreateWorkspacePage> createWorkspaceForm)
-        {
-            var textElements = createWorkspaceForm.FindComponents<MudText>();
-            var text = textElements.FirstOrDefault(r => r.Instance.Tag is string tagStr && tagStr == CreateWorkspacePage.NON_CBR_OWNER_MESSAGE_TAG);
-            return text;
-        }
+        private static IRenderedComponent<MudText>? FindNonCbrErrorMessage(IRenderedComponent<CreateWorkspacePage> page)
+            => page.FindComponents<MudText>().FirstOrDefault(r => r.Instance.Tag is string tag && tag == CreateWorkspacePage.NON_CBR_OWNER_MESSAGE_TAG);
 
-        private static IRenderedComponent<MudButton> FindCreateWorkspaceButtonInNewWorkspaceForm(IRenderedComponent<CreateWorkspacePage> createWorkspacePage)
-        {
-            var formButtons = createWorkspacePage.FindComponents<MudButton>();
-            var button = formButtons.FirstOrDefault(r => r.Instance.Tag is string tagStr && tagStr == CreateWorkspaceForm.CREATE_WORKSPACE_BUTTON_TAG);
-            button.Should().NotBeNull();
-            return button!;
-        }
+        private static IRenderedComponent<GcdsButton> FindAction(IRenderedComponent<CreateWorkspacePage> page)
+            => page.FindComponents<GcdsButton>().First(r => r.Instance.Id == "workspace-next" || r.Instance.Id == CreateWorkspaceForm.CREATE_WORKSPACE_BUTTON_TAG);
 
-        private static IRenderedComponent<MudTextField<string>> FindWorkspaceTitleTextField(IRenderedComponent<MudForm> form)
-        {
-            var formTextFields = form.FindComponents<MudTextField<string>>();
-            var textField = formTextFields.FirstOrDefault(r => r.Instance.Tag is string tagStr && tagStr == CreateWorkspaceForm.WORKSPACE_TITLE_INPUT_TAG);
-            textField.Should().NotBeNull();
-            return textField!;
-        }
-
-        private static IRenderedComponent<MudTextField<string>> FindWorkspaceAcronymTextField(IRenderedComponent<MudForm> form)
-        {
-            var formTextFields = form.FindComponents<MudTextField<string>>();
-            var textField = formTextFields.FirstOrDefault(r => r.Instance.Tag is string tagStr && tagStr == CreateWorkspaceForm.WORKSPACE_ACRONYM_INPUT_TAG);
-            textField.Should().NotBeNull();
-            return textField!;
-        }
-
-        private static IRenderedComponent<MudSelect<GCHostingWorkspaceDetails>> FindCbrDropdownInForm(IRenderedComponent<MudForm> form)
-        {
-            var formDropdowns = form.FindComponents<MudSelect<GCHostingWorkspaceDetails>>();
-            var cbrDropdown = formDropdowns.FirstOrDefault(r => r.Instance.Tag is string tagStr && tagStr == CreateWorkspaceForm.CBR_DROPDOWN_TAG);
-            cbrDropdown.Should().NotBeNull();
-            return cbrDropdown!;
-        }
-
-        private static GCHostingWorkspaceDetails FindFirstNonNullCbr(IRenderedComponent<MudSelect<GCHostingWorkspaceDetails>> cbrDropdown)
-        {
-            var selectItems = cbrDropdown.FindComponents<MudSelectItem<GCHostingWorkspaceDetails>>();
-            var firstNonNullCbr = selectItems.FirstOrDefault(r => r.Instance.Value is not null);
-            firstNonNullCbr.Should().NotBeNull();
-            return firstNonNullCbr!.Instance.Value!;
-        }
-
-        private static IRenderedComponent<MudTextField<decimal>> FindBudgetInput(IRenderedComponent<MudForm> form)
-        {
-            var textFields = form.FindComponents<MudTextField<decimal>>();
-            var budgetInput = textFields.FirstOrDefault(r => r.Instance.Tag is string tagStr && tagStr == CreateWorkspaceForm.BUDGET_INPUT_TAG);
-            budgetInput.Should().NotBeNull();
-            return budgetInput!;
-        }
+        private static IRenderedComponent<GcdsInput> FindInput(IRenderedComponent<CreateWorkspaceForm> form, string id)
+            => form.FindComponents<GcdsInput>().Single(r => r.Instance.Id == id);
 
         //[Given("authorization as a {string} for the workspace creation page")]
         //public void GivenAuthorizationAsAUserTypeForTheWorkspaceCreationPage(string userType)
@@ -259,90 +213,51 @@ namespace Datahub.SpecflowTests.Steps.Workspace
 
         private async Task CheckWorkspaceCreationFormValidity(bool valid)
         {
-            var workspaceCreationPage = GetCreateWorkspacePageFromContext();
-            var form = FindCreateWorkspaceForm(workspaceCreationPage);
-            form.Should().NotBeNull();
-            await workspaceCreationPage.InvokeAsync(form!.Instance.Validate);
-            form!.Instance.IsValid.Should().Be(valid);
+            var page = GetCreateWorkspacePageFromContext();
+            var step = page.FindComponent<GcdsStepper>().Instance.CurrentStep;
+            await page.InvokeAsync(FindAction(page).Instance.OnClick.InvokeAsync);
+            page.FindComponent<GcdsStepper>().Instance.CurrentStep.Should().Be(valid ? step + 1 : step);
         }
-
         [Then("the workspace creation form should be invalid")]
-        public async Task ThenTheWorkspaceCreationFormShouldBeInvalid()
-        {
-            await CheckWorkspaceCreationFormValidity(false);
-        }
-
+        public Task ThenTheWorkspaceCreationFormShouldBeInvalid() => CheckWorkspaceCreationFormValidity(false);
         [Then("the workspace creation form should be valid")]
-        public async Task ThenTheWorkspaceCreationFormShouldBeValid()
-        {
-            await CheckWorkspaceCreationFormValidity(true);
-        }
-
+        public Task ThenTheWorkspaceCreationFormShouldBeValid() => CheckWorkspaceCreationFormValidity(true);
         private void CheckCreateWorkspaceButtonEnabledStatus(bool enabled)
         {
-            var createWorkspacePage = GetCreateWorkspacePageFromContext();
-            var button = FindCreateWorkspaceButtonInNewWorkspaceForm(createWorkspacePage);
-            button.Instance.Disabled.Should().NotBe(enabled);
+            var page = GetCreateWorkspacePageFromContext();
+            var buttons = page.FindComponents<GcdsButton>().Where(b => b.Instance.Id == CreateWorkspaceForm.CREATE_WORKSPACE_BUTTON_TAG).ToList();
+            if (enabled) buttons.Single().Instance.Disabled.Should().BeFalse();
+            else buttons.Should().BeEmpty();
         }
-
         [Then("the create workspace button should be enabled")]
-        public void ThenTheCreateWorkspaceButtonShouldBeEnabled()
-        {
-            CheckCreateWorkspaceButtonEnabledStatus(true);
-        }
-
+        public void ThenTheCreateWorkspaceButtonShouldBeEnabled() => CheckCreateWorkspaceButtonEnabledStatus(true);
         [Then("the create workspace button should be disabled")]
-        public void ThenTheCreateWorkspaceButtonShouldBeDisabled()
-        {
-            CheckCreateWorkspaceButtonEnabledStatus(false);
-        }
-
+        public void ThenTheCreateWorkspaceButtonShouldBeDisabled() => CheckCreateWorkspaceButtonEnabledStatus(false);
         [When("the user enters a workspace title in the creation form")]
         public async Task WhenTheUserEntersAWorkspaceTitleInTheCreationForm()
         {
-            var workspaceCreationPage = GetCreateWorkspacePageFromContext();
-            var form = FindCreateWorkspaceForm(workspaceCreationPage);
-            form.Should().NotBeNull();
-            var titleTextbox = FindWorkspaceTitleTextField(form!);
-            var acronymTextbox = FindWorkspaceAcronymTextField(form!);
-
-            await workspaceCreationPage.InvokeAsync(async () => await titleTextbox.Instance.ValueChanged.InvokeAsync("Test Workspace"));
-            // manually invoke the debounce task in order to auto generate and populate acronym
-            await workspaceCreationPage.InvokeAsync(titleTextbox.Instance.OnDebounceIntervalElapsed.InvokeAsync);
-            workspaceCreationPage.Render();
-            
+            var page = GetCreateWorkspacePageFromContext();
+            var form = FindCreateWorkspaceForm(page)!;
+            await page.InvokeAsync(() => FindInput(form, CreateWorkspaceForm.WORKSPACE_TITLE_INPUT_TAG).Instance.ValueChanged.InvokeAsync("Test Workspace"));
+            await page.InvokeAsync(form.FindComponents<GcdsButton>().First().Instance.OnClick.InvokeAsync);
+            scenarioContext[WORKSPACE_ACRONYM_CTX_KEY] = FindInput(form, CreateWorkspaceForm.WORKSPACE_ACRONYM_INPUT_TAG).Instance.Value!;
+            await page.InvokeAsync(FindAction(page).Instance.OnClick.InvokeAsync);
         }
-
         [When("the user selects a CBR from the dropdown in the workspace creation form")]
         public async Task WhenTheUserSelectsACbrFromTheDropdownInTheWorkspaceCreationForm()
         {
-            var workspaceCreationPage = GetCreateWorkspacePageFromContext();
-            var form = FindCreateWorkspaceForm(workspaceCreationPage);
-            form.Should().NotBeNull();
-            var cbrDropdown = FindCbrDropdownInForm(form!);
-            var nonNullCbr = FindFirstNonNullCbr(cbrDropdown);
-
-            await workspaceCreationPage.InvokeAsync(async () => await cbrDropdown.Instance.ValueChanged.InvokeAsync(nonNullCbr));
-            await workspaceCreationPage.InvokeAsync(form!.Instance.Validate);
-            workspaceCreationPage.Render();
+            var page = GetCreateWorkspacePageFromContext();
+            var select = page.FindComponent<GcdsSelect>();
+            var id = select.Find("option").GetAttribute("value")!;
+            scenarioContext[CBR_ID_CTX_KEY] = int.Parse(id, CultureInfo.InvariantCulture);
+            await page.InvokeAsync(() => select.Instance.ValueChanged.InvokeAsync(id));
         }
-
         [When("the user enters a budget of {decimal} in the workspace creation form")]
         public async Task WhenTheUserEntersABudgetInTheWorkspaceCreationForm(decimal budget)
         {
-            var workspaceCreationPage = GetCreateWorkspacePageFromContext();
-            var form = FindCreateWorkspaceForm(workspaceCreationPage);
-            form.Should().NotBeNull();
-
-            // verify that a cbr is selected
-            var cbrDropdown = FindCbrDropdownInForm(form!);
-            cbrDropdown.Should().NotBeNull();
-            cbrDropdown.Instance.Value.Should().NotBeNull();
-
-            var budgetInput = FindBudgetInput(form!);
-            await workspaceCreationPage.InvokeAsync(async () => await  budgetInput.Instance.ValueChanged.InvokeAsync(budget));
-            await workspaceCreationPage.InvokeAsync(form!.Instance.Validate);
-            workspaceCreationPage.Render();
+            var page = GetCreateWorkspacePageFromContext();
+            scenarioContext[WORKSPACE_BUDGET_CTX_KEY] = budget;
+            await page.InvokeAsync(() => FindInput(FindCreateWorkspaceForm(page)!, CreateWorkspaceForm.BUDGET_INPUT_TAG).Instance.ValueChanged.InvokeAsync(budget.ToString(CultureInfo.CurrentCulture)));
         }
 
         private void CheckIfFormIsShown(bool shown)
@@ -404,26 +319,80 @@ namespace Datahub.SpecflowTests.Steps.Workspace
             var form = FindCreateWorkspaceForm(page);
             form.Should().NotBeNull();
 
-            var cbrDropdown = FindCbrDropdownInForm(form!);
-            cbrDropdown.Should().NotBeNull();
-            var selectedCbr = cbrDropdown!.Instance.Value;
-            selectedCbr.Should().NotBeNull();
-            scenarioContext[CBR_ID_CTX_KEY] = selectedCbr!.Id;
+            if (page.FindComponent<GcdsStepper>().Instance.CurrentStep == 2)
+                await page.InvokeAsync(FindAction(page).Instance.OnClick.InvokeAsync);
+            var button = FindAction(page);
+            button.Instance.Disabled.Should().BeFalse();
+            await page.InvokeAsync(button.Instance.OnClick.InvokeAsync);
+        }
 
-            var budgetInput = FindBudgetInput(form!);
-            budgetInput.Should().NotBeNull();
-            scenarioContext[WORKSPACE_BUDGET_CTX_KEY] = budgetInput!.Instance.Value;
+        [When("the user enters a title of {int} characters and acronym {string}")]
+        public async Task EnterIdentity(int length, string acronym)
+        {
+            var page = GetCreateWorkspacePageFromContext();
+            var form = FindCreateWorkspaceForm(page)!;
+            await page.InvokeAsync(() => FindInput(form, CreateWorkspaceForm.WORKSPACE_TITLE_INPUT_TAG).Instance.ValueChanged.InvokeAsync(new string('x', length)));
+            await page.InvokeAsync(() => FindInput(form, CreateWorkspaceForm.WORKSPACE_ACRONYM_INPUT_TAG).Instance.ValueChanged.InvokeAsync(acronym));
+        }
+        [When("the user goes back to workspace identity")]
+        public async Task BackToIdentity()
+        {
+            var page = GetCreateWorkspacePageFromContext();
+            var back = page.FindComponents<GcdsButton>().Single(b => b.Find("gcds-button").TextContent.Trim() == "Back");
+            await page.InvokeAsync(back.Instance.OnClick.InvokeAsync);
+        }
+        [Then("the workspace acronym should be {string}")]
+        public void CheckAcronym(string acronym)
+            => FindInput(FindCreateWorkspaceForm(GetCreateWorkspacePageFromContext())!, CreateWorkspaceForm.WORKSPACE_ACRONYM_INPUT_TAG).Instance.Value.Should().Be(acronym);
 
-            var acronymTextbox = FindWorkspaceAcronymTextField(form!);
-            acronymTextbox.Should().NotBeNull();
-            scenarioContext[WORKSPACE_ACRONYM_CTX_KEY] = acronymTextbox!.Instance.Value;
-
-            var createWorkspaceButton = FindCreateWorkspaceButtonInNewWorkspaceForm(page);
-            createWorkspaceButton.Should().NotBeNull();
-            createWorkspaceButton!.Instance.Disabled.Should().BeFalse();
-
-            await page.InvokeAsync(createWorkspaceButton.Instance.OnClick.InvokeAsync);
-
+        [When("the user continues to feature interests")]
+        public async Task ContinueToFeatures()
+        {
+            var page = GetCreateWorkspacePageFromContext();
+            await page.InvokeAsync(FindAction(page).Instance.OnClick.InvokeAsync);
+            page.FindComponent<GcdsStepper>().Instance.CurrentStep.Should().Be(3);
+        }
+        [When("the user selects all feature interests")]
+        public async Task SelectAllFeatures()
+        {
+            var page = GetCreateWorkspacePageFromContext();
+            await page.InvokeAsync(() => page.FindComponent<GcdsCheckboxes>().Instance.ValueChanged.InvokeAsync(new[] { "Other", "Collaboration", "Storage", "Analytics" }));
+        }
+        [When("the user enters {int} characters for other feature interests")]
+        public async Task EnterOther(int count)
+        {
+            var page = GetCreateWorkspacePageFromContext();
+            await page.InvokeAsync(() => page.FindComponent<GcdsTextarea>().Instance.ValueChanged.InvokeAsync(new string('x', count)));
+        }
+        [Then("feature interest overflow should be {word}")]
+        public void CheckOverflow(string expected)
+        {
+            var page = GetCreateWorkspacePageFromContext();
+            FindAction(page).Instance.Disabled.Should().Be(expected == "shown");
+            (page.FindComponent<GcdsCheckboxes>().Instance.ErrorMessage is not null).Should().Be(expected == "shown");
+        }
+        [When("the user deselects Other")]
+        public async Task DeselectOther()
+        {
+            var page = GetCreateWorkspacePageFromContext();
+            await page.InvokeAsync(() => page.FindComponent<GcdsCheckboxes>().Instance.ValueChanged.InvokeAsync(new[] { "Storage", "Analytics", "Collaboration" }));
+            page.FindComponents<GcdsTextarea>().Should().BeEmpty();
+        }
+        [Then("the other feature text should contain {int} characters")]
+        public void CheckOther(int count) => GetCreateWorkspacePageFromContext().FindComponent<GcdsTextarea>().Instance.Value.Should().HaveLength(count);
+        [Then("the saved feature interests should have {int} characters")]
+        public async Task CheckSavedInterests(int count)
+        {
+            await using var db = await Services.GetRequiredService<IDbContextFactory<DatahubProjectDBContext>>().CreateDbContextAsync();
+            var details = await db.ProjectCreationDetails.SingleAsync();
+            details.InterestedFeatures.Should().HaveLength(count);
+            if (count > 0) details.InterestedFeatures.Should().StartWith("Storage, Analytics, Collaboration, Other: ");
+        }
+        [When("the user enters a malformed workspace budget")]
+        public async Task MalformedBudget()
+        {
+            var page = GetCreateWorkspacePageFromContext();
+            await page.InvokeAsync(() => FindInput(FindCreateWorkspaceForm(page)!, CreateWorkspaceForm.BUDGET_INPUT_TAG).Instance.ValueChanged.InvokeAsync("invalid"));
         }
 
         [Then("the workspace should be created with the correct parent CBR ID and budget")]

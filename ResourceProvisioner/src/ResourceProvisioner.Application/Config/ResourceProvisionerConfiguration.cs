@@ -77,26 +77,27 @@ public class OmniUser
 
 public class Variables
 {
-    public string log_analytics_workspace_id { get; set; }
-    public string automation_account_uai_name { get; set; }
-    public string automation_account_uai_rg { get; set; }
-    public string automation_account_uai_sub { get; set; }
-    public string az_subscription_id { get; set; }
-    public string az_tenant_id { get; set; }
-    public string budget_amount { get; set; }
-    public string storage_size_limit_tb { get; set; }
-    public string environment_classification { get; set; }
-    public string environment_name { get; set; }
-    public string az_location { get; set; }
-    public string allow_source_ip { get; set; }
-    public string resource_prefix { get; set; }
-    public string resource_prefix_alphanumeric { get; set; }
+    public string service_bus_id { get; set; } = string.Empty;
+    public string log_analytics_workspace_id { get; set; } = string.Empty;
+    public string automation_account_uai_name { get; set; } = string.Empty;
+    public string automation_account_uai_rg { get; set; } = string.Empty;
+    public string automation_account_uai_sub { get; set; } = string.Empty;
+    public string az_subscription_id { get; set; } = string.Empty;
+    public string az_tenant_id { get; set; } = string.Empty;
+    public string budget_amount { get; set; } = string.Empty;
+    public string storage_size_limit_tb { get; set; } = string.Empty;
+    public string environment_classification { get; set; } = string.Empty;
+    public string environment_name { get; set; } = string.Empty;
+    public string az_location { get; set; } = string.Empty;
+    public string allow_source_ip { get; set; } = string.Empty;
+    public string resource_prefix { get; set; } = string.Empty;
+    public string resource_prefix_alphanumeric { get; set; } = string.Empty;
     public string storage_suffix { get; set; } = "terraformbackend";
-    public string datahub_app_sp_oid { get; set; }
-    public string azure_databricks_enterprise_oid { get; set; }
-    public string log_workspace_id { get; set; } = "";
-    public string aad_admin_group_oid { get; set; }
+    public string datahub_app_sp_oid { get; set; } = string.Empty;
+    public string azure_databricks_enterprise_oid { get; set; } = string.Empty;
+    public string log_workspace_id { get; set; } = string.Empty;
+    public string aad_admin_group_oid { get; set; } = string.Empty;
 
-    public string ssc_cbrid { get; set; } = "";
-    public CommonTags common_tags { get; set; }
+    public string ssc_cbrid { get; set; } = string.Empty;
+    public CommonTags common_tags { get; set; } = new();
 }

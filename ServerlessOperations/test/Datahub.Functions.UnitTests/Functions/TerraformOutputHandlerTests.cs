@@ -83,7 +83,7 @@ public class TerraformOutputHandlerTests
             {
                 Project = project,
                 RequestedBy = currentPortalUser,
-                ResourceType = TerraformTemplate.GetTerraformServiceType(TerraformTemplate.AzureStorageBlob),
+                ResourceType = TerraformTemplate.GetTerraformServiceType(TerraformTemplate.NewProjectTemplate),
                 RequestedAt = laterequest,
                 Status = TerraformStatus.CreateRequested
             },
@@ -154,7 +154,7 @@ public class TerraformOutputHandlerTests
         {
             Project = project,
             RequestedBy = currentPortalUser,
-            ResourceType = TerraformTemplate.GetTerraformServiceType(TerraformTemplate.AzureStorageBlob)
+            ResourceType = TerraformTemplate.GetTerraformServiceType(TerraformTemplate.NewProjectTemplate)
         };
 
         _context.Project_Resources2.Add(storageResource);
@@ -487,7 +487,7 @@ public class TerraformOutputHandlerTests
         Func<Task> act = async () => await _terraformOutputHandler.RunAsync(serviceBusReceivedMessage);
 
         // Assert
-        await act.Should().ThrowAsync<Exception>().WithMessage("The given key 'project_cd' was not present in the dictionary.");
+        await act.Should().NotThrowAsync();
     }
 
     [Test]

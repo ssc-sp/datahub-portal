@@ -1,12 +1,36 @@
+using Azure.Storage.Blobs.Models;
+using Datahub.Core.Data;
 using Datahub.Core.Model.Achievements;
 using Datahub.Core.Model.Projects;
+using Datahub.Core.Storage;
 using Datahub.Infrastructure.Services.Storage;
 using Microsoft.JSInterop;
+using Microsoft.TeamFoundation.Common;
+using MudBlazor;
+using System.Timers;
 
 namespace Datahub.Portal.Pages.Workspace.Storage;
 
 public partial class StorageHeading
 {
+    private ICloudStorageManager? _tierManager;
+    private string? _tierContainer;
+    private bool _changingTier;
+    private string? _tierStatus;
+    private string? _tierError;
+
+    private void RefreshStorageTierOptions()
+    {
+        if (ReferenceEquals(_tierManager, StorageManager) && _tierContainer == ContainerName)
+            return;
+        _tierManager = StorageManager;
+        _tierContainer = ContainerName;
+        _storageTiers = StorageManager.GetFileStorageTiersList();
+        SelectedStorageTier = "";
+        _tierStatus = null;
+        _tierError = null;
+    }
+
     private enum ButtonAction
     {
         BackToContainers,
@@ -18,6 +42,7 @@ public partial class StorageHeading
         AzSync,
         DeleteFolder,
         NewFolder,
+        TierChange,
         Publish
     }
 
@@ -54,6 +79,8 @@ public partial class StorageHeading
                 return "fas fa-folder-plus";
             case ButtonAction.DeleteFolder:
                 return "fas fa-folder-minus";
+            case ButtonAction.TierChange:
+                return Icons.Material.Filled.Storage;
             case ButtonAction.Publish:
                 return "fas fa-bullhorn";
             default:
@@ -96,7 +123,7 @@ public partial class StorageHeading
     
     private async Task HandleUpload()
     {
-        if (IsActionDisabled(ButtonAction.Upload))
+        if (await IsActionDisabled(ButtonAction.Upload))
             return;
 
         await _module.InvokeVoidAsync("promptForFileUpload");
@@ -109,11 +136,27 @@ public partial class StorageHeading
 
     private async Task HandleDownload()
     {
-        if (IsActionDisabled(ButtonAction.Download))
+        if (await IsActionDisabled(ButtonAction.Download))
             return;
+
+        List<string> tiers = StorageManager.ProviderType switch
+        {
+            CloudStorageProviderType.AWS => ["STANDARD_IA", "ONEZONE_IA", "GLACIER_IR"],
+            CloudStorageProviderType.GCP => ["NEARLINE", "COLDLINE", "ARCHIVE"],
+            _ => [AccessTier.Cool.ToString(), AccessTier.Cold.ToString()]
+        };
 
         var downloads = SelectedItems?
             .Where(selectedItem => Files?.Any(f => f.name == selectedItem) ?? false);
+
+        var downloadPaths = (_selectedFiles ?? []).Select(file =>
+            $"{CurrentFolder?.TrimEnd('/')}/{file.name.TrimStart('/')}".TrimStart('/')).ToList();
+        if (await CheckIfAnyFilesInTiers(downloadPaths, tiers, StorageManager, ContainerName))
+        {
+            bool confirm = await _module.InvokeAsync<bool>("confirmDownloadCoolOrCold", Localizer["Are you sure you want to download these files? There is increased cost to download this storage type."].ToString());
+
+            if (!confirm) return;
+        }
         
         if (downloads is null)
             return;
@@ -127,7 +170,7 @@ public partial class StorageHeading
 
     private async Task HandlePublish()
     {
-        if (IsActionDisabled(ButtonAction.Publish)) return;
+        if (await IsActionDisabled(ButtonAction.Publish)) return;
 
         if (_isPublishingBlockedForWorkspace)
         {
@@ -148,7 +191,7 @@ public partial class StorageHeading
     }
     private async Task HandleDelete()
     {
-        if (IsActionDisabled(ButtonAction.Delete))
+        if (await IsActionDisabled(ButtonAction.Delete))
             return;
 
         var deletes = SelectedItems?
@@ -165,7 +208,7 @@ public partial class StorageHeading
 
     private async Task HandleRename()
     {
-        if (IsActionDisabled(ButtonAction.Rename))
+        if (await IsActionDisabled(ButtonAction.Rename))
             return;
         
         var selectedFile = _selectedFiles?.FirstOrDefault();
@@ -181,7 +224,7 @@ public partial class StorageHeading
 
     private async Task HandleNewFolder()
     {
-        if (IsActionDisabled(ButtonAction.NewFolder))
+        if (await IsActionDisabled(ButtonAction.NewFolder))
             return;
         
         var newFolderName = await _module.InvokeAsync<string>("promptForNewFolderName", Localizer["Enter a new name for the folder."].ToString());
@@ -192,7 +235,7 @@ public partial class StorageHeading
     }
     private async Task HandleDeleteFolder()
     {
-        if (IsActionDisabled(ButtonAction.DeleteFolder))
+        if (await IsActionDisabled(ButtonAction.DeleteFolder))
             return;
 
         var folderName = SelectedItems?.FirstOrDefault();
@@ -226,8 +269,147 @@ public partial class StorageHeading
         return CanDeleteFolder(folderName);
     }
 
+    /// <summary>
+    /// Handler for a new tier being selected. Iterates through selected items and updates their tier.
+    /// </summary>
+    /// <param name="newTier">New tier to be set</param>
+    /// <returns></returns>
+    private async Task HandleTierChange(string newTier)
+    {
+        if (newTier.IsNullOrEmpty() || _changingTier
+            || await IsActionDisabled(ButtonAction.TierChange))
+        {
+            return; // Value was cleared
+        }
 
-    private bool IsActionDisabled(ButtonAction buttonAction)
+        if (!StorageManager.GetFileStorageTiersList().Contains(newTier, StringComparer.Ordinal))
+            return;
+
+        _changingTier = true;
+        try
+        {
+            if (newTier == AccessTier.Archive.ToString() ||
+                (StorageManager.ProviderType == CloudStorageProviderType.AWS && newTier is "GLACIER" or "DEEP_ARCHIVE") ||
+                (StorageManager.ProviderType == CloudStorageProviderType.GCP && newTier == "ARCHIVE"))
+            {
+                var message = StorageManager.ProviderType switch
+                {
+                    CloudStorageProviderType.AWS => Localizer["Are you sure you want to change the file(s) to archive tier? To access them again, restore them using AWS tooling. This can take several hours."],
+                    CloudStorageProviderType.GCP => Localizer["Are you sure you want to change the file(s) to Archive storage? Retrieval and early deletion charges may apply."],
+                    _ => Localizer["Are you sure you want to change the file(s) to archive tier? If you need to access them, it will take time to re-hydrate."]
+                };
+                bool confirm = await _module.InvokeAsync<bool>("confirmStorageTierChange", message.ToString());
+                if (!confirm) return;
+            }
+            await ApplyTierChangeAsync(newTier);
+        }
+        finally { _changingTier = false; }
+    }
+
+    private async Task ApplyTierChangeAsync(string newTier)
+    {
+        var manager = StorageManager;
+        var container = ContainerName;
+        var paths = SelectedItems?
+            .Where(selectedItem => Files?.Any(f => f.name == selectedItem) ?? false)
+            .Select(file => $"{CurrentFolder?.TrimEnd('/')}/{file.TrimStart('/')}".TrimStart('/'))
+            .ToList() ?? [];
+        if (paths.Count == 0) return;
+        _tierError = null;
+        _tierStatus = Localizer["Changing storage tier…"];
+        var errors = new List<string>();
+
+        foreach (var path in paths)
+        {
+            try
+            {
+                if (!await manager.SetFileStorageTierAsync(container, path, newTier))
+                    errors.Add(Localizer["Failed to change storage tier"]);
+            }
+            catch (StorageTierChangeException ex) { errors.Add(Localizer[ex.Message]); }
+            catch { errors.Add(Localizer["Failed to change storage tier"]); }
+        }
+
+        if (!ReferenceEquals(manager, StorageManager) || container != ContainerName)
+            return;
+        _tierStatus = null;
+        if (errors.Count == 0)
+        {
+            var label = Localizer[CloudStorageHelpers.GetStorageClassLabel(newTier)].ToString();
+            _tierStatus = Localizer["Storage tier changed to {0} successfully", label];
+            _snackbar.Add(Localizer["Storage tier changed to {0} successfully", label], Severity.Success);
+        }
+        else
+        {
+            _tierError = string.Join(" ", errors.Distinct());
+            _snackbar.Add(Localizer["Failed to change storage tier"], Severity.Error);
+        }
+
+        if (ReferenceEquals(manager, StorageManager) && container == ContainerName && OnStorageTierChanged.HasDelegate)
+            await OnStorageTierChanged.InvokeAsync(newTier);
+    }
+
+    private async Task<bool> AnySelectedFileUnavailableAsync()
+    {
+        if (StorageManager.ProviderType == CloudStorageProviderType.AWS)
+        {
+            foreach (var file in _selectedFiles ?? [])
+            {
+                var path = $"{CurrentFolder?.TrimEnd('/')}/{file.name.TrimStart('/')}".TrimStart('/');
+                if ((await StorageManager.GetFileArchiveStatusAsync(ContainerName, path)).State != CloudStorageArchiveState.Available)
+                    return true;
+            }
+            return false;
+        }
+        var paths = (_selectedFiles ?? []).Select(file =>
+            $"{CurrentFolder?.TrimEnd('/')}/{file.name.TrimStart('/')}".TrimStart('/')).ToList();
+        return await CheckIfAnyFilesInTiers(paths, [AccessTier.Archive.ToString()], StorageManager, ContainerName);
+    }
+
+    private async Task<bool> CheckIfAnyFilesInTiers(List<PortalFileMetadata> selectedFiles, List<string> checkTiers)
+    {
+        var filePaths = selectedFiles
+            .Select(file => GetCurrentFolderFilePath(file.name))
+            .ToList();
+
+        bool result = await CheckIfAnyFilesInTiers(filePaths, checkTiers, StorageManager, ContainerName);
+        return result;
+    }
+
+    private string GetCurrentFolderFilePath(string fileName)
+    {
+        return $"{CurrentFolder?.TrimEnd('/')}/{fileName.TrimStart('/')}".TrimStart('/');
+    }
+
+    public static async Task<bool> CheckIfAnyFilesInTiers(List<string> selectedFiles, List<string> checkTiers, ICloudStorageManager storageManager, string containerName)
+    {
+        foreach (var file in selectedFiles)
+        {
+            var fileTier = await storageManager.GetFileStorageTierAsync(containerName, file);
+
+            foreach (var tier in checkTiers)
+            {
+                if (fileTier == tier)
+                {
+                    return true;
+                }
+            }
+        }
+        return false;
+    }
+
+    public static async Task<bool> CheckIfAnyFilesInTiers(List<PortalFileMetadata> selectedFiles, List<string> checkTiers, ICloudStorageManager storageManager, string containerName)
+    {
+        List<string> filePaths = new List<string>();
+        foreach (var file in selectedFiles)
+        {
+            filePaths.Add(file.fullPathFromRoot);
+        }
+        bool result = await CheckIfAnyFilesInTiers(filePaths, checkTiers, storageManager, containerName);
+        return result;
+    }
+
+    private async Task<bool> IsActionDisabled(ButtonAction buttonAction)
     {
         if(buttonAction is ButtonAction.BackToContainers)
         { return false; }
@@ -235,7 +417,7 @@ public partial class StorageHeading
         if (_currentUserRole is null)
             return true;
 
-        if (Readonly && buttonAction is ButtonAction.Upload or ButtonAction.Delete or ButtonAction.Rename or ButtonAction.NewFolder or ButtonAction.DeleteFolder)
+        if (Readonly && buttonAction is ButtonAction.Upload or ButtonAction.Delete or ButtonAction.Rename or ButtonAction.NewFolder or ButtonAction.DeleteFolder or ButtonAction.TierChange)
             return true;
 
         var hasExternalStorageAccess = _currentUserRole.Id is (int)Project_Role.RoleNames.Storage or (int)Project_Role.RoleNames.WebAppAndStorage;
@@ -246,13 +428,14 @@ public partial class StorageHeading
         {
             ButtonAction.Upload => !canWriteStorage,
             ButtonAction.AzSync => !_isElectron,
-            ButtonAction.Download => _selectedFiles is null || !_selectedFiles.Any() || !canReadStorage,
-            ButtonAction.Share => !_isUnclassifiedSingleFile,
+            ButtonAction.Download => _selectedFiles is null || !_selectedFiles.Any() || !canReadStorage || await AnySelectedFileUnavailableAsync(),
+            ButtonAction.Share => !_isUnclassifiedSingleFile || await AnySelectedFileUnavailableAsync(),
             ButtonAction.Delete => _selectedFiles is null || !_selectedFiles.Any() || !canWriteStorage,
-            ButtonAction.Rename => _selectedFiles is null || !_selectedFiles.Any() || !canWriteStorage || SelectedItems.Count > 1,
+            ButtonAction.Rename => _selectedFiles is null || !_selectedFiles.Any() || !canWriteStorage || SelectedItems.Count > 1 || await AnySelectedFileUnavailableAsync(),
             ButtonAction.NewFolder => !canWriteStorage,
             ButtonAction.DeleteFolder => !CanDeleteCurrentFolder() || !canWriteStorage,
-            ButtonAction.Publish => !_config.CkanConfiguration.IsFeatureEnabled || _selectedFiles is null || !_selectedFiles.Any() || !canWriteStorage,
+            ButtonAction.TierChange => _selectedFiles is null || !_selectedFiles.Any() || !canWriteStorage || IsStorageTierDisabled,
+            ButtonAction.Publish => !_config.CkanConfiguration.IsFeatureEnabled || _selectedFiles is null || !_selectedFiles.Any() || !canWriteStorage || await AnySelectedFileUnavailableAsync(),
             _ => false
         };
     }

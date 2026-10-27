@@ -36,8 +36,10 @@ else if (_gccfEnabled)
             <DatahubAuthView AuthLevel="DatahubAuthView.AuthLevels.WorkspaceLead" ProjectAcronym="@WorkspaceAcronym"
                              ElevatedWorkspaceAccessEnabled="@ElevatedWorkspaceAccessEnabled">
                 <Authorized>
-                    <DHButton OnClick="OpenInviteUserDialog" Variant="Variant.Outlined" Color="Color.Primary"
-                              EndIcon="@Icons.Material.Outlined.PersonAdd">
+                    <DHButton @ref="_inviteUserButton" HtmlTag="button" ButtonType="ButtonType.Button"
+                              OnClick="ShowInviteUserForm" Variant="Variant.Outlined" Color="Color.Primary"
+                              EndIcon="@Icons.Material.Outlined.PersonAdd" aria-expanded="@(_showInviteUserForm ? "true" : "false")"
+                              aria-controls="external-invite-form">
                         @Localizer["Add user"]
                     </DHButton>
                 </Authorized>
@@ -51,6 +53,23 @@ else if (_gccfEnabled)
                 </NotAuthorized>
             </DatahubAuthView>
         </MudStack>
+        @if (!string.IsNullOrWhiteSpace(_inviteStatusMessage))
+        {
+            <MudAlert Severity="Severity.Success" Class="mb-4" role="status">
+                @_inviteStatusMessage
+            </MudAlert>
+        }
+        @if (_showInviteUserForm && _currentUser is not null)
+        {
+            <DatahubAuthView AuthLevel="DatahubAuthView.AuthLevels.WorkspaceLead" ProjectAcronym="@WorkspaceAcronym"
+                             ElevatedWorkspaceAccessEnabled="@ElevatedWorkspaceAccessEnabled">
+                <AddNewExternalUsersToProjectForm ProjectAcronym="@WorkspaceAcronym"
+                                                  Inviter="@_currentUser"
+                                                  GetGcInvitationLink="GetCodeAcceptancePageUrl"
+                                                  OnCompleted="HandleInviteUserCompletedAsync"
+                                                  OnCancelled="HideInviteUserFormAsync" />
+            </DatahubAuthView>
+        }
         @if (_externalProjectUsers.Any())
         {
             <MudTable Items="@_externalProjectUsers" Striped Filter="@(new Func<ExternalWorkspaceUserRow, bool>(CombinedFilter))">
@@ -159,26 +178,26 @@ else if (_gccfEnabled)
                                 <DHButton Variant="Variant.Filled" OnClick="() => OpenManageUserDialog(rowContext.UserRoleLink!)">
                                     @Localizer["View/Edit"]
                                 </DHButton>
-                                @if (CanExtendUser(rowContext))
-                                {
-                                    <DHButton Variant="Variant.Filled" OnClick="() => OpenExtendUserDialog(rowContext.UserRoleLink!)">
-                                        @Localizer["Extend"]
-                                    </DHButton>
-                                }
                                 @if (CanDeactivateUser(rowContext))
                                 {
                                     <DHButton Variant="Variant.Filled" OnClick="() => OpenDeactivateUserDialog(rowContext.UserRoleLink!)">
                                         @Localizer["Deactivate user"]
                                     </DHButton>
                                 }
-                                @if (CanCancelInvitation(rowContext))
-                                {
-                                    <DHButton Variant="Variant.Filled" OnClick="() => CancelInvitationAsync(rowContext)">@Localizer["Cancel invitation"]</DHButton>
-                                }
-                                @if (CanResendInvitation(rowContext) || IsInviteExpired(rowContext))
-                                {
-                                    <DHButton Variant="Variant.Filled" OnClick="() => ResendInvitationAsync(rowContext)">@Localizer["Resend invitation"]</DHButton>
-                                }
+                            }
+                            @if (CanExtendUser(rowContext))
+                            {
+                                <DHButton Variant="Variant.Filled" OnClick="() => OpenExtendUserDialog(rowContext)">
+                                    @Localizer["Extend"]
+                                </DHButton>
+                            }
+                            @if (CanCancelInvitation(rowContext))
+                            {
+                                <DHButton Variant="Variant.Filled" OnClick="() => CancelInvitationAsync(rowContext)">@Localizer["Cancel invitation"]</DHButton>
+                            }
+                            @if (CanResendInvitation(rowContext) || IsInviteExpired(rowContext))
+                            {
+                                <DHButton Variant="Variant.Filled" OnClick="() => ResendInvitationAsync(rowContext)">@Localizer["Resend invitation"]</DHButton>
                             }
                         </MudStack>
                     </MudTd>
@@ -208,6 +227,11 @@ else
     private bool _loading = true;
 
     private bool _gccfEnabled = false;
+    private bool _showInviteUserForm;
+    private bool _focusInviteUserButton;
+    private string? _inviteStatusMessage;
+    private PortalUser? _currentUser;
+    private DHButton? _inviteUserButton;
 
     private List<ExternalWorkspaceUserRow> _externalProjectUsers = [];
 
@@ -319,6 +343,9 @@ else
 
     private (string enURL, string frURL) GetCodeAcceptancePageUrl(WorkspaceInvitation invitation)
     {
+        // Save current culture to return to afterwards
+        var currentCulture = CultureInfo.CurrentUICulture;
+
         // Force French (fr) for this lookup
         CultureInfo.CurrentUICulture = new CultureInfo("fr");
         try
@@ -336,7 +363,7 @@ else
         finally
         {
             // Reset to the original culture after generating the URL
-            CultureInfo.CurrentUICulture = CultureInfo.InvariantCulture;
+            CultureInfo.CurrentUICulture = currentCulture;
         }
     }
 
@@ -380,24 +407,36 @@ else
         }
     }
 
-    private async Task OpenInviteUserDialog()
+    private async Task ShowInviteUserForm()
     {
-        var currentUser = await _userInformationService.GetCurrentPortalUserAsync();
-        var dialogOptions = new DialogOptions { MaxWidth = MaxWidth.ExtraLarge };
-        var dialogParameters = new DialogParameters
-      {
-            { nameof(AddNewExternalUsersToProjectDialog.ProjectAcronym), WorkspaceAcronym },
-            { nameof(AddNewExternalUsersToProjectDialog.Inviter), currentUser },
-            { nameof(AddNewExternalUsersToProjectDialog.GetGcInvitationLink), GetCodeAcceptancePageUrl }
-       };
-        var dialog = await _dialogService.ShowAsync<AddNewExternalUsersToProjectDialog>(Localizer["Invite New Users"],
-    dialogParameters, dialogOptions);
-        var result = await dialog.Result;
+        _currentUser ??= await _userInformationService.GetCurrentPortalUserAsync();
+        _inviteStatusMessage = null;
+        _showInviteUserForm = true;
+    }
 
-        if (!result.Canceled)
+    private async Task HideInviteUserFormAsync()
+    {
+        _showInviteUserForm = false;
+        _focusInviteUserButton = true;
+        await InvokeAsync(StateHasChanged);
+    }
+
+    private async Task HandleInviteUserCompletedAsync()
+    {
+        _showInviteUserForm = false;
+        _inviteStatusMessage = Localizer["User invited successfully"];
+        await InitializeProjectMembersAsync();
+        _focusInviteUserButton = true;
+        await InvokeAsync(StateHasChanged);
+    }
+
+    protected override async Task OnAfterRenderAsync(bool firstRender)
+    {
+        await base.OnAfterRenderAsync(firstRender);
+        if (_focusInviteUserButton && _inviteUserButton is not null)
         {
-            await InitializeProjectMembersAsync();
-            await InvokeAsync(StateHasChanged);
+            _focusInviteUserButton = false;
+            await _inviteUserButton.FocusAsync();
         }
     }
 
@@ -493,12 +532,12 @@ else
         await InvokeAsync(StateHasChanged);
     }
 
-    private async Task OpenExtendUserDialog(UserRoleLinks selectedUser)
+    private async Task OpenExtendUserDialog(ExternalWorkspaceUserRow selectedUser)
     {
         var dialogOptions = new DialogOptions { MaxWidth = MaxWidth.ExtraLarge };
         var dialogParameters = new DialogParameters
-      {
-            { "SelectedUser", selectedUser }
+        {
+            { nameof(ExtendExternalUserDialog.SelectedUser), selectedUser.ExternalUser }
         };
 
         var dialog = await _dialogService.ShowAsync<ExtendExternalUserDialog>(Localizer["Extend user"], dialogParameters, dialogOptions);
@@ -506,7 +545,7 @@ else
 
         if (!result.Canceled)
         {
-            if (result.Data is not UserRoleLinks)
+            if (result.Data is not ExternalUser)
             {
                 _snackbar.Add(Localizer["Error extending user"], Severity.Error);
             }
@@ -538,22 +577,19 @@ else
 
     private bool CanDeactivateUser(ExternalWorkspaceUserRow projectUser)
     {
-        return projectUser.UserRoleLink is not null
-            && projectUser.ExternalUser.UserDeactivatedAt is null
+        return projectUser.ExternalUser.UserDeactivatedAt is null
             && projectUser.ExternalUser.FirstLoginDateTime is not null;
     }
 
     private bool CanExtendUser(ExternalWorkspaceUserRow projectUser)
     {
-        return projectUser.UserRoleLink is not null
-            && projectUser.ExternalUser.UserDeactivatedAt is null
+        return projectUser.ExternalUser.UserDeactivatedAt is null
             && projectUser.ExternalUser.UserExpiryDate < DateTimeOffset.UtcNow;
     }
 
     private bool CanCancelInvitation(ExternalWorkspaceUserRow projectUser)
     {
         return projectUser.ExternalUser.UserDeactivatedAt is null
-            && projectUser.ExternalUser.FirstLoginDateTime is null
             && projectUser.LatestInvitation is not null
             && projectUser.LatestInvitation.InvitationTokenAccepted is null
             && projectUser.LatestInvitation.InvitationExpiry >= DateTimeOffset.UtcNow;
@@ -562,7 +598,6 @@ else
     private bool CanResendInvitation(ExternalWorkspaceUserRow projectUser)
     {
         return projectUser.ExternalUser.UserDeactivatedAt is null
-            && projectUser.ExternalUser.FirstLoginDateTime is null
             && projectUser.LatestInvitation is not null;
     }
 

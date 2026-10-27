@@ -41,14 +41,21 @@ public class AzFileDownloadController : Controller
             return NotFound();
         //extract name from filePath
         var name = Path.GetFileName(entry.FilePath);
-        var download = await blob.DownloadStreamingAsync();
-        _logger.LogInformation("Serving file download for blob {BlobPath}, user {User}", entry.FilePath, entry.UserName);
-        return File(
-            download.Value.Content,
-            contentType: "application/octet-stream",
-            fileDownloadName: name,
-            enableRangeProcessing: true
-        );
-
+        try
+        {
+            var download = await blob.DownloadStreamingAsync();
+            _logger.LogInformation("Serving file download for blob {BlobPath}, user {User}", entry.FilePath, entry.UserName);
+            return File(
+                download.Value.Content,
+                contentType: "application/octet-stream",
+                fileDownloadName: name,
+                enableRangeProcessing: true
+            );
+        }
+        catch (Azure.RequestFailedException ex)
+        {
+            _logger.LogError($"Download failed with exception {ex.Message}");
+            return BadRequest(ex.Message);
+        }
     }
 }

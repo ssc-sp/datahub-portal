@@ -2398,6 +2398,10 @@ code {
 
         .file-explorer-layout-wrapper .file-explorer-layout .heading {
             grid-area: heading;
+            position: sticky;
+            top: 96px;
+            z-index: 101;
+            background-color: white;
             border-bottom: 1px solid var(--bg-color-accent);
             display: grid;
             grid-template-columns: 1fr;
@@ -2539,13 +2543,13 @@ code {
 
             .file-explorer-layout-wrapper .file-explorer-layout .item-details .details-sticky {
                 position: sticky;
-                top: 60px;
+                top: 200px;
                 padding: calc((0 + 2 * (var(--design-unit) * var(--density))) * 1px);
             }
 
                 .file-explorer-layout-wrapper .file-explorer-layout .item-details .details-sticky .details-container .storage-properties {
                     display: grid;
-                    gap: calc((0 + 8 * (var(--design-unit) * var(--density))) * 1px);
+                    gap: calc((0 + 4 * (var(--design-unit) * var(--density))) * 1px);
                 }
 
                     .file-explorer-layout-wrapper .file-explorer-layout .item-details .details-sticky .details-container .storage-properties .h3, .file-explorer-layout-wrapper .file-explorer-layout .item-details .details-sticky .details-container .storage-properties .h4 {
@@ -2574,7 +2578,7 @@ code {
 
                     .file-explorer-layout-wrapper .file-explorer-layout .item-details .details-sticky .details-container .storage-properties .properties {
                         display: grid;
-                        grid-template-columns: 120px 1fr;
+                        grid-template-columns: 140px 1fr;
                         gap: calc((0 + 2 * (var(--design-unit) * var(--density))) * 1px);
                     }
 

@@ -1,9 +1,12 @@
 using System.Net;
 using System.Reflection;
+using System.Security.Claims;
 using System.Text;
+using System.Text.Json;
 using Azure.Core;
 using Datahub.Application.Services;
 using Datahub.Application.Services.Security;
+using Datahub.Core.Data;
 using Datahub.Core.Model.Context;
 using Datahub.Core.Model.Users;
 using Datahub.Core.Services.CatalogSearch;
@@ -15,6 +18,7 @@ using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.Logging;
 using Microsoft.FeatureManagement;
 using Microsoft.Graph;
+using Microsoft.Identity.Web;
 using Moq;
 
 namespace Datahub.Infrastructure.UnitTests.Services;
@@ -172,7 +176,122 @@ public class UserInformationServiceTests
         _userEnrollmentServiceMock.Verify(s => s.InviteUserToGroup(It.IsAny<string>()), Times.Never);
     }
 
-    private UserInformationService BuildService(GraphServiceClient graphClient)
+    [Test]
+    public async Task RegisterAuthenticatedEntraUser_UpdatesProfileFromGraph()
+    {
+        const string graphId = "entra-existing-id";
+        var firstLogin = DateTime.UtcNow.AddDays(-10);
+        var previousLastLogin = DateTime.UtcNow.AddDays(-1);
+        await SeedExistingEntraUser(graphId, "old.email@example.gc.ca", "john.doe", firstLogin, previousLastLogin);
+        var sut = BuildService(
+            CreateGraphClientForUser(graphId, "john.doe@sample.gc.ca", "John Doe (SAMPLE)", "Sample Department"),
+            graphId);
+
+        var beforeRegistration = DateTime.UtcNow;
+        await sut.RegisterAuthenticatedEntraUser();
+        var afterRegistration = DateTime.UtcNow;
+
+        await using var ctx = new SqliteDatahubContext(_dbOptions);
+        var portal = await ctx.PortalUsers.SingleAsync();
+
+        Assert.Multiple(() =>
+        {
+            Assert.That(portal.DisplayName, Is.EqualTo("John Doe (SAMPLE)"));
+            Assert.That(portal.Email, Is.EqualTo("john.doe@sample.gc.ca"));
+            Assert.That(portal.FirstLoginDateTime, Is.EqualTo(firstLogin));
+            Assert.That(portal.LastLoginDateTime, Is.InRange(beforeRegistration, afterRegistration));
+        });
+
+        _catalogSearchMock.Verify(s => s.AddCatalogObject(It.Is<Core.Model.Catalog.CatalogObject>(catalog =>
+            catalog.ObjectId == graphId
+            && catalog.Name_English == "John Doe (SAMPLE)"
+            && catalog.Name_French == "John Doe (SAMPLE)"
+            && catalog.Desc_English == "Sample Department"
+            && catalog.Desc_French == "Sample Department")), Times.Once);
+    }
+
+    [TestCase(null, null)]
+    [TestCase("", "")]
+    public async Task RegisterAuthenticatedEntraUser_PreservesProfileWhenGraphValuesAreBlank(
+        string? graphEmail,
+        string? graphDisplayName)
+    {
+        const string graphId = "entra-existing-id";
+        const string existingEmail = "john.doe@sample.gc.ca";
+        const string existingDisplayName = "John Doe (SAMPLE)";
+        await SeedExistingEntraUser(graphId, existingEmail, existingDisplayName);
+        var sut = BuildService(CreateGraphClientForUser(graphId, graphEmail, graphDisplayName, "Sample Department"), graphId);
+
+        await sut.RegisterAuthenticatedEntraUser();
+
+        await using var ctx = new SqliteDatahubContext(_dbOptions);
+        var portal = await ctx.PortalUsers.SingleAsync();
+
+        Assert.Multiple(() =>
+        {
+            Assert.That(portal.DisplayName, Is.EqualTo(existingDisplayName));
+            Assert.That(portal.Email, Is.EqualTo(existingEmail));
+            Assert.That(portal.FirstLoginDateTime, Is.Not.Null);
+            Assert.That(portal.LastLoginDateTime, Is.Not.Null);
+        });
+
+        _catalogSearchMock.Verify(s => s.AddCatalogObject(It.IsAny<Core.Model.Catalog.CatalogObject>()), Times.Never);
+    }
+
+    [Test]
+    public async Task RegisterAuthenticatedEntraUser_DoesNotUpsertCatalogWhenProfileMatchesGraph()
+    {
+        const string graphId = "entra-existing-id";
+        const string email = "john.doe@sample.gc.ca";
+        const string displayName = "John Doe (SAMPLE)";
+        var firstLogin = DateTime.UtcNow.AddDays(-10);
+        var previousLastLogin = DateTime.UtcNow.AddDays(-1);
+        await SeedExistingEntraUser(graphId, email, displayName, firstLogin, previousLastLogin);
+        var sut = BuildService(CreateGraphClientForUser(graphId, email, displayName, "Sample Department"), graphId);
+
+        await sut.RegisterAuthenticatedEntraUser();
+
+        await using var ctx = new SqliteDatahubContext(_dbOptions);
+        var portal = await ctx.PortalUsers.SingleAsync();
+
+        Assert.Multiple(() =>
+        {
+            Assert.That(portal.DisplayName, Is.EqualTo(displayName));
+            Assert.That(portal.Email, Is.EqualTo(email));
+            Assert.That(portal.FirstLoginDateTime, Is.EqualTo(firstLogin));
+            Assert.That(portal.LastLoginDateTime, Is.GreaterThan(previousLastLogin));
+        });
+
+        _catalogSearchMock.Verify(s => s.AddCatalogObject(It.IsAny<Core.Model.Catalog.CatalogObject>()), Times.Never);
+    }
+
+    [Test]
+    public async Task RegisterAuthenticatedEntraUser_CreatesNewUserWithGraphProfileAndLoginTimestamps()
+    {
+        const string graphId = "entra-new-id";
+        const string email = "john.doe@sample.gc.ca";
+        const string displayName = "John Doe (SAMPLE)";
+        var sut = BuildService(CreateGraphClientForUser(graphId, email, displayName, "Sample Department"), graphId);
+
+        await sut.RegisterAuthenticatedEntraUser();
+
+        await using var ctx = new SqliteDatahubContext(_dbOptions);
+        var portal = await ctx.PortalUsers.Include(p => p.EntraUser).SingleAsync();
+
+        Assert.Multiple(() =>
+        {
+            Assert.That(portal.DisplayName, Is.EqualTo(displayName));
+            Assert.That(portal.Email, Is.EqualTo(email));
+            Assert.That(portal.EntraUser!.GraphGuid, Is.EqualTo(graphId));
+            Assert.That(portal.FirstLoginDateTime, Is.Not.Null);
+            Assert.That(portal.LastLoginDateTime, Is.Not.Null);
+        });
+
+        _catalogSearchMock.Verify(s => s.AddCatalogObject(It.IsAny<Core.Model.Catalog.CatalogObject>()), Times.Once);
+        _userEnrollmentServiceMock.Verify(s => s.InviteUserToGroup(graphId), Times.Once);
+    }
+
+    private UserInformationService BuildService(GraphServiceClient graphClient, string? authenticatedGraphId = null)
     {
         var featureManagerMock = new Mock<IFeatureManagerSnapshot>();
         featureManagerMock
@@ -180,6 +299,18 @@ public class UserInformationServiceTests
             .ReturnsAsync(false);
 
         var authStateProviderMock = new Mock<AuthenticationStateProvider>();
+        if (authenticatedGraphId is not null)
+        {
+            var identity = new ClaimsIdentity(
+            [
+                new Claim(ClaimConstants.ObjectId, authenticatedGraphId),
+                new Claim(ClaimTypes.Name, "authenticated.user@example.gc.ca"),
+                new Claim(ClaimTypes.Role, RoleConstants.TRUSTED_ENTRA_LOGIN)
+            ], "TestAuthentication");
+            authStateProviderMock
+                .Setup(provider => provider.GetAuthenticationStateAsync())
+                .ReturnsAsync(new AuthenticationState(new ClaimsPrincipal(identity)));
+        }
         var serviceAuthManagerMock = new Mock<IServiceAuthManager>();
         var userTokenCredentialServiceMock = new Mock<IUserTokenCredentialService>();
 
@@ -232,14 +363,21 @@ public class UserInformationServiceTests
         await ctx.SaveChangesAsync();
     }
 
-    private async Task SeedExistingEntraUser(string graphId, string email)
+    private async Task SeedExistingEntraUser(
+        string graphId,
+        string email,
+        string displayName = "Existing Entra",
+        DateTime? firstLogin = null,
+        DateTime? lastLogin = null)
     {
         await using var ctx = new SqliteDatahubContext(_dbOptions);
 
         var portalUser = new PortalUser
         {
             Email = email,
-            DisplayName = "Existing Entra",
+            DisplayName = displayName,
+            FirstLoginDateTime = firstLogin,
+            LastLoginDateTime = lastLogin,
             EntraUser = new EntraUser
             {
                 GraphGuid = graphId,
@@ -251,18 +389,15 @@ public class UserInformationServiceTests
         await ctx.SaveChangesAsync();
     }
 
-    private static GraphServiceClient CreateGraphClientForUser(string graphId, string mail, string displayName, string department)
+    private static GraphServiceClient CreateGraphClientForUser(
+        string graphId,
+        string? mail,
+        string? displayName,
+        string? department)
     {
         var handler = new TestGraphHandler(_ =>
         {
-            var body = $$"""
-                         {
-                           "id": "{{graphId}}",
-                           "mail": "{{mail}}",
-                           "displayName": "{{displayName}}",
-                           "department": "{{department}}"
-                         }
-                         """;
+            var body = JsonSerializer.Serialize(new { id = graphId, mail, displayName, department });
 
             return new HttpResponseMessage(HttpStatusCode.OK)
             {

@@ -1,25 +1,15 @@
-﻿@* AzureConnectionDataInput.razor *@
+@using GcdsWrapper.Blazor
+@* AzureConnectionDataInput.razor *@
 @using Datahub.Infrastructure.Services.Storage;
 @using static Datahub.Infrastructure.Services.Storage.CloudStorageHelpers;
 
-<MudTextField @bind-Value="AccountName"
-              Label=@Localizer["Storage Account Name"]
-              Variant="Variant.Text"
-              Adornment=@Adornment.End
-              Immediate
-              AdornmentIcon=@Icons.Material.Filled.ContentPaste />
-
-<MudTextField @bind-Value="AccountKey"
-              Label=@Localizer["Account Key"]
-              Variant="Variant.Text"
-              InputType="InputType.Password"
-              Adornment=@Adornment.End
-              Immediate
-              AdornmentIcon=@Icons.Material.Filled.ContentPaste />
-
-
+<GcdsInput Id="storage-azure-accountname" Name="storage-azure-accountname" Label="@Localizer["Storage Account Name"]" Required Disabled="@Disabled" @bind-Value="AccountName" />
+<GcdsInput Id="storage-azure-accountkey" Name="storage-azure-accountkey" Label="@Localizer["Account Key"]" Required Disabled="@Disabled" Type="GcdsInputType.Password" Autocomplete="off" @bind-Value="AccountKey" />
 
 @code {
+    [Parameter]
+    public bool Disabled { get; set; }
+
 
     [Parameter]
     public IDictionary<string, string> ConnectionData { get; set; }

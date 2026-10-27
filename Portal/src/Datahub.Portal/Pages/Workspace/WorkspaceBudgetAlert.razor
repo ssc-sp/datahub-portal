@@ -1,3 +1,5 @@
+@using GcdsWrapper.Blazor
+
 @inject ILogger<WorkspaceBudgetAlert> _logger
 @inject IStringLocalizer Localizer
 
@@ -6,19 +8,14 @@
     return;
 }
 
-<DHAlert Severity="@SeverityLevel()" Dense>
-    <p>
-        <strong>
-            @Title()
-        </strong>
-    </p>
-    <p>
+<GcdsNotice NoticeRole="@NoticeRole()" NoticeTitle="@Title()" NoticeTitleTag="h2">
+    <GcdsText>
         @BudgetMessage()
-    </p>
-    <p>
+    </GcdsText>
+    <GcdsText>
         @ContextMessage()
-    </p>
-</DHAlert>
+    </GcdsText>
+</GcdsNotice>
 
 @code {
 
@@ -35,18 +32,18 @@
         _logger.LogWarning("PercentBudgetSpent is greater than 100. Setting to 100.");
     }
 
-    private Severity SeverityLevel()
+    private string NoticeRole()
     {
         switch (PercentBudgetSpent)
         {
             case < 75:
-                return Severity.Info;
+                return "info";
             case < 90:
-                return Severity.Warning;
+                return "warning";
             case < 100:
-                return Severity.Error;
+                return "danger";
             case 100:
-                return Severity.Error;
+                return "danger";
             default:
                 throw new ArgumentOutOfRangeException();
         }

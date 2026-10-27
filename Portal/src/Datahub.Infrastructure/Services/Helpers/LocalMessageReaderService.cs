@@ -90,7 +90,7 @@ public class LocalMessageReaderService : BackgroundService
 
                 if (results != null)
                 {
-                    var bugReports = results.Select(r => healthCheckHelper.CreateBugReportMessage(r.Check));
+                    var bugReports = results.Where(r => r.Check is not null).Select(r => healthCheckHelper.CreateBugReportMessage(r.Check));
                     _logger.LogInformation($"Generated {bugReports.Count()} bug reports.");
 
                     await Task.WhenAll(bugReports

@@ -102,7 +102,9 @@ public partial class RepositoryService(
     {
         FastForwardStrategy = FastForwardStrategy.NoFastForward,
         IgnoreWhitespaceChange = true,
-        MergeFileFavor = MergeFileFavor.Union
+        // Prefer the incoming branch's version when both sides changed the same file.
+        // During a pull, that is the newest file being merged in.
+        MergeFileFavor = MergeFileFavor.Theirs
     };
 
     private PushOptions CreatePushOptions(string? issuerValidationName,
@@ -189,8 +191,11 @@ public partial class RepositoryService(
             pullRequestMessage.Events
                 .Where(x => x.StatusCode == MessageStatusCode.Error)
                 .ToList()
-                .ForEach(x => logger.LogError(x.Message, x));
-            throw new Exception("Error while handling resource run request");
+                .ForEach(x => logger.LogError(
+                    "Error in PR for resource run: {ResourceRunMessage}. Resource run details: {@RepositoryUpdateEvent}",
+                    x.Message,
+                    x));
+            throw new Exception("Error while handling resource run PR request");
         }
         finally
         {
@@ -248,8 +253,10 @@ public partial class RepositoryService(
 
             if (repoTag == null)
             {
-                logger.LogInformation("Tag {BranchOrTag} does not exist, checking out default branch",
-                    repoTag);
+                logger.LogInformation(
+                    "Tag or branch {BranchOrTag} does not exist, checking out default branch {DefaultBranch}",
+                    version,
+                    ModuleRepositoryConfiguration.DefaultBranch);
                 var branchTag = repo.Branches[ModuleRepositoryConfiguration.DefaultBranch];
                 Commands.Checkout(repo, branchTag);
             }
@@ -307,14 +314,30 @@ public partial class RepositoryService(
         logger.LogInformation("Checking out branch {WorkspaceName} in {Path}", workspaceName, repositoryPath);
         using var repo = new Repository(repositoryPath);
         var branch = repo.Branches[workspaceName];
+        bool isNewBranch = false;
         if (branch == null)
         {
             logger.LogInformation("Branch {WorkspaceName} does not exist in {Path}, creating it now", workspaceName,
                 repositoryPath);
             branch = repo.CreateBranch(workspaceName);
+            isNewBranch = true;
         }
 
         Commands.Checkout(repo, branch);
+        if (!isNewBranch)
+        {
+            var mainBranchName = resourceProvisionerConfiguration.Value.InfrastructureRepository.MainBranch;
+            var mainBranch = repo.Branches[mainBranchName];
+            if (mainBranch is null)
+            {
+                logger.LogWarning("Main branch {MainBranchName} does not exist in {Path}; skipping rebranch", mainBranchName, repositoryPath);
+            }
+            else
+            {
+                logger.LogInformation("Resetting {WorkspaceName} to {MainBranchName}", workspaceName, mainBranchName);
+                repo.Reset(ResetMode.Hard, mainBranch.Tip);
+            }
+        }
 
         logger.LogInformation("Branch {WorkspaceName} checked out in {Path}", workspaceName, repositoryPath);
 
@@ -396,7 +419,7 @@ public partial class RepositoryService(
         logger.LogInformation("Pushing changes in {LocalPath} to {Branch} branch", repositoryPath,
             branch.CanonicalName);
 
-        await Task.Run(() => repo.Network.Push(repo.Branches[workspaceAcronym], options));
+        repo.Network.Push(repo.Branches[workspaceAcronym], options);
 
         logger.LogInformation("Changes pushed in {LocalPath} to {Branch} branch", repositoryPath,
             branch.CanonicalName);

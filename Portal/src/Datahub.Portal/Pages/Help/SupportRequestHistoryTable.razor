@@ -1,0 +1,51 @@
+@using GcdsWrapper.Blazor
+
+@if (Loading)
+{
+    <div role="status" aria-live="polite">
+        <GcdsText>@Localizer["Loading..."]</GcdsText>
+    </div>
+}
+else
+{
+    <GcdsTable Columns="@Columns"
+               Data="@Rows"
+               Filter="false"
+               Sort="false"
+               Pagination="true"
+               PaginationSize="10">
+        <span slot="caption" class="sr-only">@Localizer["Your Support Requests"]</span>
+    </GcdsTable>
+}
+
+@code {
+    [Parameter, EditorRequired]
+    public IReadOnlyCollection<IssueForDisplaying> Issues { get; set; } = [];
+
+    [Parameter]
+    public bool Loading { get; set; }
+
+    private IReadOnlyCollection<TableColumn> Columns =>
+    [
+        new("id", Localizer["ID"], true),
+        new("title", Localizer["Title"]),
+        new("description", Localizer["Description"]),
+        new("status", Localizer["Status"]),
+        new("submittedDate", Localizer["Submitted_DT"]),
+        new("lastUpdate", Localizer["Last Update"])
+    ];
+
+    private IReadOnlyCollection<IReadOnlyDictionary<string, string>> Rows => Issues
+        .Select(issue => (IReadOnlyDictionary<string, string>)new Dictionary<string, string>
+        {
+            ["id"] = issue.Id,
+            ["title"] = issue.Title,
+            ["description"] = issue.Description,
+            ["status"] = Localizer[issue.Message],
+            ["submittedDate"] = issue.SubmittedDate,
+            ["lastUpdate"] = issue.ChangedDate
+        })
+        .ToArray();
+
+    private sealed record TableColumn(string Field, string Header, bool RowHeader = false);
+}
