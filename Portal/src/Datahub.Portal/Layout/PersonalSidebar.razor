@@ -46,24 +46,17 @@
                     </strong>
                 </MudText>
                 <MudNavMenu Color="Color.Primary" role="navigation">
-                    <ul>
-                        @foreach (var sectionView in _accountItems)
-                        {
-                            <li>
-                                <MudNavLink
-                                    Href="@GetSectionViewUrl(Localizer[PageRoutes.AccountPrefix], Localizer[sectionView])"
-                                    Match="NavLinkMatch.All">
-                                    <MudStack Row AlignItems="AlignItems.Center">
-                                        <DHIcon Icon="@GetIcon(sectionView)" Size="Size.Small" Color="Color.Default"
-                                                Class="mr-2 ml-n2" Style="font-size:1rem;"/>
-                                        <MudText Style="@_workspaceLinkStyle">
-                                            @GetLabel(sectionView)
-                                        </MudText>
-                                    </MudStack>
-                                </MudNavLink>
-                            </li>
-                        }
-                    </ul>
+                    <MudNavLink
+                        Href="@Localizer[PageRoutes.Account]"
+                        Match="NavLinkMatch.All">
+                        <MudStack Row AlignItems="AlignItems.Center">
+                            <DHIcon Icon="@SidebarIcons.Settings" Size="Size.Small" Color="Color.Default"
+                                    Class="mr-2 ml-n2" Style="font-size:1rem;"/>
+                            <MudText Style="@_workspaceLinkStyle">
+                                @Localizer["Profile Settings"]
+                            </MudText>
+                        </MudStack>
+                    </MudNavLink>
                 </MudNavMenu>
             </MudStack>
             <DatahubAuthView AuthLevel="DatahubAuthView.AuthLevels.DatahubSupport">
@@ -105,13 +98,6 @@
                     </MudNavMenu>
                 </MudStack>
             </DatahubAuthView>
-            <DatahubAuthView AuthLevel="DatahubAuthView.AuthLevels.DatahubAdminGuestView">
-                <MudSwitch T="bool"
-                           Color="Color.Primary"
-                           Value="@_isViewAsAdmin"
-                           ValueChanged="@ToggleAdminMode"
-                           Label="@Localizer["Admin Access Enabled"]" Style="text-wrap: nowrap"/>
-            </DatahubAuthView>
         }
     </MudDrawerContainer>
 </MudStack>
@@ -119,7 +105,6 @@
 @code {
 
     private PortalUser _viewedUser;
-    private bool _isViewAsAdmin;
     private List<UserRoleLinks> _userRoles;
     [CascadingParameter] public DHSidebarDrawer Drawer { get; set; }
 
@@ -204,7 +189,6 @@
     protected override async Task OnInitializedAsync()
     {
         _viewedUser = await _userInformationService.GetCurrentPortalUserAsync() ?? throw new InvalidOperationException("No user identified");
-        _isViewAsAdmin = await _userInformationService.IsAdminModeEnabled();
 
         await using var dbContext = await _dbContextFactory.CreateDbContextAsync();
 
@@ -275,12 +259,5 @@
 
             _ => Localizer["Public Profile"]
         };
-    }
-
-    private async Task ToggleAdminMode()
-    {
-        _isViewAsAdmin = !_isViewAsAdmin;
-        await _userInformationService.SetAdminModeView(_isViewAsAdmin);
-        _navigationManager.NavigateTo(_navigationManager.Uri, true);
     }
 }

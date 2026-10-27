@@ -1,4 +1,3 @@
-using AngleSharp.Dom;
 using Bunit;
 using Bunit.TestDoubles;
 using Datahub.Application.Configuration;
@@ -20,13 +19,13 @@ using Datahub.Shared.Entities;
 using Datahub.Shared.Entities.WorkspaceToolConfiguration;
 using Datahub.SpecflowTests.Utils;
 using FluentAssertions;
+using GcdsWrapper.Blazor;
 using MassTransit;
 using MassTransit.Transports;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Authorization.Infrastructure;
 using Microsoft.AspNetCore.Components;
 using Microsoft.AspNetCore.Components.Authorization;
-using Microsoft.AspNetCore.Components.Web;
 using Microsoft.AspNetCore.Hosting;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.DependencyInjection;
@@ -967,52 +966,26 @@ public class WorkspaceToolboxSteps(
     {
         var workspaceToolbox = scenarioContext["workspaceToolbox"] as IRenderedComponent<CascadingAuthenticationState>;
 
-        // First, try to set value directly for MudSelect<string> via ValueChanged (bypasses popover rendering)
-        var stringSelect = workspaceToolbox!.FindComponents<MudSelect<string>>()
-            .FirstOrDefault(c => c.Instance?.FieldId == selectFieldId || c.Markup.Contains($"id=\"{selectFieldId}\""));
+        var stringSelect = workspaceToolbox!.FindComponents<GcdsSelect>()
+            .FirstOrDefault(component => component.Instance.Id == selectFieldId);
 
         if (stringSelect == null)
             throw new ArgumentNullException(nameof(stringSelect));
 
-        await workspaceToolbox!.InvokeAsync(async () => await stringSelect.Instance.ValueChanged.InvokeAsync(newValue));
+        await workspaceToolbox.InvokeAsync(() => stringSelect.Instance.ValueChanged.InvokeAsync(newValue));
         workspaceToolbox.Render();
         scenarioContext["workspaceToolbox"] = workspaceToolbox;
-
-    }
-
-    private static void TryOpenMudSelectDropdown(IElement selectField, IRenderedComponent<CascadingAuthenticationState> root)
-    {
-        try
-        {
-            // focus then open with Space or ArrowDown
-            selectField.TriggerEvent("onfocus", new FocusEventArgs());
-            selectField.TriggerEvent("onkeydown", new KeyboardEventArgs { Key = " ", Code = "Space" });
-            root.Render();
-        }
-        catch
-        {
-            // ignore and try ArrowDown
-        }
-
-        try
-        {
-            selectField.TriggerEvent("onkeydown", new KeyboardEventArgs { Key = "ArrowDown", Code = "ArrowDown" });
-            root.Render();
-        }
-        catch
-        {
-            // ignore; menu may already be open
-        }
     }
 
     [When(@"the user toggles the (.*) checkbox")]
     public async Task WhenTheUserTogglesTheCheckbox(string checkboxId)
     {
         var workspaceToolbox = scenarioContext["workspaceToolbox"] as IRenderedComponent<CascadingAuthenticationState>;
-        var checkbox = workspaceToolbox!.FindComponents<MudCheckBox<bool>>()
-            .FirstOrDefault(c => c.Instance.FieldId == checkboxId);
-        await workspaceToolbox!.InvokeAsync(async () => await checkbox!.Instance.ValueChanged.InvokeAsync(!checkbox.Instance.Value));
-        workspaceToolbox!.Render();
+        var checkbox = workspaceToolbox!.FindComponents<GcdsCheckboxes>()
+            .FirstOrDefault(component => component.Instance.Name == checkboxId);
+        var newValue = checkbox!.Instance.Value?.Length > 0 ? [] : new[] { "enabled" };
+        await workspaceToolbox.InvokeAsync(() => checkbox.Instance.ValueChanged.InvokeAsync(newValue));
+        workspaceToolbox.Render();
         scenarioContext["workspaceToolbox"] = workspaceToolbox;
     }
 
@@ -1020,23 +993,18 @@ public class WorkspaceToolboxSteps(
     public void ThenTheShouldHaveAsItsValue(string selectFieldId, string existingValue)
     {
         var workspaceToolbox = scenarioContext["workspaceToolbox"] as IRenderedComponent<CascadingAuthenticationState>;
-        var selectField = workspaceToolbox!.Find($"#{selectFieldId}");
-        selectField.Attributes["value"]?.Value.Should().Be(existingValue);
+        var selectField = workspaceToolbox!.FindComponents<GcdsSelect>()
+            .Single(component => component.Instance.Id == selectFieldId);
+        selectField.Instance.Value.Should().Be(existingValue);
     }
 
     [Then(@"the (.*) checkbox should be (.*)")]
     public void ThenTheCheckboxShouldBe(string checkboxId, bool isChecked)
     {
         var workspaceToolbox = scenarioContext["workspaceToolbox"] as IRenderedComponent<CascadingAuthenticationState>;
-        var checkbox = workspaceToolbox!.Find($"#{checkboxId}");
-        if (isChecked)
-        {
-            checkbox.Attributes["checked"].Should().NotBeNull();
-        }
-        else
-        {
-            checkbox.Attributes["checked"].Should().BeNull();
-        }
+        var checkbox = workspaceToolbox!.FindComponents<GcdsCheckboxes>()
+            .Single(component => component.Instance.Name == checkboxId);
+        (checkbox.Instance.Value?.Length > 0).Should().Be(isChecked);
     }
 
     [Then(@"the underlying Configure transaction should show the correct (.*) and (.*) values for (.*)")]

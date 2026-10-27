@@ -2,6 +2,7 @@
 @using Datahub.Core.Model.Achievements
 @using Datahub.Core.Model.Users
 @using Datahub.Portal.Components.User
+@using GcdsWrapper.Blazor
 
 @inject IUserSettingsService _userSettingsService
 @inject DatahubPortalConfiguration _datahubPortalConfiguration
@@ -12,22 +13,18 @@
 
     <Authorized>
         <MudStack Spacing="8" Class="mb-16">
-            <MudStack>
-                <DHMainContentTitle Title="@Localizer["Portal Appearance"]" />
-                <MudDivider/>
-            </MudStack>
             <SettingsField Label="@Localizer["Theme Preferences"]" Description="@Localizer["Choose how DataHub looks to you. Select a single theme, or sync with your operating system automatically."]">
-                <MudSelect T="string" Label="@Localizer["Current Theme"]" Variant="Variant.Outlined" Value="@ViewedUser.UserSettings.Theme" ValueChanged="HandleThemeChanged">
-                    <MudSelectItem T="string" Value="@Localizer["Light mode"]" />
-                    <MudSelectItem T="string" Value="@Localizer["Dark mode"]" />
-                </MudSelect>
+                <GcdsSelect Id="current-theme" Name="current-theme" Label="@Localizer["Current Theme"]" Value="@ViewedUser.UserSettings.Theme" ValueChanged="HandleThemeChanged" ValueExpression="@(() => ViewedUser.UserSettings.Theme)">
+                    <option value="@Localizer["Light mode"]">@Localizer["Light mode"]</option>
+                    <option value="@Localizer["Dark mode"]">@Localizer["Dark mode"]</option>
+                </GcdsSelect>
             </SettingsField>
             <SettingsField Label="@Localizer["Language Selection"]" Description="@Localizer["Choose your preferred language for DataHub."]">
-                <MudSelect T="string" Label="@Localizer["Current Language"]" Variant="Variant.Outlined" Value="@ViewedUser.UserSettings.Language" ValueChanged="HandleLanguageChanged">
-                    <MudSelectItem T="string" Value="@("en-CA")">English</MudSelectItem>
-                    <MudSelectItem T="string" Value="@("fr-CA")">Français</MudSelectItem>
-                    <MudSelectItem Disabled T="string" Value="@("Klingon")">Klingon</MudSelectItem>
-                </MudSelect>
+                <GcdsSelect Id="current-language" Name="current-language" Label="@Localizer["Current Language"]" Value="@ViewedUser.UserSettings.Language" ValueChanged="HandleLanguageChanged" ValueExpression="@(() => ViewedUser.UserSettings.Language)">
+                    <option value="en-CA">English</option>
+                    <option value="fr-CA">Français</option>
+                    <option value="Klingon" disabled>Klingon</option>
+                </GcdsSelect>
             </SettingsField>
         </MudStack>
     </Authorized>
