@@ -12,10 +12,10 @@
 
     <Authorized>
         <MudStack Spacing="8" Class="mb-16">
-            <MudStack>
+@*             <MudStack>
                 <DHMainContentTitle Title="@Localizer["Public profile"]"/>
                 <MudDivider/>
-            </MudStack>
+            </MudStack> *@
             <SettingsField Label="@Localizer["Display Name"]" Description="@Localizer["Your display name will be shown around DataHub as your username."]">
                 <GcdsInput Id="profile-display-name" Name="profile-display-name" Disabled Value="@ViewedUser.DisplayName" ValueExpression="@(() => ViewedUser.DisplayName)" Label="@Localizer["Display name"]" />
             </SettingsField>
@@ -34,7 +34,7 @@
                     IsProfilePictureDialog="@false"
                     OnImageSelected="@(code => HandleImageSelected(code, false))"/>
             </SettingsField>
-            <MudDivider/>
+            @* <MudDivider/> *@
             <SettingsField Label="@Localizer["Display Achievements"]" Description="@Localizer["Choose whether to hide or display your achievements in DataHub. This will also prevent the achievement notifications from displaying on your screen."]">
                 <GcdsCheckboxes Name="show-achievements" Legend="@Localizer["Show Achievements"]" Options="@ShowAchievementsOptions" Value="@ShowAchievementsValue" ValueChanged="HandleShowAchievementsChanged" ValueExpression="@(() => ShowAchievementsValue)" />
             </SettingsField>

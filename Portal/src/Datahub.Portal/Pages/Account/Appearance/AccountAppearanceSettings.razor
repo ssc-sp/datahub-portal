@@ -13,10 +13,6 @@
 
     <Authorized>
         <MudStack Spacing="8" Class="mb-16">
-            <MudStack>
-                <DHMainContentTitle Title="@Localizer["Portal Appearance"]" />
-                <MudDivider/>
-            </MudStack>
             <SettingsField Label="@Localizer["Theme Preferences"]" Description="@Localizer["Choose how DataHub looks to you. Select a single theme, or sync with your operating system automatically."]">
                 <GcdsSelect Id="current-theme" Name="current-theme" Label="@Localizer["Current Theme"]" Value="@ViewedUser.UserSettings.Theme" ValueChanged="HandleThemeChanged" ValueExpression="@(() => ViewedUser.UserSettings.Theme)">
                     <option value="@Localizer["Light mode"]">@Localizer["Light mode"]</option>
