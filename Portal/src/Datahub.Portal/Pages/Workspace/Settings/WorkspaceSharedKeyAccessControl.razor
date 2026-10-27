@@ -1,4 +1,5 @@
 @using Datahub.Portal.Pages.Account
+@using GcdsWrapper.Blazor
 
 @inject DatahubPortalConfiguration _portalConfiguration
 @inject IPortalUserTelemetryService _telemetryService
@@ -11,18 +12,13 @@
 }
 
 <SettingsField Label="@Localizer["Allow Shared Key Access"]" Description="@Localizer["This setting will allow shared key access to the workspace storage account"]">
-    @if (_isLoadingAccessState)
-    {
-        <MudCheckBox T="bool?" Value="@_accessState" Label="@Localizer["Loading Shared Key Access State..."]" Disabled />
-    }
-    else
-    {
-        <MudCheckBox T="bool?" 
-                     Value="@_accessState"
-                     ValueChanged="ToggleStorageAllowSharedKeyAccess" 
-                     Label="@Localizer["Allow Shared Key Access"]"/>
-    }
-
+    <GcdsCheckboxes Name="allow-shared-key-access"
+                    Legend="@SharedKeyAccessLabel"
+                    Options="@SharedKeyAccessOptions"
+                    Value="@SharedKeyAccessValue"
+                    ValueChanged="HandleSharedKeyAccessChanged"
+                    ValueExpression="@(() => SharedKeyAccessValue)"
+                    Disabled="@_isLoadingAccessState" />
 </SettingsField>
 
 @code {
@@ -35,10 +31,28 @@
     private bool _isLoadingAccessState = true;
     private bool _doesNotExist = false;
 
+    private string SharedKeyAccessLabel => _isLoadingAccessState
+        ? Localizer["Loading Shared Key Access State..."]
+        : Localizer["Allow Shared Key Access"];
+
+    private IReadOnlyCollection<GcdsCheckboxOption> SharedKeyAccessOptions =>
+        [new("allow-shared-key-access-option", SharedKeyAccessLabel, "enabled")];
+
+    private string[] SharedKeyAccessValue => _accessState == true ? ["enabled"] : [];
+
     protected override async Task OnInitializedAsync()
     {
         await base.OnInitializedAsync();
         await RefreshStorageAllowSharedKeyAccess();
+    }
+
+    private async Task HandleSharedKeyAccessChanged(string[]? values)
+    {
+        var requestedState = values?.Contains("enabled") == true;
+        if (requestedState != (_accessState == true))
+        {
+            await ToggleStorageAllowSharedKeyAccess();
+        }
     }
 
 }
