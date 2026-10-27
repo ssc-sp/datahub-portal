@@ -9,9 +9,11 @@ using Datahub.Core.Data;
 using Datahub.Core.Model.Context;
 using Datahub.Core.Model.Onboarding;
 using Datahub.Core.Model.Projects;
+using Datahub.Core.Model.Subscriptions;
 using Datahub.Core.Model.Users;
 using Datahub.Core.Services.CatalogSearch;
 using Datahub.Metadata.DTO;
+using Datahub.Metadata.Model;
 using Datahub.Metadata.Utils;
 using Datahub.Shared;
 using Datahub.Shared.Entities;
@@ -80,10 +82,10 @@ public class WorkspaceCreationService(
         return await Task.FromResult(acronym);
     }
 
-    public async Task<bool> CreateWorkspaceAsync(string projectName, string organization, int? gcHostingDetailsId = null)
+    public async Task<bool> CreateWorkspaceAsync(string projectName, string organization, int? gcHostingDetailsId = null, ClassificationType classification = ClassificationType.Unclassified)
     {
         var acronym = await GenerateWorkspaceAcronymAsync(projectName);
-        return await CreateWorkspaceAsync(projectName, acronym, organization, gcHostingDetailsId);
+        return await CreateWorkspaceAsync(projectName, acronym, organization, gcHostingDetailsId, classification: classification);
     }
 
     public async Task SaveWorkspaceCreationDetailsAsync(string projectAcronym, string? interestedFeatures = null)
@@ -137,14 +139,14 @@ public class WorkspaceCreationService(
         
     }
 
-    public async Task<bool> CreateWorkspaceAsync(string projectName, string? acronym, string organization, int? gcHostingDetailsId = null, decimal? budget = null)
+    public async Task<bool> CreateWorkspaceAsync(string projectName, string? acronym, string organization, int? gcHostingDetailsId = null, decimal? budget = null, ClassificationType classification = ClassificationType.Unclassified)
     {
         try
         {
             acronym ??= await GenerateWorkspaceAcronymAsync(projectName);
             var currentPortalUser = await userInformationService.GetCurrentPortalUserAsync();
 
-            await AddProjectToDb(currentPortalUser, projectName, acronym, organization, budget, gcHostingDetailsId);
+            await AddProjectToDb(currentPortalUser, projectName, acronym, organization, budget, gcHostingDetailsId, classification);
 
             await CreateNewTemplateWorkspaceResourceAsync(acronym);
 
@@ -174,19 +176,18 @@ public class WorkspaceCreationService(
         }
         else
         {
-            await CreateNewTemplateWorkspaceResourceAsync(project.Project_ID);
+            await CreateNewTemplateWorkspaceResourceAsync(project.Project_ID, project.Data_Sensitivity == ClassificationType.ProtectedB);
         }
     }
 
-    public async Task CreateNewTemplateWorkspaceResourceAsync(int projectId)
+    public async Task CreateNewTemplateWorkspaceResourceAsync(int projectId, bool isProtectedB)
     {
         await using var context = await datahubProjectDbFactory.CreateDbContextAsync();
-
+        var template = isProtectedB ? TerraformTemplate.NewProjectTemplateEnhanced : TerraformTemplate.NewProjectTemplate;
         var exists = context.Project_Resources2
             .Any(r => r.ProjectId == projectId
                       && r.ResourceType ==
-                      TerraformTemplate.GetTerraformServiceType(TerraformTemplate.NewProjectTemplate));
-
+                      TerraformTemplate.GetTerraformServiceType(template));
         if (exists) return;
 
         var project = await context.Projects
@@ -216,7 +217,35 @@ public class WorkspaceCreationService(
         await context.TrackSaveChangesAsync(auditingService);
     }
 
-    private async Task AddProjectToDb(PortalUser portalUser, string projectName, string acronym, string organization, decimal? budget = null, int? gcHostingId = null)
+    private async Task AllocateProtectedBWorkspaceSubnetAsync(DatahubProjectDBContext db, Datahub_Project project)
+    {
+        var allocatedSubnetIds = await db.WorkspaceSubnets
+            .AsNoTracking()
+            .Select(ws => ws.SubnetId)
+            .Distinct()
+            .ToListAsync();
+
+        var freeSubnet = await db.Subnets
+            .Where(s => !allocatedSubnetIds.Contains(s.Id))
+            .OrderBy(s => s.Id)
+            .FirstOrDefaultAsync();
+
+        if (freeSubnet is null)
+        {
+            throw new InvalidOperationException($"No unallocated subnet is available for Protected B workspace '{project.Project_Acronym_CD}'.");
+        }
+
+        var workspaceSubnet = new WorkspaceSubnet
+        {
+            Project = project,
+            Subnet = freeSubnet
+        };
+
+        project.WorkspaceSubnets.Add(workspaceSubnet);
+        await db.WorkspaceSubnets.AddAsync(workspaceSubnet);
+    }
+
+    private async Task AddProjectToDb(PortalUser portalUser, string projectName, string acronym, string organization, decimal? budget = null, int? gcHostingId = null, ClassificationType classification = ClassificationType.Unclassified)
     {
         await using var db = await datahubProjectDbFactory.CreateDbContextAsync();
 
@@ -235,6 +264,7 @@ public class WorkspaceCreationService(
             Project_Budget = budget ?? portalConfiguration.DefaultProjectBudget,
             ParentGCHostingBudgetId = gcHostingId,
             DatahubAzureSubscriptionId = subscription.Id,
+            Data_Sensitivity = classification,
             Created_DT = DateTime.UtcNow,
             Version = await workspaceVersionService.GetLatestVersionAsync()
         };
@@ -263,7 +293,14 @@ public class WorkspaceCreationService(
         };
         await db.Project_Whitelists.AddAsync(projectWhiteList);
 
-        await db.TrackSaveChangesAsync(auditingService); // causing a crash right now
+        await db.TrackSaveChangesAsync(auditingService);
+
+        if (classification == ClassificationType.ProtectedB)
+        {
+            await AllocateProtectedBWorkspaceSubnetAsync(db, project);
+            await db.TrackSaveChangesAsync(auditingService);
+        }
+
         serviceAuthManager.InvalidateAuthCache();
 
         var catalogObject = new Core.Model.Catalog.CatalogObject()
@@ -298,7 +335,7 @@ public class WorkspaceCreationService(
     public async Task<IEnumerable<GCHostingWorkspaceDetails>> GetGCHostingWorkspaceDetailsForCurrentUser()
     {
         var currentPortalUser = await userInformationService.GetCurrentPortalUserAsync();
-        return await GetGCHostingWorkspaceDetailsForUser(currentPortalUser);
+        return await GetGCHostingDetailsInternal(currentPortalUser.Email, false);
     }
 
     public async Task<IEnumerable<GCHostingWorkspaceDetails>> GetAllGCHostingWorkspaceDetails()
