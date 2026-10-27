@@ -15,6 +15,7 @@
 		<PackageReference Include="Microsoft.Data.SqlClient" />
 		<PackageReference Include="Newtonsoft.Json" />
 		<PackageReference Include="Microsoft.NET.Sdk.Functions" />
+    <PackageReference Include="System.Security.Cryptography.Pkcs" />
 
 	</ItemGroup>
 	<ItemGroup>

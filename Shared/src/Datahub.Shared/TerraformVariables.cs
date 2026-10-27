@@ -65,6 +65,7 @@ public static class TerraformVariables
     public const string AzureDatabricksMLClusterSKU = "ml_compute";
     public const string AzureDatabricksGPUClusterSKU = "ml_gpu_compute";
 
+    public const string SubnetGroupNumber = "subnet_group_number";
     public const string AzureLogWorkspaceId = "log_workspace_id";
     public const string SSCCBRID = "ssc_cbrid";
     public const string PipelineRunId = "pipeline_run_id";
