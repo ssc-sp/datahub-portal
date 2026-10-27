@@ -146,13 +146,13 @@
         <MudPaper Class="pa-4">
             <SettingsField Label=@Localizer["URL rewriting"]
                            Description="@Localizer["The {0} proxy changes website addresses. Most websites work fine with this change automatically. Some tools (like Python Dash) have their own special address settings. For these tools, you should disable the URL rewriting and manually set the proxy address as the base URL in the tool.", Localizer["MainAcronym"]]">
-                <MudSwitch
-                    T=@bool
-                    Value=@_isUrlRewritingEnabled
-                    Color=@Color.Primary
-                    Label=@Localizer["Enable URL rewriting"]
-                    ValueChanged=@HandleToggleUrlRewriting
-                    Disabled=@_isSaving/>
+                <GcdsCheckboxes Name="enable-url-rewriting"
+                                Legend="@Localizer["Enable URL rewriting"]"
+                                Options="@UrlRewritingOptions"
+                                Value="@UrlRewritingValue"
+                                ValueChanged="HandleUrlRewritingChanged"
+                                ValueExpression="@(() => UrlRewritingValue)"
+                                Disabled="@_isSaving" />
             </SettingsField>
         </MudPaper>
         <GcdsText>
@@ -404,6 +404,14 @@
         ReverseProxyManagerService.ReloadConfiguration();
         _isSaving = false;
     }
+
+    private IReadOnlyCollection<GcdsCheckboxOption> UrlRewritingOptions =>
+        [new("enable-url-rewriting-option", Localizer["Enable URL rewriting"], "enabled")];
+
+    private string[] UrlRewritingValue => _isUrlRewritingEnabled ? ["enabled"] : [];
+
+    private Task HandleUrlRewritingChanged(string[]? values) =>
+        HandleToggleUrlRewriting(values?.Contains("enabled") == true);
 
     private async Task HydrateValues()
     {
