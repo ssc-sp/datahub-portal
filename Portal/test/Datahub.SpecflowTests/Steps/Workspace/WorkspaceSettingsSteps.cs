@@ -99,7 +99,6 @@ public class WorkspaceSettingsSteps(
         JSInterop.SetupVoid("mudKeyInterceptor.connect", _ => true);
         JSInterop.SetupModule("./_content/Datahub.Portal/Components/SkipLink.razor.js");
         JSInterop.SetupVoid("mudElementRef.addOnBlurEvent", _ => true);
-        JSInterop.Mode = JSRuntimeMode.Loose;
 
         var workspaceSettingsPage = Render<WorkspaceSettingsPage>(parameterCollection =>
         {

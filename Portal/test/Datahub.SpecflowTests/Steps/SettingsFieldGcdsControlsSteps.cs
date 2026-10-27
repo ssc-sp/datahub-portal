@@ -160,6 +160,7 @@ public class SettingsFieldGcdsControlsSteps : BunitTestSteps
     public void GivenTheGcdsNotificationPreferenceControl()
     {
         ConfigureContext();
+        JSInterop.SetupModule("./_content/Datahub.Portal/Components/SkipLink.razor.js");
         Services.AddSingleton(Substitute.For<IUserInformationService>());
         Services.AddSingleton(new DatahubPortalConfiguration());
         var user = new PortalUser
@@ -185,7 +186,6 @@ public class SettingsFieldGcdsControlsSteps : BunitTestSteps
 
     private void ConfigureContext()
     {
-        JSInterop.Mode = JSRuntimeMode.Loose;
         var localizer = Substitute.For<IStringLocalizer>();
         localizer[Arg.Any<string>()]
             .Returns(call => new LocalizedString(call.Arg<string>(), call.Arg<string>()));

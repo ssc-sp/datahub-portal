@@ -10,6 +10,12 @@ namespace Datahub.SpecflowTests.Utils
 {
     public class BunitTestSteps: BunitContext
     {
+        protected BunitTestSteps()
+        {
+            var gcdsModule = JSInterop.SetupModule("./_content/GcdsWrapper.Blazor/gcdsInterop.js");
+            gcdsModule.Mode = JSRuntimeMode.Loose;
+        }
+
         [AfterScenario]
         public async Task DisposeAsyncBunit()
         {
