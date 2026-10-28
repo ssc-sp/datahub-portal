@@ -108,6 +108,8 @@ public class ProjectUserManagementServiceTests
                 It.IsAny<PortalUser>()))
             .ReturnsAsync(true);
 
+        _mockResourceManagementService = new Mock<IResourceMessagingService>();
+
         _mockUserEnrollmentService = new Mock<IUserEnrollmentService>();
         _mockUserEnrollmentService
             .Setup(f => f.SendUserDatahubPortalInvite(It.IsAny<string?>(), It.IsAny<string?>()))
@@ -125,6 +127,88 @@ public class ProjectUserManagementServiceTests
     public void TearDown()
     {
         _dbContext.Dispose();
+    }
+
+    [Test]
+    public async Task GetProjectsForUser_WhenEntraMembershipIsActive_IncludesProjectWithRemovedMember()
+    {
+        var (project, userIdentifier) = await AddMembershipScenarioAsync(
+            externalUser: false,
+            currentUserRole: Project_Role.RoleNames.Collaborator,
+            otherUserRole: Project_Role.RoleNames.Removed);
+
+        var projects = await GetProjectUserManagementService().GetProjectsForUser(graphUserGuid: userIdentifier);
+
+        Assert.That(projects.Select(p => p.Project_Acronym_CD), Does.Contain(project.Project_Acronym_CD));
+    }
+
+    [Test]
+    public async Task GetProjectsForUser_WhenEntraMembershipIsRemoved_ExcludesProject()
+    {
+        var (project, userIdentifier) = await AddMembershipScenarioAsync(
+            externalUser: false,
+            currentUserRole: Project_Role.RoleNames.Removed,
+            otherUserRole: Project_Role.RoleNames.Collaborator);
+
+        var projects = await GetProjectUserManagementService().GetProjectsForUser(graphUserGuid: userIdentifier);
+
+        Assert.That(projects.Select(p => p.Project_Acronym_CD), Does.Not.Contain(project.Project_Acronym_CD));
+    }
+
+    [Test]
+    public async Task GetProjectsForUser_WhenExternalMembershipIsActive_IncludesProjectWithRemovedMember()
+    {
+        var (project, userIdentifier) = await AddMembershipScenarioAsync(
+            externalUser: true,
+            currentUserRole: Project_Role.RoleNames.Guest,
+            otherUserRole: Project_Role.RoleNames.Removed);
+
+        var projects = await GetProjectUserManagementService().GetProjectsForUser(gccfUserId: userIdentifier);
+
+        Assert.That(projects.Select(p => p.Project_Acronym_CD), Does.Contain(project.Project_Acronym_CD));
+    }
+
+    [Test]
+    public async Task GetProjectsForUser_WhenExternalMembershipIsRemoved_ExcludesProject()
+    {
+        var (project, userIdentifier) = await AddMembershipScenarioAsync(
+            externalUser: true,
+            currentUserRole: Project_Role.RoleNames.Removed,
+            otherUserRole: Project_Role.RoleNames.Collaborator);
+
+        var projects = await GetProjectUserManagementService().GetProjectsForUser(gccfUserId: userIdentifier);
+
+        Assert.That(projects.Select(p => p.Project_Acronym_CD), Does.Not.Contain(project.Project_Acronym_CD));
+    }
+
+    [TestCase(true)]
+    [TestCase(false)]
+    public async Task GetProjectsForUser_WhenExternalUserIsInactive_ExcludesProject(bool isDeactivated)
+    {
+        var (project, userIdentifier) = await AddMembershipScenarioAsync(
+            externalUser: true,
+            currentUserRole: Project_Role.RoleNames.Guest,
+            otherUserRole: Project_Role.RoleNames.Collaborator,
+            externalUserExpiry: isDeactivated ? DateTimeOffset.UtcNow.AddDays(1) : DateTimeOffset.UtcNow.AddDays(-1),
+            externalUserDeactivatedAt: isDeactivated ? DateTimeOffset.UtcNow : null);
+
+        var projects = await GetProjectUserManagementService().GetProjectsForUser(gccfUserId: userIdentifier);
+
+        Assert.That(projects.Select(p => p.Project_Acronym_CD), Does.Not.Contain(project.Project_Acronym_CD));
+    }
+
+    [Test]
+    public async Task GetProjectsForUser_WhenProjectIsDeleted_ExcludesProject()
+    {
+        var (project, userIdentifier) = await AddMembershipScenarioAsync(
+            externalUser: false,
+            currentUserRole: Project_Role.RoleNames.Collaborator,
+            otherUserRole: Project_Role.RoleNames.Collaborator,
+            projectIsDeleted: true);
+
+        var projects = await GetProjectUserManagementService().GetProjectsForUser(graphUserGuid: userIdentifier);
+
+        Assert.That(projects.Select(p => p.Project_Acronym_CD), Does.Not.Contain(project.Project_Acronym_CD));
     }
 
     [Test]
@@ -443,6 +527,84 @@ public class ProjectUserManagementServiceTests
 
         context.PortalUsers.Add(_testCurrentUser);
         context.SaveChanges();
+    }
+
+    private async Task<(Datahub_Project Project, string UserIdentifier)> AddMembershipScenarioAsync(
+        bool externalUser,
+        Project_Role.RoleNames currentUserRole,
+        Project_Role.RoleNames otherUserRole,
+        bool projectIsDeleted = false,
+        DateTimeOffset? externalUserExpiry = null,
+        DateTimeOffset? externalUserDeactivatedAt = null)
+    {
+        var userIdentifier = Guid.NewGuid().ToString();
+        var currentUser = new PortalUser
+        {
+            Email = $"{userIdentifier}@email.com",
+            DisplayName = "Current user"
+        };
+
+        if (externalUser)
+        {
+            var externalUserProfile = new ExternalUser
+            {
+                ExternalSubject = userIdentifier,
+                FirstName = "Current",
+                LastName = "User",
+                Organization = "Datahub",
+                UserExpiryDate = externalUserExpiry ?? DateTimeOffset.UtcNow.AddDays(1),
+                UserDeactivatedAt = externalUserDeactivatedAt,
+                PortalUser = currentUser
+            };
+
+            _dbContext.ExternalUsers.Add(externalUserProfile);
+            await _dbContext.SaveChangesAsync();
+            currentUser.ExternalUser = externalUserProfile;
+        }
+        else
+        {
+            currentUser.EntraUser = new EntraUser
+            {
+                GraphGuid = userIdentifier,
+                PortalUser = currentUser
+            };
+        }
+
+        var otherUser = new PortalUser
+        {
+            Email = $"{Guid.NewGuid()}@email.com",
+            DisplayName = "Other user"
+        };
+        otherUser.EntraUser = new EntraUser
+        {
+            GraphGuid = Guid.NewGuid().ToString(),
+            PortalUser = otherUser
+        };
+
+        var project = new Datahub_Project
+        {
+            Project_Name = "Membership filtering test project",
+            Project_Acronym_CD = Guid.NewGuid().ToString("N")[..10].ToUpperInvariant(),
+            Project_Status_Desc = "Active",
+            Deleted_DT = projectIsDeleted ? DateTime.UtcNow.AddMinutes(-1) : null
+        };
+
+        _dbContext.UserRolesLinks.AddRange(
+            new UserRoleLinks
+            {
+                PortalUser = currentUser,
+                Project = project,
+                RoleId = (int)currentUserRole
+            },
+            new UserRoleLinks
+            {
+                PortalUser = otherUser,
+                Project = project,
+                RoleId = (int)otherUserRole
+            });
+        await _dbContext.SaveChangesAsync();
+
+        return (project, userIdentifier);
     }
 
     private ProjectUserManagementService GetProjectUserManagementService()
