@@ -3,6 +3,16 @@
 <!-- markdownlint-disable MD024 -->
 # Changelog
 
+## [10.3.1](https://github.com/ssc-sp/datahub-portal/compare/v10.3.0...v10.3.1) (2026-10-28)
+
+
+### Bug Fixes
+
+* Fixing a bug where the WorkspaceSidebar wrongly hides the workspace selector ([#2161](https://github.com/ssc-sp/datahub-portal/issues/2161)) ([99254bd](https://github.com/ssc-sp/datahub-portal/commit/99254bd3bdfe65a2d039bbc48870b8ea0dd370d6))
+* publishing only viewable for admins or leads ([#2159](https://github.com/ssc-sp/datahub-portal/issues/2159)) ([ee939c8](https://github.com/ssc-sp/datahub-portal/commit/ee939c88a44af020b45e7e8f7beddf38e5469428))
+* Restricting Data Steward checkbox to workspace lead or admin ([#2162](https://github.com/ssc-sp/datahub-portal/issues/2162)) ([6952b13](https://github.com/ssc-sp/datahub-portal/commit/6952b1320d4a2f0f532900871e66479d12588e83))
+* user should not see removed workspaces in workspace dropdown list ([#2158](https://github.com/ssc-sp/datahub-portal/issues/2158)) ([5cf5262](https://github.com/ssc-sp/datahub-portal/commit/5cf52625b83677ccda9fb59f0a7dbb27917d856d))
+
 ## [10.3.0](https://github.com/ssc-sp/datahub-portal/compare/v10.2.0...v10.3.0) (2026-10-27)
 
 
