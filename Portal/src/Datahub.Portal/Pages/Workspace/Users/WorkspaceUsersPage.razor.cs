@@ -167,7 +167,9 @@ namespace Datahub.Portal.Pages.Workspace.Users
 
         private static bool IsAllowedRoleForDataSteward(UserRoleLinks projectUser) => RoleConstants.AllowedDataStewardRoleIds.Contains(projectUser.RoleId ?? 0);
 
-        private static bool IsDataStewardCheckboxDisabled(UserRoleLinks projectUser) => !(projectUser.IsDataSteward || IsAllowedRoleForDataSteward(projectUser));
+        private static bool IsDataStewardCheckboxDisabled(UserRoleLinks projectUser) =>
+            projectUser.RoleId is not (int)Project_Role.RoleNames.WorkspaceLead and
+                not (int)Project_Role.RoleNames.Admin;
 
         private void ChangeDataStewardFlag(UserRoleLinks projectUser, bool newValue)
         {
