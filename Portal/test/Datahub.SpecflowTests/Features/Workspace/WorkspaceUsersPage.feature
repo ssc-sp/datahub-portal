@@ -46,6 +46,16 @@ The Workspace Users page should list users, support changing user roles, and all
             | admin@example.com | enabled  |
             | guest@example.com | disabled |
 
+    Scenario: Collaborators cannot assign the Data Steward role
+        Given a Collaborator is on the workspace users page
+        Then the Data Steward checkbox should be disabled for user "wlead@example.com"
+        And the Data Steward checkbox should be disabled for user "admin@example.com"
+
+    Scenario: Workspace Admins can assign the Data Steward role
+        Given an Admin is on the workspace users page
+        Then the Data Steward checkbox should be enabled for user "wlead@example.com"
+        And the Data Steward checkbox should be enabled for user "admin@example.com"
+
 
     Scenario: Data Steward should be removed and disabled when changing to a disallowed role, and should stay as-is when changing to allowed one
         Given the user is on the workspace users page

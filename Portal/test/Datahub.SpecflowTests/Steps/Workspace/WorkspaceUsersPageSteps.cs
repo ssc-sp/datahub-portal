@@ -96,6 +96,23 @@ namespace Datahub.SpecflowTests.Steps
         [Given("the user is on the workspace users page")]
         public async Task GivenTheUserIsOnTheWorkspaceUsersPage()
         {
+            await RenderWorkspaceUsersPage(RoleConstants.WORKSPACE_LEAD_SUFFIX);
+        }
+
+        [Given("a Collaborator is on the workspace users page")]
+        public async Task GivenACollaboratorIsOnTheWorkspaceUsersPage()
+        {
+            await RenderWorkspaceUsersPage(RoleConstants.COLLABORATOR_SUFFIX);
+        }
+
+        [Given("an Admin is on the workspace users page")]
+        public async Task GivenAnAdminIsOnTheWorkspaceUsersPage()
+        {
+            await RenderWorkspaceUsersPage(RoleConstants.ADMIN_SUFFIX);
+        }
+
+        private async Task RenderWorkspaceUsersPage(string currentUserWorkspaceRoleSuffix)
+        {
             ArgumentNullException.ThrowIfNull(hostingEnvironment);
 
             Services.AddSingleton(hostingEnvironment);
@@ -183,7 +200,9 @@ namespace Datahub.SpecflowTests.Steps
 
             var authContext = this.AddAuthorization();
             authContext.SetAuthorized("TEST USER");
-            authContext.SetRoles(RoleConstants.DATAHUB_ROLE_ADMIN, $"{workspace.Project_Acronym_CD}{RoleConstants.WORKSPACE_LEAD_SUFFIX}");
+            authContext.SetRoles(
+                RoleConstants.DATAHUB_ROLE_ADMIN,
+                $"{workspace.Project_Acronym_CD}{currentUserWorkspaceRoleSuffix}");
 
             Services.AddSingleton(mockAuthorizationPolicyProvider);
             Services.AddMudServices();

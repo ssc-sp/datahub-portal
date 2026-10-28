@@ -246,11 +246,21 @@
                     }
                 </MudTd>
                 <MudTd Style="@(IsModified(rowContext) ? _modifiedCellStyle : string.Empty)">
-                    <MudCheckBox T="bool" Label=@Localizer["Data Steward"]
-                                Value="rowContext.IsDataSteward"
-                                Tag=@("DataSteward")
-                                Disabled=@(IsDataStewardCheckboxDisabled(rowContext))
-                                ValueChanged="@(newValue => ChangeDataStewardFlag(rowContext, newValue))" />
+                    <DatahubAuthView AuthLevel="DatahubAuthView.AuthLevels.WorkspaceAdmin" ProjectAcronym="@WorkspaceAcronym" ElevatedWorkspaceAccessEnabled="@ElevatedWorkspaceAccessEnabled">
+                        <Authorized>
+                            <MudCheckBox T="bool" Label=@Localizer["Data Steward"]
+                                         Value="rowContext.IsDataSteward"
+                                         Tag=@("DataSteward")
+                                         Disabled=@(IsDataStewardCheckboxDisabled(rowContext))
+                                         ValueChanged="@(newValue => ChangeDataStewardFlag(rowContext, newValue))" />
+                        </Authorized>
+                        <NotAuthorized>
+                            <MudCheckBox T="bool" Label=@Localizer["Data Steward"]
+                                         Value="rowContext.IsDataSteward"
+                                         Tag=@("DataSteward")
+                                         Disabled />
+                        </NotAuthorized>
+                    </DatahubAuthView>
                 </MudTd>
                 <MudTd Style="@(IsModified(rowContext) ? _modifiedCellStyle : string.Empty)">
                     @if (rowContext.Approved_DT != null)
