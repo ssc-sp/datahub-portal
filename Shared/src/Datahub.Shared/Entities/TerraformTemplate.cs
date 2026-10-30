@@ -126,10 +126,10 @@ public class TerraformTemplate
         var normalizedName = NormalizeTemplateName(name);
         return normalizedName switch
         {
-            NewProjectTemplate => "Groupe de ressources de l'espace de travail",
-            AzureDatabricks => "Azure Databricks",
-            AzureAppService => "Service App Azure",
-            AzurePostgres => "Azure Postgres",
+            NewProjectTemplate or NewProjectTemplateEnhanced => "Groupe de ressources de l'espace de travail",
+            AzureDatabricks or AzureDatabricksEnhanced => "Azure Databricks",
+            AzureAppService or AzureAppServiceEnhanced => "Service App Azure",
+            AzurePostgres or AzurePostgresEnhanced => "Azure Postgres",
             _ => throw new ArgumentException($"Unknown template name: {name}")
         };
     }
@@ -145,10 +145,10 @@ public class TerraformTemplate
         var normalizedName = NormalizeTemplateName(name);
         return normalizedName switch
         {
-            NewProjectTemplate => "Workspace Resource Group",
-            AzureDatabricks => "Azure Databricks",
-            AzureAppService => "Azure App Service",
-            AzurePostgres => "Azure Postgres",
+            NewProjectTemplate or NewProjectTemplateEnhanced => "Workspace Resource Group",
+            AzureDatabricks or AzureDatabricksEnhanced => "Azure Databricks",
+            AzureAppService or AzureAppServiceEnhanced => "Azure App Service",
+            AzurePostgres or AzurePostgresEnhanced => "Azure Postgres",
             _ => throw new ArgumentException($"Unknown template name: {name}")
         };
     }
