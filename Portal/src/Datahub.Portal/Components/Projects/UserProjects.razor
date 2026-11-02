@@ -402,13 +402,22 @@ else
             return label.ToString();
         }
 
-        label.Append(Localizer[" workspaces where you are a "]);
-
+        label.Append(Localizer[" workspaces where you are "]);
+        var isFirst = true;
         anyCondition = false;
         foreach (var group in RoleDisplayGroups)
         {
             if (Show(group))
             {
+                if (isFirst)
+                {
+                    if (group == _adminGroup)
+                    {
+                        label.Append(Localizer["an "]);
+                    }
+                    else label.Append(Localizer["a "]);
+                }
+                isFirst = false;
                 if (anyCondition)
                 {
                     label.Append(Localizer[", "]);
