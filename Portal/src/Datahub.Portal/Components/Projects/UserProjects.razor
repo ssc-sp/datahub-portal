@@ -17,6 +17,7 @@
 @inject DatahubPortalConfiguration DatahubPortalConfiguration
 @inject IWorkspaceVersionService WorkspaceVersionService
 @inject Microsoft.FeatureManagement.IFeatureManagerSnapshot _featureManager
+@inject ICultureService CultureService;
 
 @if (_userRoles is null)
 {
@@ -411,9 +412,13 @@ else
             {
                 if (isFirst)
                 {
-                    if (group == _adminGroup)
+                    if(CultureService.IsFrench)
                     {
-                        label.Append(Localizer["an "]);
+                        label.Append(Localizer["un "]);
+                    }
+                    else if (group == _adminGroup)
+                    {
+                        label.Append(Localizer["an "]);  
                     }
                     else label.Append(Localizer["a "]);
                 }
