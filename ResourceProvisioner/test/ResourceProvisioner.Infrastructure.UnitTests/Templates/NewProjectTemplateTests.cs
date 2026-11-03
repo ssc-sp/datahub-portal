@@ -120,6 +120,66 @@ public class NewProjectTemplateTests : TemplateTestCollection
         Assert.That(actualVariables, Has.Count.EqualTo(expectedVariables.Count));
     }
 
+    [Test]
+    public async Task ShouldCopyEnhancedTemplateAndExtractNetworkVariables()
+    {
+        // The enhanced (Protected B) template replaces the base template and is the first template in a new workspace
+        const string enhancedModuleVersion = "v7.2.1";
+        const int subnetGroupNumber = 3;
+        var workspaceAcronym = GenerateWorkspaceAcronym();
+        var command = GenerateTestWorkspaceDefinition(
+            workspaceAcronym, [TerraformTemplate.NewProjectTemplateEnhanced]);
+        command.Workspace.Version = enhancedModuleVersion;
+        command.Workspace.IsProtectedB = true;
+        command.Workspace.SubnetGroupNumber = subnetGroupNumber;
+
+        await _repositoryService.FetchRepositoriesAndCheckoutProjectBranch(command.Workspace);
+        await _terraformService.CopyTemplateAsync(TerraformTemplate.NewProjectTemplateEnhanced, command);
+        await _terraformService.ExtractVariables(TerraformTemplate.NewProjectTemplateEnhanced, command);
+
+        var projectPath = DirectoryUtils.GetProjectPath(_resourceProvisionerConfiguration, workspaceAcronym);
+        var mainTf = await File.ReadAllTextAsync(Path.Join(projectPath, "main.tf"));
+        Assert.That(mainTf, Does.Contain(
+            $"modules/azure-resource-group-enhanced?ref={_resourceProvisionerConfiguration.ModuleRepository.Branch}-{enhancedModuleVersion}"));
+
+        // The infrastructure pipeline reads the workspace variables from the file named after the base template
+        var variablesFilename = Path.Join(projectPath, $"{TerraformTemplate.NewProjectTemplate}.auto.tfvars.json");
+        Assert.That(File.Exists(variablesFilename), Is.True);
+        Assert.That(File.Exists(Path.Join(projectPath, $"{TerraformTemplate.NewProjectTemplateEnhanced}.auto.tfvars.json")), Is.False);
+
+        // A variable update re-reads the shared file and must keep treating it as the enhanced template
+        await _terraformService.ExtractAllVariables(command);
+
+        var actualVariables = JsonSerializer.Deserialize<JsonObject>(await File.ReadAllTextAsync(variablesFilename))!;
+
+        Assert.Multiple(() =>
+        {
+            Assert.That(actualVariables["project_cd"]?.ToString(), Is.EqualTo(workspaceAcronym));
+            Assert.That(actualVariables["subnet_group_number"]?.ToString(), Is.EqualTo(subnetGroupNumber.ToString()));
+            foreach (var configVariable in new[] { "vnet_name", "vnet_rg", "subnet_name_prefix" })
+            {
+                Assert.That(actualVariables[configVariable]?.ToString(),
+                    Is.EqualTo(_configuration[$"Terraform:Variables:{configVariable}"]).And.Not.Empty,
+                    $"Variable {configVariable} should come from the Terraform:Variables configuration");
+            }
+
+            // is_dev is not configured, so it is derived from environment_name
+            Assert.That(actualVariables["is_dev"]?.GetValue<bool>(),
+                Is.EqualTo(TerraformService.IsDevEnvironment(_resourceProvisionerConfiguration.Terraform.Variables.environment_name)));
+        });
+    }
+
+    [TestCase("dev", true)]
+    [TestCase("DEV", true)]
+    [TestCase("pre", false)]
+    [TestCase("prd", false)]
+    [TestCase("", false)]
+    [TestCase(null, false)]
+    public void ShouldDeriveIsDevFromEnvironmentName(string? environmentName, bool expected)
+    {
+        Assert.That(TerraformService.IsDevEnvironment(environmentName), Is.EqualTo(expected));
+    }
+
     private static JsonObject GenerateExpectedVariablesJsonObject(string workspaceAcronym)
     {
         return new JsonObject

@@ -15,6 +15,7 @@ using Datahub.Core.Services.CatalogSearch;
 using Datahub.Infrastructure.Offline;
 using Datahub.Infrastructure.Services;
 using Datahub.Infrastructure.Services.Security;
+using Datahub.Shared;
 using Datahub.Shared.Entities;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Caching.Memory;
@@ -230,6 +231,77 @@ public class ProjectCreationTests
             Assert.Single(workspaceSubnets);
             Assert.Equal(projectName, project.Project_Name);
             Assert.Equal("workspace-subnet-1", workspaceSubnets.Single().Subnet.SubnetName);
+        }
+    }
+
+    [Theory]
+    [InlineData(ClassificationType.Unclassified, TerraformTemplate.NewProjectTemplate)]
+    [InlineData(ClassificationType.ProtectedB, TerraformTemplate.NewProjectTemplateEnhanced)]
+    public async Task GivenClassification_CreateWorkspace_AddsOnlyMatchingWorkspaceTemplate(ClassificationType classification, string expectedTemplate)
+    {
+        const string projectName = "Workspace Template Unit Testing";
+        const string organization = "Unit Testing";
+
+        var serviceProvider = SetupServices();
+        var projectCreationService = serviceProvider.GetRequiredService<IWorkspaceCreationService>();
+        var factory = serviceProvider.GetRequiredService<IDbContextFactory<DatahubProjectDBContext>>();
+
+        if (classification == ClassificationType.ProtectedB)
+        {
+            await using var db = await factory.CreateDbContextAsync();
+            var vnet = new VNet
+            {
+                VNetId = "/subscriptions/sub-123/resourceGroups/rg-test/providers/Microsoft.Network/virtualNetworks/vnet-test",
+                VNetName = "vnet-test",
+                Subscription = new DatahubAzureSubscription { TenantId = "tenant-123", SubscriptionId = "sub-123", SubscriptionName = "Test Sub" }
+            };
+            db.Subnets.Add(new Subnet { SubnetName = "workspace-subnet-1", SubnetGroup = 1, VNet = vnet });
+            await db.SaveChangesAsync();
+        }
+
+        var isAdded = await projectCreationService.CreateWorkspaceAsync(projectName, organization, classification: classification);
+
+        Assert.True(isAdded);
+
+        await using (var db = await factory.CreateDbContextAsync())
+        {
+            var resources = await db.Project_Resources2.ToListAsync();
+            var resource = Assert.Single(resources);
+            Assert.Equal(TerraformTemplate.GetTerraformServiceType(expectedTemplate), resource.ResourceType);
+            Assert.Equal(TerraformStatus.CreateRequested, resource.Status);
+        }
+    }
+
+    [Fact]
+    public async Task GivenExistingBaseWorkspaceTemplate_CreateNewTemplateWorkspaceResource_DoesNotAddEnhancedTemplate()
+    {
+        var serviceProvider = SetupServices();
+        var projectCreationService = serviceProvider.GetRequiredService<IWorkspaceCreationService>();
+        var factory = serviceProvider.GetRequiredService<IDbContextFactory<DatahubProjectDBContext>>();
+
+        int projectId;
+        await using (var db = await factory.CreateDbContextAsync())
+        {
+            var project = new Datahub_Project { Project_Name = "Legacy PB", Project_Acronym_CD = "LPB", Data_Sensitivity = ClassificationType.ProtectedB };
+            db.Projects.Add(project);
+            await db.SaveChangesAsync();
+            projectId = project.Project_ID;
+
+            db.Project_Resources2.Add(new Project_Resources2
+            {
+                ProjectId = projectId,
+                ResourceType = TerraformTemplate.GetTerraformServiceType(TerraformTemplate.NewProjectTemplate),
+                Status = TerraformStatus.Completed
+            });
+            await db.SaveChangesAsync();
+        }
+
+        await projectCreationService.CreateNewTemplateWorkspaceResourceAsync(projectId, isProtectedB: true);
+
+        await using (var db = await factory.CreateDbContextAsync())
+        {
+            var resource = Assert.Single(await db.Project_Resources2.ToListAsync());
+            Assert.Equal(TerraformTemplate.GetTerraformServiceType(TerraformTemplate.NewProjectTemplate), resource.ResourceType);
         }
     }
 }
