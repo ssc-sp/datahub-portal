@@ -38,7 +38,7 @@ namespace Datahub.Portal.Pages.Workspace.Users
             _loading = false;
             if (await _featureManager.IsEnabledAsync(Features.GCCF_Feature))
             {
-                _gccfEnabled = true;
+                _gccfEnabled = await _externalUserInvitationService.CanInviteExternalUsers(WorkspaceAcronym);                
             }
         }
 
