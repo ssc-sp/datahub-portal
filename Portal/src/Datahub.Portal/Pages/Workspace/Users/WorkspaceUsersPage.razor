@@ -18,6 +18,7 @@
 @inject ISnackbar _snackbar
 @inject IDbContextFactory<DatahubProjectDBContext> _dbContextFactory
 @inject Microsoft.FeatureManagement.IFeatureManagerSnapshot _featureManager
+@inject IExternalUserInvitationService _externalUserInvitationService
 
 @if (_updateInProgress)
 {
