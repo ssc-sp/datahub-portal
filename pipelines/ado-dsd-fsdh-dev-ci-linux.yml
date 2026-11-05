@@ -28,6 +28,7 @@ pr:
 
 variables:
   linuxRuntimeIdentifier: 'linux-x64'
+  BuildConfiguration: 'Release'
 
 resources:
   repositories:
@@ -119,11 +120,6 @@ jobs:
           command: restore
           projects: Portal/src/Datahub.Portal/*.csproj
           arguments: -r "$(linuxRuntimeIdentifier)" --disable-parallel
-      # - task: DotNetCoreCLI@2
-      #   displayName: dotnet build
-      #   inputs:
-      #     projects: Portal/src/Datahub.Portal/*.csproj
-      #     arguments: --configuration $(BuildConfiguration)
       - task: DotNetCoreCLI@2
         displayName: dotnet publish
         inputs:
