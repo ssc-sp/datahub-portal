@@ -25,6 +25,10 @@ pr:
       - "ServerlessOperations/**"
       - "ResourceProvisioner/**"
       - "Directory.Packages.props"
+
+variables:
+  linuxRuntimeIdentifier: 'linux-x64'
+
 resources:
   repositories:
     - repository: self
@@ -114,7 +118,7 @@ jobs:
         inputs:
           command: restore
           projects: Portal/src/Datahub.Portal/*.csproj
-          arguments: --disable-parallel
+          arguments: -r "$(linuxRuntimeIdentifier)" --disable-parallel
       # - task: DotNetCoreCLI@2
       #   displayName: dotnet build
       #   inputs:
@@ -126,7 +130,7 @@ jobs:
           command: publish
           publishWebProjects: false
           projects: Portal/src/Datahub.Portal/*.csproj
-          arguments: -o $(Build.ArtifactStagingDirectory)/output/portal -r "linux-x64" --self-contained true -m
+          arguments: -o $(Build.ArtifactStagingDirectory)/output/portal -r "$(linuxRuntimeIdentifier)" --self-contained true --no-restore -m
       - task: PublishBuildArtifacts@1
         displayName: "Publish Artifact: datahub-portal"
         inputs:
@@ -153,14 +157,14 @@ jobs:
         inputs:
           command: restore
           projects: ServerlessOperations/src/Datahub.Functions/*.csproj
-          arguments: --disable-parallel
+          arguments: -r "$(linuxRuntimeIdentifier)" --disable-parallel
       - task: DotNetCoreCLI@2
         displayName: dotnet publish
         inputs:
           command: publish
           publishWebProjects: false
           projects: ServerlessOperations/src/Datahub.Functions/Datahub.Functions.csproj
-          arguments: -o $(Build.ArtifactStagingDirectory)/output/serverless -r "linux-x64" --self-contained true --no-restore -m
+          arguments: -o $(Build.ArtifactStagingDirectory)/output/serverless -r "$(linuxRuntimeIdentifier)" --self-contained true --no-restore -m
       - task: PublishBuildArtifacts@1
         displayName: "Publish Artifact: datahub-function"
         inputs:
@@ -187,14 +191,14 @@ jobs:
         inputs:
           command: restore
           projects: ResourceProvisioner/src/ResourceProvisioner.Functions/*.csproj
-          arguments: --disable-parallel
+          arguments: -r "$(linuxRuntimeIdentifier)" --disable-parallel
       - task: DotNetCoreCLI@2
         displayName: dotnet publish
         inputs:
           command: publish
           publishWebProjects: false
           projects: ResourceProvisioner/src/ResourceProvisioner.Functions/*.csproj
-          arguments: -o $(Build.ArtifactStagingDirectory)/output/resourceprovisioner -r "linux-x64" --self-contained true --no-restore -m
+          arguments: -o $(Build.ArtifactStagingDirectory)/output/resourceprovisioner -r "$(linuxRuntimeIdentifier)" --self-contained true --no-restore -m
       - task: PublishBuildArtifacts@1
         displayName: "Publish Artifact: resource-provisioner-function"
         inputs:
@@ -220,14 +224,14 @@ jobs:
         inputs:
           command: restore
           projects: Portal/src/Datahub.Maintenance/*.csproj
-          arguments: --disable-parallel
+          arguments: -r "$(linuxRuntimeIdentifier)" --disable-parallel
       - task: DotNetCoreCLI@2
         displayName: dotnet publish
         inputs:
           command: publish
           publishWebProjects: false
           projects: Portal/src/Datahub.Maintenance/*.csproj
-          arguments: -o $(Build.ArtifactStagingDirectory)/output/maintenancepage -r "linux-x64" --self-contained true --no-restore -m
+          arguments: -o $(Build.ArtifactStagingDirectory)/output/maintenancepage -r "$(linuxRuntimeIdentifier)" --self-contained true --no-restore -m
       - task: PublishBuildArtifacts@1
         displayName: "Publish Artifact: maintenance page"
         inputs:
