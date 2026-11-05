@@ -111,10 +111,10 @@ jobs:
           script: "cd Portal/src\n      $files=Get-Childitem -Path Datahub.Portal -Include appsettings*json-tmpl,launch*json-tmpl -File -Recurse -ErrorAction SilentlyContinue  | Where {$_.FullName -notlike \"*\\Debug\\*\"}\n      foreach ($file in $files){\n        $fileRendered=$file.FullName.trim(\"-tmpl\")\n        Write-Host \"Processing file: ${file} > $fileRendered\"\n        Copy-Item $file.FullName -Force -Destination $fileRendered\n      }\n      cd Datahub.Portal; mv appsettings.Development.json appsettings.dev.json; Move-Item -Force appsettings.json-tmpl-spdatahub appsettings.json\n    "
       - task: DotNetCoreCLI@2
         displayName: dotnet restore
-        enabled: False
         inputs:
           command: restore
           projects: Portal/src/Datahub.Portal/*.csproj
+          arguments: --disable-parallel
       # - task: DotNetCoreCLI@2
       #   displayName: dotnet build
       #   inputs:
@@ -126,7 +126,7 @@ jobs:
           command: publish
           publishWebProjects: false
           projects: Portal/src/Datahub.Portal/*.csproj
-          arguments: -o $(Build.ArtifactStagingDirectory)/output/portal -r "linux-x64" --self-contained true
+          arguments: -o $(Build.ArtifactStagingDirectory)/output/portal -r "linux-x64" --self-contained true -m
       - task: PublishBuildArtifacts@1
         displayName: "Publish Artifact: datahub-portal"
         inputs:
@@ -153,18 +153,14 @@ jobs:
         inputs:
           command: restore
           projects: ServerlessOperations/src/Datahub.Functions/*.csproj
-      - task: DotNetCoreCLI@2
-        displayName: dotnet build
-        inputs:
-          projects: ServerlessOperations/src/Datahub.Functions/Datahub.Functions.csproj
-          arguments: --configuration $(BuildConfiguration)
+          arguments: --disable-parallel
       - task: DotNetCoreCLI@2
         displayName: dotnet publish
         inputs:
           command: publish
           publishWebProjects: false
           projects: ServerlessOperations/src/Datahub.Functions/Datahub.Functions.csproj
-          arguments: -o $(Build.ArtifactStagingDirectory)/output/serverless -r "linux-x64" --self-contained true
+          arguments: -o $(Build.ArtifactStagingDirectory)/output/serverless -r "linux-x64" --self-contained true --no-restore -m
       - task: PublishBuildArtifacts@1
         displayName: "Publish Artifact: datahub-function"
         inputs:
@@ -191,18 +187,14 @@ jobs:
         inputs:
           command: restore
           projects: ResourceProvisioner/src/ResourceProvisioner.Functions/*.csproj
-      - task: DotNetCoreCLI@2
-        displayName: dotnet build
-        inputs:
-          projects: ResourceProvisioner/src/ResourceProvisioner.Functions/*.csproj
-          arguments: --configuration $(BuildConfiguration)
+          arguments: --disable-parallel
       - task: DotNetCoreCLI@2
         displayName: dotnet publish
         inputs:
           command: publish
           publishWebProjects: false
           projects: ResourceProvisioner/src/ResourceProvisioner.Functions/*.csproj
-          arguments: -o $(Build.ArtifactStagingDirectory)/output/resourceprovisioner -r "linux-x64" --self-contained true
+          arguments: -o $(Build.ArtifactStagingDirectory)/output/resourceprovisioner -r "linux-x64" --self-contained true --no-restore -m
       - task: PublishBuildArtifacts@1
         displayName: "Publish Artifact: resource-provisioner-function"
         inputs:
@@ -228,18 +220,14 @@ jobs:
         inputs:
           command: restore
           projects: Portal/src/Datahub.Maintenance/*.csproj
-      - task: DotNetCoreCLI@2
-        displayName: dotnet build
-        inputs:
-          projects: Portal/src/Datahub.Maintenance/*.csproj
-          arguments: --configuration $(BuildConfiguration)
+          arguments: --disable-parallel
       - task: DotNetCoreCLI@2
         displayName: dotnet publish
         inputs:
           command: publish
           publishWebProjects: false
           projects: Portal/src/Datahub.Maintenance/*.csproj
-          arguments: -o $(Build.ArtifactStagingDirectory)/output/maintenancepage -r "linux-x64" --self-contained true
+          arguments: -o $(Build.ArtifactStagingDirectory)/output/maintenancepage -r "linux-x64" --self-contained true --no-restore -m
       - task: PublishBuildArtifacts@1
         displayName: "Publish Artifact: maintenance page"
         inputs:
@@ -319,10 +307,6 @@ jobs:
     parameters:
       dependsOn: Job_2
 
-  - job: ResourceProvisioner_Testing_job
-    displayName: Agent job - Resource Provisioner Testing
-    dependsOn: Job_2
-    pool:
-      vmImage: ubuntu-latest
-    steps:
-      - template: fsdh-resource-provisioner-tests.yml
+  - template: fsdh-resource-provisioner-tests.yml
+    parameters:
+      dependsOn: Job_2

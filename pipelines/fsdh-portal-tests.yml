@@ -46,13 +46,20 @@ jobs:
           azurePowerShellVersion: 'LatestVersion'
 
       - task: DotNetCoreCLI@2
+        displayName: 'Restore $(testRunTitle) dependencies'
+        inputs:
+          command: 'restore'
+          projects: '$(testProject)'
+          arguments: '--disable-parallel'
+
+      - task: DotNetCoreCLI@2
         displayName: '$(testRunTitle)'
         condition: succeededOrFailed()
         inputs:
           command: 'test'
           projects: '$(testProject)'
           testRunTitle: '$(testRunTitle)'
-          arguments: '--configuration $(buildConfiguration) --coverlet --coverlet-output-format cobertura'
+          arguments: '--configuration $(buildConfiguration) --no-restore -m --verbosity minimal --coverlet --coverlet-output-format cobertura'
 
   - job: Portal_Testing_Coverage
     displayName: 'Agent job - Portal Testing Coverage'

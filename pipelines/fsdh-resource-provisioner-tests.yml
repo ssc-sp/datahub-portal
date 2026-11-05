@@ -1,49 +1,62 @@
-steps:
-  - task: UseDotNet@2
-    displayName: 'Use .NET Core sdk 10.0.x'
-    inputs:
-      version: 10.0.x
-      includePreviewVersions: true
-      performMultiLevelLookup: true
+parameters:
+  - name: dependsOn
+    type: string
+    default: ''
 
-  # Step 1: Run gen-all-settings.ps1 using AzurePowerShell task
-  - task: AzurePowerShell@5
-    displayName: 'Run gen-all-settings.ps1 to configure environment variables'
-    inputs:
-      azureSubscription: 'fsdh-az-service-connection'
-      ScriptType: 'FilePath'  # Run the script using FilePath
-      ScriptPath: './gen-all-settings.ps1'  # Path to your script
-      ScriptArguments: '-Environment dev'  
-      azurePowerShellVersion: 'LatestVersion'  
+jobs:
+  - job: ResourceProvisioner_Testing_Matrix
+    displayName: 'Agent job - Resource Provisioner Testing'
+    dependsOn: ${{ parameters.dependsOn }}
+    pool:
+      vmImage: ubuntu-latest
+    strategy:
+      matrix:
+        Application_Integration_Tests:
+          testProject: 'ResourceProvisioner/test/ResourceProvisioner.Application.IntegrationTests/ResourceProvisioner.Application.IntegrationTests.csproj'
+          testRunTitle: 'Resource Provisioner Application Integration Tests'
+        Application_Unit_Tests:
+          testProject: 'ResourceProvisioner/test/ResourceProvisioner.Application.UnitTests/ResourceProvisioner.Application.UnitTests.csproj'
+          testRunTitle: 'Resource Provisioner Application Unit Tests'
+        Domain_Unit_Tests:
+          testProject: 'ResourceProvisioner/test/ResourceProvisioner.Domain.UnitTests/ResourceProvisioner.Domain.UnitTests.csproj'
+          testRunTitle: 'Resource Provisioner Domain Unit Tests'
+        Infrastructure_Unit_Tests:
+          testProject: 'ResourceProvisioner/test/ResourceProvisioner.Infrastructure.UnitTests/ResourceProvisioner.Infrastructure.UnitTests.csproj'
+          testRunTitle: 'Resource Provisioner Infrastructure Unit Tests'
+    steps:
+      - checkout: self
+        clean: true
+        lfs: true
+        fetchTags: false
 
-  - task: DotNetCoreCLI@2
-    displayName: 'Resource Provisioner Application Integration Tests'
-    condition: succeededOrFailed()
-    inputs:
-      command: 'test'
-      projects: 'ResourceProvisioner/test/ResourceProvisioner.Application.IntegrationTests/ResourceProvisioner.Application.IntegrationTests.csproj'
-      testRunTitle: 'Resource Provisioner Application Integration Tests'
+      - task: UseDotNet@2
+        displayName: 'Use .NET Core sdk 10.0.x'
+        inputs:
+          version: 10.0.x
+          includePreviewVersions: true
+          performMultiLevelLookup: true
 
-  - task: DotNetCoreCLI@2
-    displayName: 'Resource Provisioner Application Unit Tests'
-    condition: succeededOrFailed()
-    inputs:
-      command: 'test'
-      projects: 'ResourceProvisioner/test/ResourceProvisioner.Application.UnitTests/ResourceProvisioner.Application.UnitTests.csproj'
-      testRunTitle: 'Resource Provisioner Application Unit Tests'
+      - task: AzurePowerShell@5
+        displayName: 'Run gen-all-settings.ps1 to configure environment variables'
+        inputs:
+          azureSubscription: 'fsdh-az-service-connection'
+          ScriptType: 'FilePath'
+          ScriptPath: './gen-all-settings.ps1'
+          ScriptArguments: '-Environment dev'
+          azurePowerShellVersion: 'LatestVersion'
 
-  - task: DotNetCoreCLI@2
-    displayName: 'Resource Provisioner Domain Unit Tests'
-    condition: succeededOrFailed()
-    inputs:
-      command: 'test'
-      projects: 'ResourceProvisioner/test/ResourceProvisioner.Domain.UnitTests/ResourceProvisioner.Domain.UnitTests.csproj'
-      testRunTitle: 'Resource Provisioner Domain Unit Tests'
+      - task: DotNetCoreCLI@2
+        displayName: 'Restore $(testRunTitle) dependencies'
+        inputs:
+          command: 'restore'
+          projects: '$(testProject)'
+          arguments: '--disable-parallel'
 
-  - task: DotNetCoreCLI@2
-    displayName: 'Resource Provisioner Infrastructure Unit Tests'
-    condition: succeededOrFailed()
-    inputs:
-      command: 'test'
-      projects: 'ResourceProvisioner/test/ResourceProvisioner.Infrastructure.UnitTests/ResourceProvisioner.Infrastructure.UnitTests.csproj'
-      testRunTitle: 'Resource Provisioner Infrastructure Unit Tests'
+      - task: DotNetCoreCLI@2
+        displayName: '$(testRunTitle)'
+        condition: succeededOrFailed()
+        inputs:
+          command: 'test'
+          projects: '$(testProject)'
+          testRunTitle: '$(testRunTitle)'
+          arguments: '--configuration $(buildConfiguration) --no-restore -m --verbosity minimal'
