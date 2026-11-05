@@ -315,13 +315,9 @@ jobs:
             #git tag "$versionNumber" --force
             #git push origin "$versionNumber" --force
 
-  - job: Portal_Testing_job
-    displayName: Agent job - Portal Testing
-    dependsOn: Job_2
-    pool:
-      vmImage: ubuntu-latest
-    steps:
-      - template: fsdh-portal-tests.yml
+  - template: fsdh-portal-tests.yml
+    parameters:
+      dependsOn: Job_2
 
   - job: ResourceProvisioner_Testing_job
     displayName: Agent job - Resource Provisioner Testing
