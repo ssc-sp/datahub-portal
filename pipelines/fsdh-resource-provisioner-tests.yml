@@ -59,4 +59,4 @@ jobs:
           command: 'test'
           projects: '$(testProject)'
           testRunTitle: '$(testRunTitle)'
-          arguments: '--configuration $(BuildConfiguration) --no-restore -m --verbosity minimal'
+          arguments: '--configuration $(BuildConfiguration) --coverlet --coverlet-output-format cobertura'

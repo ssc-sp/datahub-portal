@@ -59,7 +59,7 @@ jobs:
           command: 'test'
           projects: '$(testProject)'
           testRunTitle: '$(testRunTitle)'
-          arguments: '--configuration $(BuildConfiguration) --no-restore -m --verbosity minimal --coverlet --coverlet-output-format cobertura'
+          arguments: '--configuration $(BuildConfiguration)'
 
   - job: Portal_Testing_Coverage
     displayName: 'Agent job - Portal Testing Coverage'
