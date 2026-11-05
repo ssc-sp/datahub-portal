@@ -1,116 +1,77 @@
-stages:
-- stage: TestPipeline
-  displayName: 'Test pipeline'
-  jobs:
-  - template: ./jobs/configure-settings.yml
-    parameters:
-      env: 'dev'
+steps:
+      
+  - task: UseDotNet@2
+    displayName: 'Use .NET Core sdk 10.0.x'
+    inputs:
+      version: 10.0.x
+      includePreviewVersions: true
+      performMultiLevelLookup: true
 
-  - job: DatahubFunctionUnitTests
+  # Step 1: Run gen-all-settings.ps1 using AzurePowerShell task
+  - task: AzurePowerShell@5
+    displayName: 'Run gen-all-settings.ps1 to configure environment variables'
+    inputs:
+      azureSubscription: 'fsdh-az-service-connection'
+      ScriptType: 'FilePath'  # Run the script using FilePath
+      ScriptPath: './gen-all-settings.ps1'  # Path to your script
+      ScriptArguments: '-Environment dev'
+      azurePowerShellVersion: 'LatestVersion'
+
+  - task: DotNetCoreCLI@2
     displayName: 'Datahub Function Unit Tests'
-    dependsOn: ConfigureSettings
-    condition: succeeded()
-    steps:
-    - task: UseDotNet@2
-      displayName: 'Use .NET Core sdk 10.0.x'
-      inputs:
-        version: 10.0.x
-        includePreviewVersions: true
-        performMultiLevelLookup: true
-
-    - task: DotNetCoreCLI@2
-      displayName: 'Datahub Function Unit Tests'
-      inputs:
-        command: 'test'
-        projects: 'ServerlessOperations/test/Datahub.Functions.UnitTests/Datahub.Functions.UnitTests.csproj'
-        testRunTitle: 'Datahub Function Unit Tests'
-        arguments: '--configuration $(buildConfiguration) --coverlet --coverlet-output-format cobertura'
-
-  - job: DatahubInfrastructureUnitTests
-    displayName: 'Datahub Infrastructure Unit Tests'
-    dependsOn: ConfigureSettings
-    condition: succeeded()
-    steps:
-    - task: UseDotNet@2
-      displayName: 'Use .NET Core sdk 10.0.x'
-      inputs:
-        version: 10.0.x
-        includePreviewVersions: true
-        performMultiLevelLookup: true
-
-    - task: DotNetCoreCLI@2
-      displayName: 'Datahub Infrastructure Unit Tests'
-      inputs:
-        command: 'test'
-        projects: 'Portal/test/Datahub.Infrastructure.UnitTests/Datahub.Infrastructure.UnitTests.csproj'
-        testRunTitle: 'Datahub Infrastructure Unit Tests'
-        arguments: '--configuration $(buildConfiguration) --coverlet --coverlet-output-format cobertura'
-
-  - job: DatahubSpecflowTests
-    displayName: 'Datahub Specflow Tests'
-    dependsOn: ConfigureSettings
-    condition: succeeded()
-    steps:
-    - task: UseDotNet@2
-      displayName: 'Use .NET Core sdk 10.0.x'
-      inputs:
-        version: 10.0.x
-        includePreviewVersions: true
-        performMultiLevelLookup: true
-
-    - task: DotNetCoreCLI@2
-      displayName: 'Datahub Specflow Tests'
-      inputs:
-        command: 'test'
-        projects: 'Portal/test/Datahub.SpecflowTests/Datahub.SpecflowTests.csproj'
-        testRunTitle: 'Datahub Specflow Tests'
-        arguments: '--configuration $(buildConfiguration) --coverlet --coverlet-output-format cobertura'
-
-  - job: DatahubUnitTests
-    displayName: 'Datahub Unit Tests'
-    dependsOn: ConfigureSettings
-    condition: succeeded()
-    steps:
-    - task: UseDotNet@2
-      displayName: 'Use .NET Core sdk 10.0.x'
-      inputs:
-        version: 10.0.x
-        includePreviewVersions: true
-        performMultiLevelLookup: true
-
-    - task: DotNetCoreCLI@2
-      displayName: 'Datahub Unit Tests'
-      inputs:
-        command: 'test'
-        projects: 'Portal/test/Datahub.Tests/Datahub.Tests.csproj'
-        testRunTitle: 'Datahub Unit Tests'
-        arguments: '--configuration $(buildConfiguration) --coverlet --coverlet-output-format cobertura'
-
-  - job: CoverageReport
-    displayName: 'Create code coverage report'
-    dependsOn:
-    - DatahubFunctionUnitTests
-    - DatahubInfrastructureUnitTests
-    - DatahubSpecflowTests
-    - DatahubUnitTests
     condition: succeededOrFailed()
-    steps:
-    - task: UseDotNet@2
-      displayName: 'Use .NET Core sdk 10.0.x'
-      inputs:
-        version: 10.0.x
-        includePreviewVersions: true
-        performMultiLevelLookup: true
+    inputs:
+      command: 'test'
+      projects: 'ServerlessOperations/test/Datahub.Functions.UnitTests/Datahub.Functions.UnitTests.csproj'
+      testRunTitle: 'Datahub Function Unit Tests'
+      arguments: '--configuration $(buildConfiguration) --coverlet --coverlet-output-format cobertura'
 
-    - script: |
+  - task: DotNetCoreCLI@2
+    displayName: 'Datahub Infrastructure Unit Tests'
+    condition: succeededOrFailed()
+    inputs:
+      command: 'test'
+      projects: 'Portal/test/Datahub.Infrastructure.UnitTests/Datahub.Infrastructure.UnitTests.csproj'
+      testRunTitle: 'Datahub Infrastructure Unit Tests'
+      arguments: '--configuration $(buildConfiguration) --coverlet --coverlet-output-format cobertura'
+
+  - task: DotNetCoreCLI@2
+    displayName: 'Datahub Specflow Tests'
+    condition: succeededOrFailed()
+    inputs:
+      command: 'test'
+      projects: 'Portal/test/Datahub.SpecflowTests/Datahub.SpecflowTests.csproj'
+      testRunTitle: 'Datahub Specflow Tests'
+      arguments: '--configuration $(buildConfiguration) --coverlet --coverlet-output-format cobertura'
+
+  # - task: DotNetCoreCLI@2
+  #   displayName: 'Datahub Specs Playwright Tests'
+  #   condition: succeededOrFailed()
+  #   inputs:
+  #     command: 'test'
+  #     projects: 'Portal/test/Datahub.Specs/Datahub.Specs.csproj'
+  #     testRunTitle: 'Datahub Specs Tests'
+  #     arguments: '--configuration $(buildConfiguration) --coverlet --coverlet-output-format cobertura --coverlet-output $(Agent.WorkFolder)/coverage/Datahub.Specs'
+
+  - task: DotNetCoreCLI@2
+    displayName: 'Datahub Unit Tests'
+    condition: succeededOrFailed()
+    inputs:
+      command: 'test'
+      projects: 'Portal/test/Datahub.Tests/Datahub.Tests.csproj'
+      testRunTitle: 'Datahub Unit Tests'
+      arguments: '--configuration $(buildConfiguration) --coverlet --coverlet-output-format cobertura'
+      
+  - script: |
         dotnet tool install -g dotnet-reportgenerator-globaltool
         reportgenerator -reports:$(Agent.WorkFolder)/**/coverage.cobertura.xml -targetdir:$(Build.SourcesDirectory)/Portal/test/CodeCoverage -reporttypes:'HtmlInline_AzurePipelines;Cobertura'
+        # IMPORTANT - set `disable.coverage.autogenerate` to true if you want to use older reportgenerator version
         echo "##vso[task.setvariable variable=disable.coverage.autogenerate;]true"
-      displayName: Create code coverage report
-
-    - task: PublishCodeCoverageResults@1
-      displayName: 'Publish code coverage report'
-      inputs:
-        codeCoverageTool: 'Cobertura'
-        summaryFileLocation: '$(Build.SourcesDirectory)/Portal/test/CodeCoverage/Cobertura.xml'
-        reportDirectory: '$(Build.SourcesDirectory)/Portal/test/CodeCoverage'
+    displayName: Create code coverage report
+      
+  - task: PublishCodeCoverageResults@1
+    displayName: 'Publish code coverage report'
+    inputs:
+      codeCoverageTool: 'Cobertura'
+      summaryFileLocation: '$(Build.SourcesDirectory)/Portal/test/CodeCoverage/Cobertura.xml'
+      reportDirectory: '$(Build.SourcesDirectory)/Portal/test/CodeCoverage'
