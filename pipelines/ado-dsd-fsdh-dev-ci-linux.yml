@@ -115,11 +115,11 @@ jobs:
         inputs:
           command: restore
           projects: Portal/src/Datahub.Portal/*.csproj
-      - task: DotNetCoreCLI@2
-        displayName: dotnet build
-        inputs:
-          projects: Portal/src/Datahub.Portal/*.csproj
-          arguments: --configuration $(BuildConfiguration)
+      # - task: DotNetCoreCLI@2
+      #   displayName: dotnet build
+      #   inputs:
+      #     projects: Portal/src/Datahub.Portal/*.csproj
+      #     arguments: --configuration $(BuildConfiguration)
       - task: DotNetCoreCLI@2
         displayName: dotnet publish
         inputs:
