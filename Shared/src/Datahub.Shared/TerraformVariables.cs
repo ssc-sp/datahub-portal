@@ -95,6 +95,11 @@ public static class TerraformVariables
     /// </summary>
     public const string AllowSourceIp = "allow_source_ip";
 
+    /// <summary>
+    /// Whether the workspace is deployed to the dev environment. Derived from environment_name unless configured.
+    /// </summary>
+    public const string IsDev = "is_dev";
+
     public const string MapType = "map";
     public const string ListAnyType = "list(any)";
 }

@@ -36,7 +36,7 @@
       "az_subscription_id": "$subscriptionId",
       "az_tenant_id": "$tenantId",
       "datahub_app_sp_oid": "@Microsoft.KeyVault(VaultName=g2dc-cto-fsdh-$Environment-kv;SecretName=datahubportal-client-oid)",
-      "datahub_ado_sp_oid": "@Microsoft.KeyVault(VaultName=g2dc-cto-fsdh-$Environment-kv;SecretName=datahubportal-client-oid)",
+      "datahub_ado_sp_oid": "@Microsoft.KeyVault(VaultName=g2dc-cto-fsdh-$Environment-kv;SecretName=devops-client-oid)",
       "azure_databricks_enterprise_oid": "@Microsoft.KeyVault(VaultName=g2dc-cto-fsdh-$Environment-kv;SecretName=datahub-databricks-sp)",
       "environment_classification": "U",
       "environment_name": "$Environment",
@@ -52,6 +52,9 @@
       "automation_account_uai_sub": "overwritten-by-terraform",
       "log_analytics_workspace_id": "overwritten-by-terraform",
       "ssc_cbrid": "1234",
+      "vnet_name": "g2dc-cto_fsdh_seed-rg",
+      "vnet_rg": "g2dc-cto_fsdh_seed-rg",
+      "subnet_name_prefix": "fsdh-dbr",
       "service_bus_id": "overwritten-by-terraform",
       "common_tags": {
         "Sector": "Science Program",

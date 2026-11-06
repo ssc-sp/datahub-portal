@@ -9,9 +9,8 @@ namespace Datahub.Core.Extensions
     {
         public static string? GetResourceGroupName(this Datahub_Project project)
         {
-            var newProjectTemplateType =
-                TerraformTemplate.GetTerraformServiceType(TerraformTemplate.NewProjectTemplate);
-            var newProjectResource = project.Resources?.FirstOrDefault(r => r.ResourceType == newProjectTemplateType);
+            var newProjectResource = project.Resources?.FirstOrDefault(r =>
+                TerraformTemplate.WorkspaceTemplateServiceTypes.Contains(r.ResourceType));
             if (newProjectResource is not null && newProjectResource.CreatedAt.HasValue)
             {
                 if (string.IsNullOrEmpty(newProjectResource.JsonContent))
@@ -44,8 +43,8 @@ namespace Datahub.Core.Extensions
 
         public static string GetResourceGroupNameFromBlob(this Datahub_Project project)
         {
-            var blobStorageTemplateType = TerraformTemplate.GetTerraformServiceType(TerraformTemplate.NewProjectTemplate);
-            var blobStorageResource = project.Resources?.FirstOrDefault(r => r.ResourceType == blobStorageTemplateType);
+            var blobStorageResource = project.Resources?.FirstOrDefault(r =>
+                TerraformTemplate.WorkspaceTemplateServiceTypes.Contains(r.ResourceType));
             if (blobStorageResource is not null && blobStorageResource.CreatedAt.HasValue)
             {
                 if (string.IsNullOrEmpty(blobStorageResource.JsonContent))
