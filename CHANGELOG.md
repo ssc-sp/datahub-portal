@@ -3,6 +3,24 @@
 <!-- markdownlint-disable MD024 -->
 # Changelog
 
+## [10.4.0](https://github.com/ssc-sp/datahub-portal/compare/v10.3.0...v10.4.0) (2026-11-07)
+
+
+### Features
+
+* added logic to prevent PB projects to invite external users ([#2166](https://github.com/ssc-sp/datahub-portal/issues/2166)) ([f6c8b6e](https://github.com/ssc-sp/datahub-portal/commit/f6c8b6e7832a4d8b5d640eabed20e9b4d455e22b))
+
+
+### Bug Fixes
+
+* Ensuring collaborators cannot toggle the data steward checkbox ([#2163](https://github.com/ssc-sp/datahub-portal/issues/2163)) ([2fba622](https://github.com/ssc-sp/datahub-portal/commit/2fba622c30058c7b423929f45aa3f6bfecf8b90e))
+* Fixing a bug where the WorkspaceSidebar wrongly hides the workspace selector ([#2161](https://github.com/ssc-sp/datahub-portal/issues/2161)) ([99254bd](https://github.com/ssc-sp/datahub-portal/commit/99254bd3bdfe65a2d039bbc48870b8ea0dd370d6))
+* Fixing a crash on the statistics page ([#2164](https://github.com/ssc-sp/datahub-portal/issues/2164)) ([5343ef0](https://github.com/ssc-sp/datahub-portal/commit/5343ef0865b27110427ed823c9bca3190d71d6e9))
+* Protected B workspaces provision a single workspace template (AB[#4377](https://github.com/ssc-sp/datahub-portal/issues/4377)) ([#2167](https://github.com/ssc-sp/datahub-portal/issues/2167)) ([3808970](https://github.com/ssc-sp/datahub-portal/commit/3808970f16fd6781b9c2cd3a3978b527f4655acb))
+* publishing only viewable for admins or leads ([#2159](https://github.com/ssc-sp/datahub-portal/issues/2159)) ([ee939c8](https://github.com/ssc-sp/datahub-portal/commit/ee939c88a44af020b45e7e8f7beddf38e5469428))
+* Restricting Data Steward checkbox to workspace lead or admin ([#2162](https://github.com/ssc-sp/datahub-portal/issues/2162)) ([6952b13](https://github.com/ssc-sp/datahub-portal/commit/6952b1320d4a2f0f532900871e66479d12588e83))
+* user should not see removed workspaces in workspace dropdown list ([#2158](https://github.com/ssc-sp/datahub-portal/issues/2158)) ([5cf5262](https://github.com/ssc-sp/datahub-portal/commit/5cf52625b83677ccda9fb59f0a7dbb27917d856d))
+
 ## [10.3.0](https://github.com/ssc-sp/datahub-portal/compare/v10.2.0...v10.3.0) (2026-10-27)
 
 
