@@ -43,7 +43,7 @@ public class TerraformService(
 
         if (!Directory.Exists(projectPath))
         {
-            if (templateName == TerraformTemplate.NewProjectTemplate)
+            if (TerraformTemplate.IsWorkspaceTemplate(templateName))
             {
                 logger.LogInformation("Creating new project directory {ProjectPath}", projectPath);
                 Directory.CreateDirectory(projectPath);
@@ -148,6 +148,14 @@ public class TerraformService(
             try
             {
                 var template = TerraformTemplate.NormalizeTemplateName(variableName);
+                if (TerraformTemplate.IsWorkspaceTemplate(template))
+                {
+                    // The base and enhanced workspace templates share one variables file, so use the one the workspace has
+                    template = workspace.Templates
+                        .Select(t => t.Name)
+                        .FirstOrDefault(TerraformTemplate.IsWorkspaceTemplate) ?? template;
+                }
+
                 await ExtractVariables(template, workspace);
             }
             catch (ArgumentException)
@@ -222,6 +230,28 @@ public class TerraformService(
         logger.LogInformation("Created deleted file {DeletedFilePath}", deletedFilePath);
     }
     
+    /// <summary>
+    /// Gets the name of the variables file for a template. Both workspace templates use the file named after the base
+    /// template, which is the name the infrastructure pipeline reads.
+    /// </summary>
+    /// <param name="templateName">The template name.</param>
+    /// <returns>The variables file name.</returns>
+    internal static string GetVariablesFileName(string templateName)
+    {
+        var fileTemplateName = TerraformTemplate.IsWorkspaceTemplate(templateName)
+            ? TerraformTemplate.NewProjectTemplate
+            : templateName;
+        return $"{fileTemplateName}.auto.tfvars.json";
+    }
+
+    /// <summary>
+    /// Determines whether an environment is the dev environment.
+    /// </summary>
+    /// <param name="environmentName">The configured environment name.</param>
+    /// <returns>True for the dev environment; otherwise false.</returns>
+    internal static bool IsDevEnvironment(string? environmentName) =>
+        string.Equals(environmentName, "dev", StringComparison.OrdinalIgnoreCase);
+
     internal static readonly Dictionary<string, string> TerraformModuleStatusOutputName = new()
     {
         {TerraformTemplate.AzureDatabricks, TerraformVariables.OutputAzureDatabricksStatus},
@@ -229,7 +259,8 @@ public class TerraformService(
         {TerraformTemplate.AzureAppService, TerraformVariables.OutputAzureAppServiceStatus},
         {TerraformTemplate.AzurePostgres, TerraformVariables.OutputAzurePostgresStatus},
         {TerraformTemplate.AzurePostgresTemplateFile, TerraformVariables.OutputAzurePostgresStatus},
-        {TerraformTemplate.NewProjectTemplate, TerraformVariables.OutputNewProjectTemplate}
+        {TerraformTemplate.NewProjectTemplate, TerraformVariables.OutputNewProjectTemplate},
+        {TerraformTemplate.NewProjectTemplateEnhanced, TerraformVariables.OutputNewProjectTemplate}
         // {TerraformTemplate.AzureArcGis, "arcgis_url"},
         // {TerraformTemplate.AzureAPI, "api_url"}
     };
@@ -283,7 +314,7 @@ public class TerraformService(
         Dictionary<string, (string Value, bool isRequired)> missingVariables, WorkspaceAppData workspaceAppData)
     {
         var projectPath = DirectoryUtils.GetProjectPath(resourceProvisionerConfiguration.Value, terraformWorkspace.Acronym);
-        var variablesFilePath = Path.Join(projectPath, $"{templateName}.auto.tfvars.json");
+        var variablesFilePath = Path.Join(projectPath, GetVariablesFileName(templateName));
 
         if (File.Exists(variablesFilePath))
         {
@@ -353,6 +384,7 @@ public class TerraformService(
             TerraformVariables.MlCompute => workspaceAppData.DatabricksConfiguration?.MachineLearningTierSku ?? DatabricksTier.DefaultML.DatabricksSKU,
             TerraformVariables.MlGpuCompute => workspaceAppData.DatabricksConfiguration?.MachineLearningGpuTierSku ?? DatabricksTier.DefaultMLGpu.DatabricksSKU,
             TerraformVariables.SSCCBRID => terraformWorkspace.SSCCBRID,
+            TerraformVariables.IsDev => IsDevEnvironment(resourceProvisionerConfiguration.Value.Terraform.Variables.environment_name),
             // optional variables
             TerraformVariables.AzureLogWorkspaceId => string.Empty,
             TerraformVariables.AllowSourceIp => string.Empty,

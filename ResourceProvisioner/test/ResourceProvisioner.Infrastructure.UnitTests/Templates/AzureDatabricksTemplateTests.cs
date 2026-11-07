@@ -211,7 +211,7 @@ public class AzureDatabricksTemplateTests : TemplateTestCollection
                 [TerraformVariables.AzureDatabricksGPUClusterSKU] = "Standard_NC4as_T4_v3",
                 [TerraformVariables.AzureDatabricksMLClusterSKU] = "Standard_D4ds_v5",
                 [TerraformVariables.AzureDatabricksEnterpriseOid] = _resourceProvisionerConfiguration.Terraform.Variables.azure_databricks_enterprise_oid,
-                [TerraformVariables.AzureLogWorkspaceId] = _resourceProvisionerConfiguration.Terraform.Variables.log_workspace_id,
+                //[TerraformVariables.AzureLogWorkspaceId] = _resourceProvisionerConfiguration.Terraform.Variables.log_workspace_id,
             };
         }
 
@@ -262,7 +262,7 @@ public class AzureDatabricksTemplateTests : TemplateTestCollection
             [TerraformVariables.AzureDatabricksGPUClusterSKU] = "Standard_NC4as_T4_v3",
             [TerraformVariables.AzureDatabricksMLClusterSKU] = "Standard_D4ds_v5",
             [TerraformVariables.AzureDatabricksEnterpriseOid] = _resourceProvisionerConfiguration.Terraform.Variables.azure_databricks_enterprise_oid,
-            [TerraformVariables.AzureLogWorkspaceId] = _resourceProvisionerConfiguration.Terraform.Variables.log_workspace_id,
+            //[TerraformVariables.AzureLogWorkspaceId] = _resourceProvisionerConfiguration.Terraform.Variables.log_workspace_id,
         };
     }
 }

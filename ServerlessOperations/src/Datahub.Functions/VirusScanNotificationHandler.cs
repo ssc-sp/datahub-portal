@@ -232,12 +232,12 @@ public class VirusScanNotificationHandler(
         try
         {
             await using var ctx = await dbContextFactory.CreateDbContextAsync();
-            var tfType = TerraformTemplate.GetTerraformServiceType(TerraformTemplate.NewProjectTemplate)?? throw new InvalidOperationException("Failed to get Terraform service type for NewProjectTemplate");
+            var tfTypes = TerraformTemplate.WorkspaceTemplateServiceTypes;
             var normalizedAccountName = storageAccountName.ToLower();
             var project = await ctx.Project_Resources2.Include(p => p.Project)
                 .AsNoTracking()
                 .FirstOrDefaultAsync(r =>
-                    r.ResourceType == tfType &&
+                    tfTypes.Contains(r.ResourceType) &&
                     r.JsonContent != null &&
                     r.JsonContent.ToLower().Contains(normalizedAccountName));
 

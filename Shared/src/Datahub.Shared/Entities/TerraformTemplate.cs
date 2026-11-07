@@ -38,7 +38,31 @@ public class TerraformTemplate
         AzurePostgresEnhanced
     ];
 
+    // Templates that provision the workspace resource group and storage. A workspace has exactly one of them:
+    // the enhanced template for Protected B workspaces, the base template otherwise.
+    private static readonly string[] WorkspaceTemplateNames =
+    [
+        NewProjectTemplate,
+        NewProjectTemplateEnhanced
+    ];
+
     public static string GetTerraformServiceType(string templateName) => $"terraform:{templateName}";
+
+    /// <summary>
+    /// Gets the workspace template to provision for a workspace of the given classification.
+    /// </summary>
+    /// <param name="isProtectedB">Whether the workspace is classified as Protected B.</param>
+    /// <returns>The enhanced workspace template for Protected B workspaces, the base template otherwise.</returns>
+    public static string GetWorkspaceTemplate(bool isProtectedB) =>
+        isProtectedB ? NewProjectTemplateEnhanced : NewProjectTemplate;
+
+    /// <summary>
+    /// Determines whether the template provisions the workspace resource group and storage.
+    /// </summary>
+    /// <param name="name">The template name.</param>
+    /// <returns>True for the base and enhanced workspace templates.</returns>
+    public static bool IsWorkspaceTemplate(string name) =>
+        WorkspaceTemplateNames.Contains(name, StringComparer.OrdinalIgnoreCase);
 
     public static bool IsReleased(string name)
     {
@@ -68,6 +92,12 @@ public class TerraformTemplate
     public const string AzurePostgresTemplateFile = "azure-postgresql";
 
     public const string NewProjectTemplateFile = "main";
+
+    /// <summary>
+    /// Service types (<c>terraform:{name}</c>) of the workspace templates, for matching <c>Project_Resources2.ResourceType</c>.
+    /// </summary>
+    public static readonly string[] WorkspaceTemplateServiceTypes =
+        WorkspaceTemplateNames.Select(GetTerraformServiceType).ToArray();
 
     // Parameterless constructor for deserialization
     public TerraformTemplate()
@@ -187,7 +217,7 @@ public class TerraformTemplate
         var dependencyMap = new Dictionary<string, string[]>
         {
             [NewProjectTemplate] = [],
-            [NewProjectTemplateEnhanced] = [NewProjectTemplate],
+            [NewProjectTemplateEnhanced] = [],
             [VariableUpdate] = [],
             [AzureDatabricks] = [NewProjectTemplate],
             [AzureDatabricksEnhanced] = [NewProjectTemplateEnhanced],
