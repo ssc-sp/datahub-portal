@@ -1,4 +1,4 @@
-﻿using System.Reflection;
+using System.Reflection;
 using Bunit;
 using Bunit.TestDoubles;
 using Datahub.Application.Commands;
@@ -16,6 +16,7 @@ using Datahub.Portal.Layout;
 using Datahub.Portal.Pages.Workspace.Users;
 using Datahub.SpecflowTests.Utils;
 using FluentAssertions;
+using Google.Protobuf.WellKnownTypes;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Components.Forms;
 using Microsoft.AspNetCore.Hosting;
@@ -137,6 +138,11 @@ namespace Datahub.SpecflowTests.Steps
 
             var userInfoService = Substitute.For<IUserInformationService>();
             Services.AddSingleton(userInfoService);
+
+            var externalUserInvitationService = Substitute.For<IExternalUserInvitationService>();
+            externalUserInvitationService.CanInviteExternalUsers(Arg.Any<string>()).Returns(Task.FromResult(true));
+            Services.AddSingleton(externalUserInvitationService);
+
 
             var mockRequestManagementService = Substitute.For<IRequestManagementService>();
             Services.AddSingleton(mockRequestManagementService);

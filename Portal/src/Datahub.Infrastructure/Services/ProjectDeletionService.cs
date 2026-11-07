@@ -50,8 +50,9 @@ namespace Datahub.Infrastructure.Services
                 var env = configuration.GetCurrentEnvironment();
                 foreach (var resource in resources)
                 {
-                    resource.Status = resource.ResourceType == TerraformTemplate.GetTerraformServiceType(TerraformTemplate.NewProjectTemplate) ? TerraformStatus.DeleteRequested : TerraformStatus.Deleted;
-                    if (resource.ResourceType == TerraformTemplate.GetTerraformServiceType(TerraformTemplate.NewProjectTemplate))
+                    var isWorkspaceTemplate = TerraformTemplate.WorkspaceTemplateServiceTypes.Contains(resource.ResourceType);
+                    resource.Status = isWorkspaceTemplate ? TerraformStatus.DeleteRequested : TerraformStatus.Deleted;
+                    if (isWorkspaceTemplate)
                     {
                         rgName = resource.Project.GetResourceGroupName();
                         if (string.IsNullOrEmpty(rgName))
