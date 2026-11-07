@@ -1,77 +1,87 @@
-steps:
-      
-  - task: UseDotNet@2
-    displayName: 'Use .NET Core sdk 10.0.x'
-    inputs:
-      version: 10.0.x
-      includePreviewVersions: true
-      performMultiLevelLookup: true
+parameters:
+  - name: dependsOn
+    type: string
+    default: ''
 
-  # Step 1: Run gen-all-settings.ps1 using AzurePowerShell task
-  - task: AzurePowerShell@5
-    displayName: 'Run gen-all-settings.ps1 to configure environment variables'
-    inputs:
-      azureSubscription: 'fsdh-az-service-connection'
-      ScriptType: 'FilePath'  # Run the script using FilePath
-      ScriptPath: './gen-all-settings.ps1'  # Path to your script
-      ScriptArguments: '-Environment dev'
-      azurePowerShellVersion: 'LatestVersion'
+jobs:
+  - job: Portal_Testing_Matrix
+    displayName: 'Agent job - Portal Testing'
+    dependsOn: ${{ parameters.dependsOn }}
+    pool:
+      vmImage: ubuntu-latest
+    strategy:
+      matrix:
+        Datahub_Functions_UnitTests:
+          testProject: 'ServerlessOperations/test/Datahub.Functions.UnitTests/Datahub.Functions.UnitTests.csproj'
+          testRunTitle: 'Datahub Function Unit Tests'
+        Datahub_Infrastructure_UnitTests:
+          testProject: 'Portal/test/Datahub.Infrastructure.UnitTests/Datahub.Infrastructure.UnitTests.csproj'
+          testRunTitle: 'Datahub Infrastructure Unit Tests'
+        Datahub_Specflow_Tests:
+          testProject: 'Portal/test/Datahub.SpecflowTests/Datahub.SpecflowTests.csproj'
+          testRunTitle: 'Datahub Specflow Tests'
+        Datahub_Unit_Tests:
+          testProject: 'Portal/test/Datahub.Tests/Datahub.Tests.csproj'
+          testRunTitle: 'Datahub Unit Tests'
+    steps:
+      - checkout: self
+        clean: true
+        lfs: true
+        fetchTags: false
 
-  - task: DotNetCoreCLI@2
-    displayName: 'Datahub Function Unit Tests'
-    condition: succeededOrFailed()
-    inputs:
-      command: 'test'
-      projects: 'ServerlessOperations/test/Datahub.Functions.UnitTests/Datahub.Functions.UnitTests.csproj'
-      testRunTitle: 'Datahub Function Unit Tests'
-      arguments: '--configuration $(buildConfiguration) --coverlet --coverlet-output-format cobertura'
+      - task: UseDotNet@2
+        displayName: 'Use .NET Core sdk 10.0.x'
+        inputs:
+          version: 10.0.x
+          includePreviewVersions: true
+          performMultiLevelLookup: true
 
-  - task: DotNetCoreCLI@2
-    displayName: 'Datahub Infrastructure Unit Tests'
-    condition: succeededOrFailed()
-    inputs:
-      command: 'test'
-      projects: 'Portal/test/Datahub.Infrastructure.UnitTests/Datahub.Infrastructure.UnitTests.csproj'
-      testRunTitle: 'Datahub Infrastructure Unit Tests'
-      arguments: '--configuration $(buildConfiguration) --coverlet --coverlet-output-format cobertura'
+      - task: AzurePowerShell@5
+        displayName: 'Run gen-all-settings.ps1 to configure environment variables'
+        inputs:
+          azureSubscription: 'fsdh-az-service-connection'
+          ScriptType: 'FilePath'
+          ScriptPath: './gen-all-settings.ps1'
+          ScriptArguments: '-Environment dev'
+          azurePowerShellVersion: 'LatestVersion'
 
-  - task: DotNetCoreCLI@2
-    displayName: 'Datahub Specflow Tests'
-    condition: succeededOrFailed()
-    inputs:
-      command: 'test'
-      projects: 'Portal/test/Datahub.SpecflowTests/Datahub.SpecflowTests.csproj'
-      testRunTitle: 'Datahub Specflow Tests'
-      arguments: '--configuration $(buildConfiguration) --coverlet --coverlet-output-format cobertura'
+      - task: DotNetCoreCLI@2
+        displayName: 'Restore $(testRunTitle) dependencies'
+        inputs:
+          command: 'restore'
+          projects: '$(testProject)'
+          arguments: '--disable-parallel'
 
-  # - task: DotNetCoreCLI@2
-  #   displayName: 'Datahub Specs Playwright Tests'
-  #   condition: succeededOrFailed()
-  #   inputs:
-  #     command: 'test'
-  #     projects: 'Portal/test/Datahub.Specs/Datahub.Specs.csproj'
-  #     testRunTitle: 'Datahub Specs Tests'
-  #     arguments: '--configuration $(buildConfiguration) --coverlet --coverlet-output-format cobertura --coverlet-output $(Agent.WorkFolder)/coverage/Datahub.Specs'
+      - task: DotNetCoreCLI@2
+        displayName: '$(testRunTitle)'
+        condition: succeededOrFailed()
+        inputs:
+          command: 'test'
+          projects: '$(testProject)'
+          testRunTitle: '$(testRunTitle)'
+          arguments: '--configuration $(BuildConfiguration)'
 
-  - task: DotNetCoreCLI@2
-    displayName: 'Datahub Unit Tests'
-    condition: succeededOrFailed()
-    inputs:
-      command: 'test'
-      projects: 'Portal/test/Datahub.Tests/Datahub.Tests.csproj'
-      testRunTitle: 'Datahub Unit Tests'
-      arguments: '--configuration $(buildConfiguration) --coverlet --coverlet-output-format cobertura'
-      
-  - script: |
-        dotnet tool install -g dotnet-reportgenerator-globaltool
-        reportgenerator -reports:$(Agent.WorkFolder)/**/coverage.cobertura.xml -targetdir:$(Build.SourcesDirectory)/Portal/test/CodeCoverage -reporttypes:'HtmlInline_AzurePipelines;Cobertura'
-        # IMPORTANT - set `disable.coverage.autogenerate` to true if you want to use older reportgenerator version
-        echo "##vso[task.setvariable variable=disable.coverage.autogenerate;]true"
-    displayName: Create code coverage report
-      
-  - task: PublishCodeCoverageResults@1
-    displayName: 'Publish code coverage report'
-    inputs:
-      codeCoverageTool: 'Cobertura'
-      summaryFileLocation: '$(Build.SourcesDirectory)/Portal/test/CodeCoverage/Cobertura.xml'
-      reportDirectory: '$(Build.SourcesDirectory)/Portal/test/CodeCoverage'
+  - job: Portal_Testing_Coverage
+    displayName: 'Agent job - Portal Testing Coverage'
+    dependsOn: Portal_Testing_Matrix
+    condition: always()
+    pool:
+      vmImage: ubuntu-latest
+    steps:
+      - checkout: self
+        clean: true
+        lfs: true
+        fetchTags: false
+
+      - script: |
+          dotnet tool install -g dotnet-reportgenerator-globaltool
+          reportgenerator -reports:$(Agent.WorkFolder)/**/coverage.cobertura.xml -targetdir:$(Build.SourcesDirectory)/Portal/test/CodeCoverage -reporttypes:'HtmlInline_AzurePipelines;Cobertura'
+          echo "##vso[task.setvariable variable=disable.coverage.autogenerate;]true"
+        displayName: 'Create code coverage report'
+
+      - task: PublishCodeCoverageResults@1
+        displayName: 'Publish code coverage report'
+        inputs:
+          codeCoverageTool: 'Cobertura'
+          summaryFileLocation: '$(Build.SourcesDirectory)/Portal/test/CodeCoverage/Cobertura.xml'
+          reportDirectory: '$(Build.SourcesDirectory)/Portal/test/CodeCoverage'
