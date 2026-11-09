@@ -1,11 +1,13 @@
-﻿<MudText Typo="Typo.h2">@Localizer["Add Users to Database"]</MudText>
-<MudText Typo="Typo.body1">
+@using GcdsWrapper.Blazor
+
+<GcdsHeading Tag="h2">@Localizer["Add Users to Database"]</GcdsHeading>
+<GcdsText>
     @Localizer["The default postgres user should only be used for administrative tasks. You should create a new user for users in your workspace."]
-</MudText>
+</GcdsText>
 <MudStack>
-    <DHButton Variant="Variant.Filled" Href=@Localizer[PageRoutes.ResourceSite_AddUserPostgres] Color="Color.Primary" style="width: fit-content;" Target="_blank">
-        <MudText>@Localizer["Learn how to create a user in PostgreSQL"]</MudText>
-    </DHButton>
+    <GcdsButton Type="GcdsButtonType.Link" Href="@Localizer[PageRoutes.ResourceSite_AddUserPostgres]" Target="_blank">
+        @Localizer["Learn how to create a user in PostgreSQL"]
+    </GcdsButton>
 </MudStack>
 
 @code {

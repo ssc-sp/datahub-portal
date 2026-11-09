@@ -34,26 +34,19 @@ public class WorkspaceSharedKeyAccessControlSteps(
             TenantId = Testing.WorkspaceTenantGuid,
             SubscriptionName = Testing.SubscriptionName
         };
-        
-        var storageResource = new Project_Resources2
-        {
-            ResourceType = TerraformTemplate.GetTerraformServiceType(TerraformTemplate.AzureStorageBlob),
-            JsonContent = $"{{\"storage_account\": \"{storageAccountName}\"}}",
-        };
-        
+               
         var resourceGroup = new Project_Resources2
         {
             ResourceType = TerraformTemplate.GetTerraformServiceType(TerraformTemplate.NewProjectTemplate),
-            JsonContent = $"{{\"resource_group_name\": \"{resourceGroupName}\"}}",
+            JsonContent = $"{{\"resource_group_name\": \"{resourceGroupName}\",\"storage_account\": \"{storageAccountName}\"}}"
+
         };
         
-        workspace.Resources.Add(storageResource);
         workspace.Resources.Add(resourceGroup);
         workspace.DatahubAzureSubscription = azureSubscription;
         
         dbContext.Projects.Add(workspace);
         dbContext.AzureSubscriptions.Add(azureSubscription);
-        dbContext.Project_Resources2.Add(storageResource);
         
         await dbContext.SaveChangesAsync();
     }

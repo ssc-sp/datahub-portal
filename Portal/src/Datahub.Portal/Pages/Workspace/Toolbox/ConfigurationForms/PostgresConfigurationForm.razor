@@ -2,24 +2,19 @@
 @using Datahub.Shared.Entities
 @using Datahub.Portal.Pages.Account
 @using Datahub.Shared.Entities.WorkspaceToolConfiguration
+@using GcdsWrapper.Blazor
 
 <div id=@PostgresConfigurationFormId>
     <SettingsField Label="@Localizer["Database tier"]"
                    Description="@Localizer["Choose a tier for the compute of your database. This will affect the performance and cost of your database."]">
-        <MudSelect T="string" Label="@Localizer["Database tier"]" @bind-Value="@Configuration.PSQL_SKU" id=@PostgresSkuSelectId >
+        <GcdsSelect Id="@PostgresSkuSelectId" Name="@PostgresSkuSelectId" Label="@Localizer["Database tier"]" @bind-Value="Configuration.PSQL_SKU">
             @foreach (var tier in AvailableTiers)
             {
-                <MudSelectItem Value="@tier.PSQL_SKU" >
-                    <MudStack Row id="@WorkspaceToolboxPage.ElementId([PostgresSkuSelectId, tier.PSQL_SKU])">
-                        @TierLabel(tier.PSQL_SKU)
-                        <MudSpacer/>
-                        <MudText Style="font-style: italic">
-                            @tier.PSQL_SKU
-                        </MudText>
-                    </MudStack>
-                </MudSelectItem>
+                <option id="@WorkspaceToolboxPage.ElementId([PostgresSkuSelectId, tier.PSQL_SKU])" value="@tier.PSQL_SKU">
+                    @TierLabel(tier.PSQL_SKU) — @tier.PSQL_SKU
+                </option>
             }
-        </MudSelect>
+        </GcdsSelect>
     </SettingsField>
 </div>
 

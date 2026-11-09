@@ -1,0 +1,30 @@
+[project]
+name = "resource-provisioner-pyfunctions"
+version = "0.1.0"
+description = "Azure Functions project for Resource Provisioner"
+requires-python = ">=3.12,<3.13"
+dependencies = [
+  "azure-functions>=1.0,<2.0",
+  "azure-graphrbac",
+  "azure-identity>=1.0,<2.0",
+  "azure-keyvault>=4.0,<5.0",
+  "azure-keyvault-administration>=4.0,<5.0",
+  "azure-keyvault-certificates>=4.0,<5.0",
+  "azure-keyvault-keys>=4.0,<5.0",
+  "azure-keyvault-secrets>=4.0,<5.0",
+  "azure-servicebus>=7.0,<8.0",
+  "azure-mgmt-authorization>=4.0,<5.0",
+  "azure-mgmt-keyvault>=14.0,<15.0",
+  "azure-mgmt-storage>=25.0,<26.0",
+  "msgraph-sdk>=1.0,<2.0",
+  "databricks-sdk",
+  "websocket-client>=1.0,<2.0",
+  "cryptography>=50.0,<51.0",
+]
+
+[tool.poetry]
+package-mode = false
+
+[build-system]
+requires = ["poetry-core>=2.0.0,<3.0.0"]
+build-backend = "poetry.core.masonry.api"

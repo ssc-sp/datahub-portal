@@ -1,4 +1,4 @@
-﻿using System.Text.Json;
+using System.Text.Json;
 using System.Text.Json.Nodes;
 using System.Text.RegularExpressions;
 using Azure.Core;
@@ -113,7 +113,7 @@ namespace Datahub.Infrastructure.Services.ResourceGroups
         internal async Task<List<string>> GetWorkspaceResourceGroupsFromDbAsync(string workspaceAcronym)
         {
             // Arrange
-            using var ctx = await dbContextFactory.CreateDbContextAsync();
+            await using var ctx = await dbContextFactory.CreateDbContextAsync();
             var project = await ctx.Projects.Include(p => p.Resources)
                 .FirstAsync(p => p.Project_Acronym_CD == workspaceAcronym);
 

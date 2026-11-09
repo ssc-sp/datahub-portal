@@ -1,18 +1,19 @@
 @using Datahub.Portal.Pages.Account
+@using GcdsWrapper.Blazor
 @inject NavigationManager _navigationManager
 
 <MudPaper Outlined Class="pa-8 my-8 mx-n8" Style="background-color: transparent; border-color: red;">
     <SettingsField Label="@Localizer["Delete Workspace"]" Description="@Localizer["Delete your workspace and all associated data. This action cannot be undone."]">
-        <DHButton Disabled="false" Variant="Variant.Filled" Color="Color.Error" OnClick="@ConfirmDeletion">
+        <GcdsButton Type="GcdsButtonType.Button" Role="GcdsButtonRole.Danger" OnClick="ConfirmDeletion">
             @Localizer["Delete Workspace"]
-        </DHButton>
+        </GcdsButton>
     </SettingsField>
 </MudPaper>
 @code {
     [Parameter]
     public string WorkspaceAcronym { get; set; }
 
-    private async void ConfirmDeletion()
+    private void ConfirmDeletion()
     {
         _navigationManager.NavigateTo($"{PageRoutes.WorkspacePrefix}/{WorkspaceAcronym}/{WorkspaceSidebar.SectionViews.DeleteWorkspace}");
 

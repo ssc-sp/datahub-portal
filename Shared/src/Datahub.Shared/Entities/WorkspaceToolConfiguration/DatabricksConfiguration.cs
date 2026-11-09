@@ -6,6 +6,14 @@ using System.Text.Json.Serialization;
 
 namespace Datahub.Shared.Entities.WorkspaceToolConfiguration;
 
+public class DatabricksConfigurationEnhanced : DatabricksConfiguration
+{
+    public static new IWorkspaceToolConfiguration ReadFromWorkspaceDefinition(WorkspaceDefinition workspaceDefinition)
+    {
+        return workspaceDefinition.AppData.DatabricksConfiguration ?? new DatabricksConfigurationEnhanced();
+    }
+}
+
 public class DatabricksConfiguration : IWorkspaceToolConfiguration
 {
     public const string GENERAL_PURPOSE_TIER_CONFIG_JSON_KEY = "general_purpose_cluster";

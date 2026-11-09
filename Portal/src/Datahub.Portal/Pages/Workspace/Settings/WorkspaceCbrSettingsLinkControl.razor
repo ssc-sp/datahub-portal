@@ -1,9 +1,10 @@
 ﻿@* WorkspaceCbrSettingsLinkControl.razor *@
 
 @using Datahub.Portal.Pages.Account
+@using GcdsWrapper.Blazor
 
 <SettingsField Label="@Localizer["CBR Budget Management"]" Description="@Localizer["Manage budget allocation for workspaces under this workspace's CBR"]">
-    <MudButton Href="@CbrSettingsUrl" Variant="@Variant.Outlined" Color="@Color.Primary" Disabled=@Disabled >@Localizer["Open CBR Budget"]</MudButton>
+    <GcdsButton Type="GcdsButtonType.Link" Role="GcdsButtonRole.Secondary" Href="@CbrSettingsUrl" Disabled="@Disabled">@Localizer["Open CBR Budget"]</GcdsButton>
 </SettingsField>
 
 

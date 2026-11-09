@@ -1,12 +1,14 @@
 @using Markdig
+@using GcdsWrapper.Blazor.Markdown
 @inject IJSRuntime _jsRuntime;
 
 @if (Content != null)
 {
     <div @ref="_elementReference" @attributes=@InputAttributes class="markdown-content">
-        <MudMarkdown 
+        @* <MudMarkdown 
             Value=@FinalContent
-            Props=@Props />
+            Props=@Props /> *@
+        <GcdsMarkdown Value="@FinalContent" />
     </div>
 }
 

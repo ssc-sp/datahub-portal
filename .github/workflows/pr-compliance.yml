@@ -11,6 +11,8 @@ permissions:
 jobs:
   validate-title:
     name: Validate Title (Conventional Commits)
+    # The PR author is stable across edits; github.actor is the user who triggered this run.
+    if: ${{ github.event.pull_request.user.type != 'Bot' }}
     runs-on: ubuntu-latest
     steps:
       - name: Check PR Title
@@ -47,19 +49,15 @@ jobs:
 
   validate-body:
     name: Validate Body (Azure Boards Link)
+    # Skip PRs originally opened by bots, even when a developer later edits them.
+    if: ${{ github.event.pull_request.user.type != 'Bot' }}
     runs-on: ubuntu-latest
     steps:
       - name: Check PR Body for AB# Link
         env:
           PR_BODY: ${{ github.event.pull_request.body }}
-          ACTOR: ${{ github.actor }}
         run: |
           echo "Checking PR description for Azure Boards work item link (AB#)..."
-
-          if [[ "$ACTOR" == *"[bot]" ]]; then
-            echo "🤖 Bot automtaion detected ($ACTOR). Skipping AB# requirement."
-            exit 0
-          fi
 
           if echo "$PR_BODY" | grep -qE 'AB#[0-9]+'; then
             echo "✅ Found Azure Boards work item link."

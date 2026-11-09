@@ -102,7 +102,9 @@ public partial class RepositoryService(
     {
         FastForwardStrategy = FastForwardStrategy.NoFastForward,
         IgnoreWhitespaceChange = true,
-        MergeFileFavor = MergeFileFavor.Union
+        // Prefer the incoming branch's version when both sides changed the same file.
+        // During a pull, that is the newest file being merged in.
+        MergeFileFavor = MergeFileFavor.Theirs
     };
 
     private PushOptions CreatePushOptions(string? issuerValidationName,
@@ -160,6 +162,20 @@ public partial class RepositoryService(
             var pullRequestValueObject =
                 await CreateInfrastructurePullRequest(workspaceDefinition.Workspace.Acronym!);
 
+            if (resourceProvisionerConfiguration.Value.InfrastructureRepository.EnablePullRequestAutoComplete)
+            {
+                await AutoApproveInfrastructurePullRequest(
+                    pullRequestValueObject.PullRequestId,
+                    pullRequestValueObject.WorkspaceAcronym,
+                    pullRequestValueObject.CreatedById);
+            }
+            else
+            {
+                logger.LogInformation(
+                    "Auto-complete is disabled for pull request {PullRequestId}",
+                    pullRequestValueObject.PullRequestId);
+            }
+
             var pullRequestMessage = new PullRequestUpdateMessage
             {
                 PullRequestValueObject = pullRequestValueObject,
@@ -175,8 +191,11 @@ public partial class RepositoryService(
             pullRequestMessage.Events
                 .Where(x => x.StatusCode == MessageStatusCode.Error)
                 .ToList()
-                .ForEach(x => logger.LogError(x.Message, x));
-            throw new Exception("Error while handling resource run request");
+                .ForEach(x => logger.LogError(
+                    "Error in PR for resource run: {ResourceRunMessage}. Resource run details: {@RepositoryUpdateEvent}",
+                    x.Message,
+                    x));
+            throw new Exception("Error while handling resource run PR request");
         }
         finally
         {
@@ -234,8 +253,10 @@ public partial class RepositoryService(
 
             if (repoTag == null)
             {
-                logger.LogInformation("Tag {BranchOrTag} does not exist, checking out default branch",
-                    repoTag);
+                logger.LogInformation(
+                    "Tag or branch {BranchOrTag} does not exist, checking out default branch {DefaultBranch}",
+                    version,
+                    ModuleRepositoryConfiguration.DefaultBranch);
                 var branchTag = repo.Branches[ModuleRepositoryConfiguration.DefaultBranch];
                 Commands.Checkout(repo, branchTag);
             }
@@ -293,14 +314,30 @@ public partial class RepositoryService(
         logger.LogInformation("Checking out branch {WorkspaceName} in {Path}", workspaceName, repositoryPath);
         using var repo = new Repository(repositoryPath);
         var branch = repo.Branches[workspaceName];
+        bool isNewBranch = false;
         if (branch == null)
         {
             logger.LogInformation("Branch {WorkspaceName} does not exist in {Path}, creating it now", workspaceName,
                 repositoryPath);
             branch = repo.CreateBranch(workspaceName);
+            isNewBranch = true;
         }
 
         Commands.Checkout(repo, branch);
+        if (!isNewBranch)
+        {
+            var mainBranchName = resourceProvisionerConfiguration.Value.InfrastructureRepository.MainBranch;
+            var mainBranch = repo.Branches[mainBranchName];
+            if (mainBranch is null)
+            {
+                logger.LogWarning("Main branch {MainBranchName} does not exist in {Path}; skipping rebranch", mainBranchName, repositoryPath);
+            }
+            else
+            {
+                logger.LogInformation("Resetting {WorkspaceName} to {MainBranchName}", workspaceName, mainBranchName);
+                repo.Reset(ResetMode.Hard, mainBranch.Tip);
+            }
+        }
 
         logger.LogInformation("Branch {WorkspaceName} checked out in {Path}", workspaceName, repositoryPath);
 
@@ -382,7 +419,7 @@ public partial class RepositoryService(
         logger.LogInformation("Pushing changes in {LocalPath} to {Branch} branch", repositoryPath,
             branch.CanonicalName);
 
-        await Task.Run(() => repo.Network.Push(repo.Branches[workspaceAcronym], options));
+        repo.Network.Push(repo.Branches[workspaceAcronym], options);
 
         logger.LogInformation("Changes pushed in {LocalPath} to {Branch} branch", repositoryPath,
             branch.CanonicalName);
@@ -428,16 +465,21 @@ public async Task<PullRequestValueObject> CreateInfrastructurePullRequest(string
 
         if (string.IsNullOrWhiteSpace(autoCompleteIdentityId))
         {
-            autoCompleteIdentityId = Guid.NewGuid().ToString();
+            throw new Exception($"Could not get pull request creator id for {workspaceAcronym}");
         }
 
         var pullRequestUrl = BuildPullRequestUrl(pullRequestId);
         logger.LogInformation("Infrastructure pull request url is {PullRequestUrl}", pullRequestUrl);
 
-        await AutoApproveInfrastructurePullRequest(int.Parse(pullRequestId), workspaceAcronym, autoCompleteIdentityId);
-
-        return new PullRequestValueObject(workspaceAcronym, pullRequestUrl, int.Parse(pullRequestId));
+        return new PullRequestValueObject(
+            workspaceAcronym,
+            pullRequestUrl,
+            int.Parse(pullRequestId),
+            autoCompleteIdentityId);
     }
+
+
+
 
     public async Task AutoApproveInfrastructurePullRequest(int pullRequestId, string workspaceAcronym,string autoCompleteIdentityId)
     {
@@ -506,7 +548,7 @@ public async Task<PullRequestValueObject> CreateInfrastructurePullRequest(string
             },
             ["completionOptions"] = new JsonObject
             {
-                ["deleteSourceBranch"] = false,
+                ["deleteSourceBranch"] = true,
                 ["bypassPolicy"] = false,
                 ["mergeCommitMessage"] =
                     $"[{workspaceAcronym}] Auto-merged by ResourceProvisioner"
@@ -566,8 +608,8 @@ public async Task<PullRequestValueObject> CreateInfrastructurePullRequest(string
         //await ValidateWorkspaceVersion(command.Workspace);
 
 
-        // Execute each module but make sure the `new-project-template` module is first for creation
-        workspaceDefinition.Templates = workspaceDefinition.Templates.OrderBy(x => x.Name != TerraformTemplate.NewProjectTemplate).ToList();
+        // Execute each module but make sure the workspace template module is first for creation
+        workspaceDefinition.Templates = workspaceDefinition.Templates.OrderBy(x => !TerraformTemplate.IsWorkspaceTemplate(x.Name)).ToList();
 
         foreach (var resourcetemplate in workspaceDefinition.Templates)
         {
@@ -585,7 +627,7 @@ public async Task<PullRequestValueObject> CreateInfrastructurePullRequest(string
         {
             if (resourceTemplate.Status == TerraformStatus.DeleteRequested)
             {
-                if (resourceTemplate.Name == TerraformTemplate.NewProjectTemplate)
+                if (TerraformTemplate.IsWorkspaceTemplate(resourceTemplate.Name))
                 {
                     await terraformService.DeleteWorkspaceAsync(command.Workspace, command.ResourceGroupName);
                 }
@@ -640,14 +682,13 @@ public async Task<PullRequestValueObject> CreateInfrastructurePullRequest(string
     private async Task ExtractVariables(TerraformTemplate template, WorkspaceDefinition command)
     {
         await terraformService.ExtractVariables(template.Name, command);
-        switch (template.Name)
+        if (TerraformTemplate.IsWorkspaceTemplate(template.Name))
         {
-            case TerraformTemplate.NewProjectTemplate:
-                await terraformService.ExtractBackendConfig(command.Workspace.Acronym!);
-                break;
-            case TerraformTemplate.VariableUpdate:
-                await terraformService.ExtractAllVariables(command);
-                break;
+            await terraformService.ExtractBackendConfig(command.Workspace.Acronym!);
+        }
+        else if (template.Name == TerraformTemplate.VariableUpdate)
+        {
+            await terraformService.ExtractAllVariables(command);
         }
     }
 

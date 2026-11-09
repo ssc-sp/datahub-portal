@@ -19,6 +19,7 @@ using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.Diagnostics.HealthChecks;
 using Microsoft.Extensions.Logging;
+using Microsoft.Extensions.Logging.Abstractions;
 using Moq;
 using NSubstitute;
 using System.Text.Json;
@@ -29,8 +30,8 @@ public class ProjectInactivityNotifierTests
 {
     private ProjectInactivityNotifier _sut;
 
-    private readonly IDateProvider _dateProvider = Substitute.For<IDateProvider>();
-    private readonly ILoggerFactory _loggerFactory = Substitute.For<ILoggerFactory>();
+    private readonly FakeDateProvider _dateProvider = new();
+    private readonly ILoggerFactory _loggerFactory = NullLoggerFactory.Instance;
 
     private readonly IResourceMessagingService _resourceMessagingService = Substitute.For<IResourceMessagingService>();
 
@@ -45,6 +46,24 @@ public class ProjectInactivityNotifierTests
     private IGCNotifyService _gcNotifyService;
     private ISendEndpointProvider _iSendEndpointProvider;
     private IDbContextFactory<DatahubProjectDBContext> _dbContextFactory;
+
+    private sealed class FakeDateProvider : IDateProvider
+    {
+        public DateTime Now { get; set; } = DateTime.Now;
+        public DateTime Today { get; set; } = DateTime.Today;
+        public int[] ProjectNotificationDaysOverride { get; set; } = [7, 2];
+        public int ProjectSoftDeletionDayOverride { get; set; } = 30;
+        public int[] UserInactivityNotificationDaysOverride { get; set; } = [7, 2];
+        public int UserInactivityLockedDayOverride { get; set; } = 30;
+        public int UserInactivityDeletionDayOverride { get; set; } = 60;
+
+        public int[] ProjectNotificationDays() => ProjectNotificationDaysOverride;
+        public int ProjectSoftDeletionDay() => ProjectSoftDeletionDayOverride;
+        public int ProjectHardDeletionDay() => 30;
+        public int[] UserInactivityNotificationDays() => UserInactivityNotificationDaysOverride;
+        public int UserInactivityLockedDay() => UserInactivityLockedDayOverride;
+        public int UserInactivityDeletionDay() => UserInactivityDeletionDayOverride;
+    }
 
     [SetUp]
     public async Task Setup()
@@ -68,8 +87,8 @@ public class ProjectInactivityNotifierTests
         int daysUntilDeletion, int[] notificationDays)
     {
         // Arrange
-        _dateProvider.Today.Returns(new DateTime(2000, 1, 1));
-        _dateProvider.ProjectNotificationDays().Returns(notificationDays);
+        _dateProvider.Today = new DateTime(2000, 1, 1);
+        _dateProvider.ProjectNotificationDaysOverride = notificationDays;
 
         // Act
         var result = _sut.CheckIfProjectToBeNotified(10, daysUntilDeletion, null,
@@ -87,8 +106,8 @@ public class ProjectInactivityNotifierTests
         int daysUntilDeletion, int[] notificationDays)
     {
         // Arrange
-        _dateProvider.Today.Returns(new DateTime(2000, 1, 1));
-        _dateProvider.ProjectNotificationDays().Returns(notificationDays);
+        _dateProvider.Today = new DateTime(2000, 1, 1);
+        _dateProvider.ProjectNotificationDaysOverride = notificationDays;
 
         // Act
         var result = _sut.CheckIfProjectToBeNotified(daysUntilDeletion, 10, null,
@@ -104,8 +123,8 @@ public class ProjectInactivityNotifierTests
     public async Task CheckIfProjectToBeNotified_InOperationalWindow(DateTime operationalWindow, DateTime today)
     {
         // Arrange
-        _dateProvider.Today.Returns(today);
-        _dateProvider.ProjectNotificationDays().Returns(new[] { 10 });
+        _dateProvider.Today = today;
+        _dateProvider.ProjectNotificationDaysOverride = new[] { 10 };
 
         // Act
         var result = _sut.CheckIfProjectToBeNotified(10, 10, operationalWindow,
@@ -121,8 +140,8 @@ public class ProjectInactivityNotifierTests
     public void CheckIfProjectToBeDeleted_IsNotOrPastDeletionDay(int daysSinceLastLogin, int deletionDay)
     {
         // Arrange
-        _dateProvider.ProjectSoftDeletionDay().Returns(deletionDay);
-        _dateProvider.Today.Returns(new DateTime(2000, 1, 1));
+        _dateProvider.ProjectSoftDeletionDayOverride = deletionDay;
+        _dateProvider.Today = new DateTime(2000, 1, 1);
         _resourceMessagingService.CreateWorkspaceDefinition("").ReturnsForAnyArgs(TestHelper.TestWorkspaceDefinition);
 
         // Act
@@ -139,8 +158,8 @@ public class ProjectInactivityNotifierTests
     public void CheckIfProjectToBeDeleted_IsOrPastDeletionDay(int daysSinceLastLogin, int deletionDay)
     {
         // Arrange
-        _dateProvider.ProjectSoftDeletionDay().Returns(deletionDay);
-        _dateProvider.Today.Returns(new DateTime(2000, 1, 1));
+        _dateProvider.ProjectSoftDeletionDayOverride = deletionDay;
+        _dateProvider.Today = new DateTime(2000, 1, 1);
         _resourceMessagingService.CreateWorkspaceDefinition("").ReturnsForAnyArgs(TestHelper.TestWorkspaceDefinition);
 
         // Act
@@ -156,8 +175,8 @@ public class ProjectInactivityNotifierTests
     public void CheckIfProjectToBeDeleted_InOperationalWindow(DateTime operationalWindow, DateTime today)
     {
         // Arrange
-        _dateProvider.Today.Returns(today);
-        _dateProvider.ProjectSoftDeletionDay().Returns(10);
+        _dateProvider.Today = today;
+        _dateProvider.ProjectSoftDeletionDayOverride = 10;
         _resourceMessagingService.CreateWorkspaceDefinition("").ReturnsForAnyArgs(TestHelper.TestWorkspaceDefinition);
 
         // Act
@@ -170,8 +189,8 @@ public class ProjectInactivityNotifierTests
     public void CheckIfProjectToBeDeleted_HasCostRecovery()
     {
         // Arrange
-        _dateProvider.Today.Returns(DateTime.Today);
-        _dateProvider.ProjectSoftDeletionDay().Returns(10);
+        _dateProvider.Today = DateTime.Today;
+        _dateProvider.ProjectSoftDeletionDayOverride = 10;
         _resourceMessagingService.CreateWorkspaceDefinition("").ReturnsForAnyArgs(TestHelper.TestWorkspaceDefinition);
 
         // Act

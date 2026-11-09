@@ -71,22 +71,29 @@
             <RowTemplate Context="context">
                 <MudTd>@context.ResourceType</MudTd>
                 <MudTd>
-                    <MudTooltip Delay="600" Text="@HealthCheckPageUtil.GetStatusDetails(context)">
-                        <MudChip Class="dh_themed_chip" T="string" Color="@HealthCheckPageUtil.GetDisplayColor(context)" Size="Size.Small">
-                            @Localizer[HealthCheckPageUtil.GetDisplayStatusText(context)]
-                        </MudChip>
-                    </MudTooltip>
+                    @if (_isLoadingDict[context.ResourceType])
+                    {
+                        <SpinnerButton />
+                    }
+                    else
+                    {
+                        <MudTooltip Delay="600" Text="@HealthCheckPageUtil.GetStatusDetails(context)">
+                            <MudChip Class="dh_themed_chip" T="string" Color="@HealthCheckPageUtil.GetDisplayColor(context)" Size="Size.Small">
+                                @Localizer[HealthCheckPageUtil.GetDisplayStatusText(context)]
+                            </MudChip>
+                        </MudTooltip>
+                    }
                 </MudTd>
                 <MudTd>
                     @* <span><LocalDateTime DateTime="DateTime.SpecifyKind(context.HealthCheckTimeUtc, DateTimeKind.Utc)"/></span> *@
                     <span><LocalDateTime DateTime="context.HealthCheckTimeUtc" SourceTimeZone="UTC"/></span>
                 </MudTd>
                 <MudTd>
-                    <DHButton Variant="Variant.Filled" Color="Color.Primary"
-                              OnClick="@(() => CallFunction(context.ResourceType, context.Name, context.Group))"
-                              Size="Size.Small">
-                        @Localizer["Run"]
-                    </DHButton>
+                        <DHButton Variant="Variant.Filled" Color="Color.Primary"
+                        OnClick="@(() => CallFunction(context.ResourceType, context.Name, context.Group))"
+                              Size="Size.Small" Disabled="_isLoadingDict[context.ResourceType]">
+                            @Localizer["Run"]
+                        </DHButton>
                 </MudTd>
             </RowTemplate>
         </MudTable>
@@ -97,16 +104,17 @@
     private List<InfrastructureHealthResourceType> _workspaceChecks = HealthCheckHelper.WorkspaceHealthChecks;
 
     private List<InfrastructureHealthCheck> _statusList = new List<InfrastructureHealthCheck>();
-    private DatahubProjectDBContext _projectDbContext;
-    private List<InfrastructureHealthCheck> _infrastructureHealthChecks;
+    private DatahubProjectDBContext _projectDbContext = null!;
+    private List<InfrastructureHealthCheck>? _infrastructureHealthChecks;
+    private Dictionary<InfrastructureHealthResourceType, bool> _isLoadingDict = new Dictionary<InfrastructureHealthResourceType, bool>();
 
     private const string cacheKey = "InfrastructureHealthChecks";
-    private Timer _timer;
-    private Timer _reloadTimer;
-    public string _userToken;
-    public string _userID;
+    private Timer? _timer;
+    private Timer? _reloadTimer;
+    public string? _userToken;
+    public string? _userID;
 
-    [Parameter] public string WorkspaceAcronym { get; set; }
+    [Parameter] public string WorkspaceAcronym { get; set; } = null!;
     [Parameter] public bool ElevatedWorkspaceAccessEnabled { get; set; } = false;
 
     protected override async Task OnInitializedAsync()
@@ -163,7 +171,9 @@
     {
         try
         {
-            var env = _portalConfiguration?.Hosting?.EnvironmentName;
+            if (_portalConfiguration is null)
+                return false;
+            var env = _portalConfiguration.Hosting.EnvironmentName;
             if (string.IsNullOrEmpty(env) || env == "local")
             {
                 env = "dev";
@@ -223,6 +233,8 @@
     private bool LoadDataForTables()
     {
         _infrastructureHealthChecks = Cache.Get<List<InfrastructureHealthCheck>>(cacheKey);
+        if (_infrastructureHealthChecks is null)
+            return false;
         var project = _projectDbContext.Projects.AsNoTracking().Include(p => p.Resources).Where(p => p.Project_Acronym_CD == WorkspaceAcronym);
 
         var res = _infrastructureHealthChecks
@@ -234,9 +246,11 @@
             .ToList();
 
         _statusList.Clear();
-        foreach (var output in res)
+        _isLoadingDict.Clear();
+        foreach (var output in res.OrderBy(r => r.ResourceType))
         {
             _statusList.Add(output);
+            _isLoadingDict.Add(output.ResourceType, false);
         }
         var webAppCount = _infrastructureHealthChecks
             .Where(h => (_workspaceChecks.Contains(h.ResourceType)))
@@ -248,6 +262,11 @@
     private async Task CallFunction(InfrastructureHealthResourceType type, string name, string group)
     {
         Snackbar.Add(Localizer["HealthCheckStarted"], Severity.Info);
+
+        if(_isLoadingDict.ContainsKey(type))
+        {
+            _isLoadingDict[type] = true;
+        }
 
         var request = new InfrastructureHealthCheckMessage(
             type,

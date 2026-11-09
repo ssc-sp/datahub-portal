@@ -1,18 +1,50 @@
 @IWebHostEnvironment
-Feature: News Carousel
-	The news carousel should display the latest news items from the news feed.
+Feature: Announcement carousel
+The announcement carousel displays active announcement previews on the home page.
 
-@ignore
-Scenario: Show padding on the carousel when it starts with an image
-	Given there is a news carousel component with an image
-	Then the carousel should not have padding on the x-axis
-	And the carousel should not have padding on the y-axis
+    Scenario: No active announcements are available
+        Given there are no active announcement previews
+        When the announcement carousel is rendered
+        Then the announcement heading is not displayed
+        And no announcement notices are displayed
 
-@ignore
-Scenario: Show padding on the carousel when it does not start with an image
-	Given there is a news carousel component without an image
-	Then the carousel should have padding on the x-axis
-	And the carousel should have padding on the y-axis
-	
-	
-	
+    Scenario: At most three announcements are displayed in severity order
+        Given the following active announcement previews
+          | Preview                                 | Severity |
+          | Information announcement\nInfo body   | 2        |
+          | # Warning announcement\nWarning body | 1        |
+          | Danger announcement\nDanger body     | 0        |
+          | Extra announcement\nExtra body       | 2        |
+        When the announcement carousel is rendered
+        Then the announcement heading is displayed
+        And 3 announcement notices are displayed
+        And the announcement titles are displayed in this order
+          | Title                    |
+          | Danger announcement      |
+          | Warning announcement     |
+          | Information announcement |
+        And the warning announcement body is displayed
+        And each announcement has a read more link
+
+    Scenario Outline: Announcement severity controls the notice role
+        Given an active announcement preview with severity <severity>
+        When the announcement carousel is rendered
+        Then the announcement notice role is "<role>"
+
+        Examples:
+          | severity | role    |
+          | 0        | danger  |
+          | 1        | warning |
+          | 2        | info    |
+          | 10       | info    |
+
+    Scenario: Image-only previews are not displayed as notices
+        Given an active image-only announcement preview
+        When the announcement carousel is rendered
+        Then no announcement notices are displayed
+
+    Scenario: French previews are requested for a French culture
+        Given the current culture is French
+        And there are no active announcement previews
+        When the announcement carousel is rendered
+        Then French announcement previews are requested

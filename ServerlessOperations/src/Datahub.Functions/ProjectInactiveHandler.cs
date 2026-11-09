@@ -4,7 +4,6 @@ using Datahub.Application.Services;
 using Datahub.Core.Model.Context;
 using Datahub.Functions.Extensions;
 using Datahub.Infrastructure.Queues.Messages;
-using Datahub.Infrastructure.Services;
 using Datahub.Shared.Configuration;
 using Microsoft.Azure.Functions.Worker;
 using Microsoft.EntityFrameworkCore;

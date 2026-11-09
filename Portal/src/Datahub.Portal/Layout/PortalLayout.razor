@@ -7,6 +7,7 @@
 @using Datahub.Core.Model.Users
 @using Datahub.Infrastructure.Queues.Messages
 @using Datahub.Portal.Components.Auth
+@using GcdsWrapper.Blazor
 @using MediatR
 @using Microsoft.Identity.Web
 @using MudBlazor.Utilities
@@ -25,6 +26,8 @@
 @inject IJSRuntime _jsRuntime
 @inject ILocalStorageService _localStorage
 @inject ISessionStorageService _sessionStorage
+
+<GcdsAssets />
 
 <CommonMudProviders>
 

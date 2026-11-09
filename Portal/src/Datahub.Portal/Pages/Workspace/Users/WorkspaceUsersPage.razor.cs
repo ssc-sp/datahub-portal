@@ -6,6 +6,7 @@ using Datahub.Core.Model.Projects;
 using Datahub.Core.Model.Users;
 using Datahub.Shared.Entities;
 using Microsoft.EntityFrameworkCore;
+using Microsoft.AspNetCore.Components;
 using MudBlazor;
 using MudBlazor.Utilities;
 using Datahub.Portal.Pages.Tools.LockedUsers;
@@ -37,7 +38,7 @@ namespace Datahub.Portal.Pages.Workspace.Users
             _loading = false;
             if (await _featureManager.IsEnabledAsync(Features.GCCF_Feature))
             {
-                _gccfEnabled = true;
+                _gccfEnabled = await _externalUserInvitationService.CanInviteExternalUsers(WorkspaceAcronym);                
             }
         }
 
@@ -45,6 +46,7 @@ namespace Datahub.Portal.Pages.Workspace.Users
         {
             var allProjectUsers = await _projectUserManagementService.GetProjectUsersAsync(WorkspaceAcronym);
             _projectUsers = allProjectUsers.Where(x => x.PortalUser.ExternalUserId is null).ToList();
+            _projectUsers = _projectUsers.Where(x => x.RoleId != (int)Project_Role.RoleNames.Removed && x.Role?.Id != (int)Project_Role.RoleNames.DisabledUser).ToList();
 
             _originalUserInfo = _projectUsers.Select(u => new WorkspaceUserInfo(u.PortalUserId, u.RoleId, u.IsDataSteward)).ToList();
             ProjectMemberRoleFilter(_currentRoleFilter);
@@ -165,7 +167,9 @@ namespace Datahub.Portal.Pages.Workspace.Users
 
         private static bool IsAllowedRoleForDataSteward(UserRoleLinks projectUser) => RoleConstants.AllowedDataStewardRoleIds.Contains(projectUser.RoleId ?? 0);
 
-        private static bool IsDataStewardCheckboxDisabled(UserRoleLinks projectUser) => !(projectUser.IsDataSteward || IsAllowedRoleForDataSteward(projectUser));
+        private static bool IsDataStewardCheckboxDisabled(UserRoleLinks projectUser) =>
+            projectUser.RoleId is not (int)Project_Role.RoleNames.WorkspaceLead and
+                not (int)Project_Role.RoleNames.Admin;
 
         private void ChangeDataStewardFlag(UserRoleLinks projectUser, bool newValue)
         {
@@ -176,33 +180,41 @@ namespace Datahub.Portal.Pages.Workspace.Users
             InvokeAsync(StateHasChanged);
         }
 
-        private async Task OpenDialog()
+        private void ShowInviteForm()
         {
-            var currentUser = await _userInformationService.GetCurrentPortalUserAsync();
-            var dialogOptions = new DialogOptions { MaxWidth = MaxWidth.ExtraLarge };
-            var dialogParameters = new DialogParameters
+            _showInviteForm = true;
+        }
+
+        private async Task HideInviteFormAsync()
         {
-            { "CurrentProjectUsers", _projectUsers.Where(x => x.Role.Id != (int)Project_Role.RoleNames.Removed).ToList() },
-            { "ProjectAcronym", WorkspaceAcronym },
-            { "Inviter", currentUser }
-        };
-            var dialog = await _dialogService.ShowAsync<AddNewEntraUsersToProjectDialog>(Localizer["Invite New Users"], dialogParameters, dialogOptions);
-            var result = await dialog.Result;
-            if (!result.Canceled)
+            _showInviteForm = false;
+            _focusInviteUserButton = true;
+            await InvokeAsync(StateHasChanged);
+        }
+
+        private async Task HandleInviteFormCompletedAsync(List<ProjectUserAddEntraUserCommand> userAddUserCommands)
+        {
+            _usersToAdd.AddRange(userAddUserCommands
+                .Where(command => !_usersToAdd.Any(existing => existing.Email.Equals(command.Email, StringComparison.InvariantCultureIgnoreCase))));
+            ValidateWorkspaceRules();
+            _showInviteForm = false;
+            _focusInvitationsHeading = true;
+            await InvokeAsync(StateHasChanged);
+        }
+
+        protected override async Task OnAfterRenderAsync(bool firstRender)
+        {
+            await base.OnAfterRenderAsync(firstRender);
+
+            if (_focusInviteUserButton && _inviteUserButton is not null)
             {
-                if (result.Data is not List<ProjectUserAddEntraUserCommand> userAddUserCommands)
-                {
-                    _snackbar.Add(Localizer["Error inviting new users to workspace"], Severity.Error);
-                }
-                else
-                {
-                    _usersToAdd.AddRange(userAddUserCommands
-                        .Where(c =>
-                            !_usersToAdd.Any(x => x.Email.Equals(c.Email, StringComparison.InvariantCultureIgnoreCase)))
-                        .ToList());
-                    ValidateWorkspaceRules();
-                    StateHasChanged();
-                }
+                _focusInviteUserButton = false;
+                await _inviteUserButton.FocusAsync();
+            }
+            else if (_focusInvitationsHeading)
+            {
+                _focusInvitationsHeading = false;
+                await _invitationsHeading.FocusAsync();
             }
         }
 

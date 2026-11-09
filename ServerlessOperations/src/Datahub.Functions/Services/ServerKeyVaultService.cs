@@ -1,8 +1,5 @@
 using Datahub.Application.Services.Security;
 using Datahub.Core.Model.CloudStorage;
-using System;
-using System.Collections.Generic;
-using System.Text;
 
 namespace Datahub.Functions.Services
 {

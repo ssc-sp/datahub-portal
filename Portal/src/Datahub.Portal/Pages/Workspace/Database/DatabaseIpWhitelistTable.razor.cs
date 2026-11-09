@@ -1,6 +1,5 @@
 extern alias AzIdentity;
 using System.Net;
-using System.Net.Sockets;
 using Azure;
 using Azure.Core;
 using Azure.Identity;
@@ -11,10 +10,8 @@ using Datahub.Core.Extensions;
 using Datahub.Core.Model.Context;
 using Datahub.Shared.Entities;
 using Microsoft.AspNetCore.Components;
-using Microsoft.AspNetCore.Components.Web;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.DependencyInjection;
-using Microsoft.JSInterop;
 using MudBlazor;
 
 namespace Datahub.Portal.Pages.Workspace.Database;
@@ -26,10 +23,6 @@ namespace Datahub.Portal.Pages.Workspace.Database;
 /// </summary>
 public partial class DatabaseIpWhitelistTable
 {
-    private WhitelistIPAddressData? _currentRow;
-
-    [Inject] private IDialogService _dialogService { get; set; } = null!;
-
     [Inject] private IServiceProvider _serviceProvider { get; set; } = null!;
 
     private ISystemTokenCredentialService TokenCredentialService =>
@@ -75,65 +68,16 @@ public partial class DatabaseIpWhitelistTable
     }
 
     /// <summary>
-    /// Handles the event when the commit edit button is clicked.
-    /// </summary>
-    /// <param name="args">The MouseEventArgs containing information about the event.</param>
-    private async Task HandleCommitEditClicked(MouseEventArgs args)
-    {
-        _logger.LogInformation("Commit edit button clicked.");
-
-        await CreateOrUpdateIpAddress(_currentRow!);
-
-        // if it's only the name that has changed
-        if (Equals(_currentRow?.StartIPAddress, _elementBeforeEdit?.StartIPAddress)
-            && Equals(_currentRow?.EndIPAddress, _elementBeforeEdit?.EndIPAddress))
-        {
-            // clean up the old firewall rule
-            await DeleteIpAddress(_elementBeforeEdit);
-        }
-
-        _snackbar.Add(Localizer["IP address has been updated."], Severity.Success);
-
-        _logger.LogInformation($"Item has been committed: {_currentRow?.Name}");
-
-        _snackbar.Add(Localizer["Sending IP address updated"], Severity.Info);
-    }
-
-    /// <summary>
-    /// Handles the commit of a row edit in the DatabaseIpWhitelistTable.
-    /// When a row name is edited, the old firewall rule is deleted and a new one is created.
-    /// </summary>
-    /// <param name="element">The edited element.</param>
-    private void HandleRowEditCommit(object element)
-    {
-        _currentRow = element as WhitelistIPAddressData;
-    }
-
-    /// <summary>
-    /// Filters the given WhitelistIPAddressData rule based on the filter string.
-    /// </summary>
-    /// <param name="rule">The WhitelistIPAddressData rule to filter.</param>
-    /// <returns>Returns true if the rule matches the filter, false otherwise.</returns>
-    private bool FilterFunc(WhitelistIPAddressData rule)
-    {
-        if (string.IsNullOrWhiteSpace(_filterString))
-            return true;
-        if (rule.Name.Contains(_filterString, StringComparison.OrdinalIgnoreCase))
-            return true;
-        if (rule.StartIPAddress.ToString().Contains(_filterString, StringComparison.OrdinalIgnoreCase))
-            return true;
-        if (rule.EndIPAddress.ToString().Contains(_filterString, StringComparison.OrdinalIgnoreCase))
-            return true;
-
-        return false;
-    }
-
-    /// <summary>
     /// Adds the current IP address to the whitelist.
     /// </summary>
     /// <returns>Void</returns>
     private async Task AddCurrentIpAddress()
     {
+        if (_userIpAddress is null)
+        {
+            return;
+        }
+
         var startIpAddress = _userIpAddress;
         var endIpAddress = _userIpAddress;
         var currentUser = await _userInformationService.GetCurrentPortalUserAsync();
@@ -152,62 +96,171 @@ public partial class DatabaseIpWhitelistTable
         _firewallRules.Add(userWhitelistIpAddress);
     }
 
-    /// <summary>
-    /// Prompt the user to enter a new IP address and validate it before adding it to the whitelist.
-    /// </summary>
-    /// <returns>A task representing the asynchronous operation.</returns>
-    private async Task AddNewIpAddress()
+    private void StartAddingIpRange()
     {
-        // run a window.prompt to get the new IP address
-        var newIpAddress = await _jsRuntime.InvokeAsync<string>("prompt",
-            Localizer["Enter the new IP address (ex: 192.168.2.1) to whitelist:"].ToString());
+        _ruleFormMode = RuleFormMode.Add;
+        _ruleName = string.Empty;
+        _startIpAddress = string.Empty;
+        _endIpAddress = string.Empty;
+        _editingOriginalName = string.Empty;
+        _ruleFormError = string.Empty;
+    }
 
-        // check if the newIpAddress is a valid IP address
-        if (IPAddress.TryParse(newIpAddress, out var ipAddress) &&
-            ipAddress.AddressFamily == AddressFamily.InterNetwork)
+    private void StartEditingSelectedIpRange()
+    {
+        var selectedRule = SelectedRule;
+        if (selectedRule is null)
         {
-            var newWhitelistIpAddress = new WhitelistIPAddressData
+            return;
+        }
+
+        _ruleFormMode = RuleFormMode.Edit;
+        _ruleName = selectedRule.Name;
+        _startIpAddress = selectedRule.StartIPAddress.ToString();
+        _endIpAddress = selectedRule.EndIPAddress.ToString();
+        _editingOriginalName = selectedRule.Name;
+        _ruleFormError = string.Empty;
+    }
+
+    private async Task SaveIpRange()
+    {
+        if (!TryValidateIpRange(out var startIpAddress, out var endIpAddress))
+        {
+            return;
+        }
+
+        _savingRule = true;
+        try
+        {
+            var isAdding = _ruleFormMode is RuleFormMode.Add;
+            var updatedRule = new WhitelistIPAddressData
             {
-                Name = @Localizer["Client IP Address {0}", Guid.NewGuid().ToString()[..8]],
-                StartIPAddress = ipAddress,
-                EndIPAddress = ipAddress
+                Name = isAdding
+                    ? Localizer["Client IP Address {0}", Guid.NewGuid().ToString()[..8]]
+                    : _ruleName,
+                StartIPAddress = startIpAddress,
+                EndIPAddress = endIpAddress
             };
 
-            await CreateOrUpdateIpAddress(newWhitelistIpAddress);
-            _snackbar.Add(Localizer["IP address {0} has been added. Changes may take 15 minutes to apply.", ipAddress],
-                Severity.Success);
-            _firewallRules.Add(newWhitelistIpAddress);
+            await CreateOrUpdateIpAddress(updatedRule);
+
+            if (isAdding)
+            {
+                _firewallRules.Add(updatedRule);
+                _snackbar.Add(
+                    Localizer[
+                        "IP address(es) {0} - {1} have been added. Changes may take 15 minutes to apply.",
+                        startIpAddress,
+                        endIpAddress],
+                    Severity.Success);
+            }
+            else
+            {
+                var originalRule = _firewallRules.First(rule => rule.Name == _editingOriginalName);
+                if (!string.Equals(originalRule.Name, updatedRule.Name, StringComparison.Ordinal))
+                {
+                    await DeleteIpAddress(originalRule);
+                }
+                else
+                {
+                    _firewallRules.Remove(originalRule);
+                }
+
+                _firewallRules.Add(updatedRule);
+                _selectedRuleName = updatedRule.Name;
+                _snackbar.Add(Localizer["IP address has been updated."], Severity.Success);
+                _snackbar.Add(Localizer["Sending IP address updated"], Severity.Info);
+            }
+
+            CancelIpRangeForm();
         }
-        else
+        finally
         {
-            _snackbar.Add(Localizer["Invalid IP address."], Severity.Error);
+            _savingRule = false;
         }
     }
 
-    private async Task AddNewIpOrRange()
+    private bool TryValidateIpRange(out IPAddress startIpAddress, out IPAddress endIpAddress)
     {
-        var parameters = new DialogParameters();
-        var dialog = await _dialogService.ShowAsync<IpAddressDialog>("Add IP Address or Range", parameters);
+        startIpAddress = IPAddress.None;
+        endIpAddress = IPAddress.None;
 
-        var result = await dialog.Result;
-
-        if (!result.Canceled && result.Data is IpAddressDialog.IpDialogResult ipResult)
+        if (_ruleFormMode is RuleFormMode.Edit && string.IsNullOrWhiteSpace(_ruleName))
         {
-            if (IPAddress.TryParse(ipResult.StartIp, out var startIp) &&
-                IPAddress.TryParse(ipResult.EndIp, out var endIp))
-            {
-                var newWhitelistIpAddress = new WhitelistIPAddressData
-                {
-                    Name = Localizer["Client IP Address {0}", Guid.NewGuid().ToString()[..8]],
-                    StartIPAddress = startIp,
-                    EndIPAddress = endIp
-                };
+            _ruleFormError = Localizer["Name is required"];
+            return false;
+        }
 
-                await CreateOrUpdateIpAddress(newWhitelistIpAddress);
-                _snackbar.Add(Localizer["IP address(es) {0} - {1} have been added. Changes may take 15 minutes to apply.", startIp, endIp], Severity.Success);
-                _firewallRules.Add(newWhitelistIpAddress);
+        if (!IPAddress.TryParse(_startIpAddress, out startIpAddress))
+        {
+            _ruleFormError = Localizer["Invalid IP address."];
+            return false;
+        }
+
+        if (string.IsNullOrWhiteSpace(_endIpAddress))
+        {
+            endIpAddress = startIpAddress;
+        }
+        else if (!IPAddress.TryParse(_endIpAddress, out endIpAddress))
+        {
+            _ruleFormError = Localizer["Invalid IP address."];
+            return false;
+        }
+
+        if (!IsValidRange(startIpAddress, endIpAddress))
+        {
+            _ruleFormError = Localizer["Invalid IP range."];
+            return false;
+        }
+
+        _ruleFormError = string.Empty;
+        return true;
+    }
+
+    private static bool IsValidRange(IPAddress startIpAddress, IPAddress endIpAddress)
+    {
+        var startBytes = startIpAddress.GetAddressBytes();
+        var endBytes = endIpAddress.GetAddressBytes();
+
+        if (startBytes.Length < 4 || endBytes.Length < 4)
+        {
+            return false;
+        }
+
+        for (var index = 0; index < 3; index++)
+        {
+            if (startBytes[index] != endBytes[index])
+            {
+                return false;
             }
         }
+
+        return startBytes[3] <= endBytes[3];
+    }
+
+    private void CancelIpRangeForm()
+    {
+        _ruleFormMode = RuleFormMode.None;
+        _ruleName = string.Empty;
+        _startIpAddress = string.Empty;
+        _endIpAddress = string.Empty;
+        _editingOriginalName = string.Empty;
+        _ruleFormError = string.Empty;
+    }
+
+    /// <summary>
+    /// Deletes the currently selected firewall rule.
+    /// </summary>
+    private async Task DeleteSelectedIpAddress()
+    {
+        var selectedRule = SelectedRule;
+        if (selectedRule is null)
+        {
+            return;
+        }
+
+        await DeleteIpAddress(selectedRule, true);
+        _selectedRuleName = null;
     }
 
     /// <summary>
@@ -225,11 +278,7 @@ public partial class DatabaseIpWhitelistTable
         _logger.LogInformation($"Deleting firewall rule: {whitelistIpAddressData?.Name}");
         rule.Value.Delete(WaitUntil.Started);
 
-        _firewallRules.Clear();
-        await foreach (var firewallRule in postgresResource.GetPostgreSqlFlexibleServerFirewallRules())
-        {
-            _firewallRules.Add(new WhitelistIPAddressData(firewallRule.Data));
-        }
+        _firewallRules.RemoveAll(rule => rule.Name == whitelistIpAddressData.Name);
         StateHasChanged();
 
         if (showSnackbar)
@@ -257,37 +306,4 @@ public partial class DatabaseIpWhitelistTable
         _logger.LogInformation($"Firewall rule has been created or updated: {rule.Name}");
     }
 
-    /// <summary>
-    /// Backs up an item by creating a copy of it in memory.
-    /// </summary>
-    /// <param name="whitelistRule">The item to be backed up.</param>
-    private void BackupItem(object whitelistRule)
-    {
-        _elementBeforeEdit = new WhitelistIPAddressData
-        {
-            Name = ((WhitelistIPAddressData)whitelistRule).Name,
-            StartIPAddress = ((WhitelistIPAddressData)whitelistRule).StartIPAddress,
-            EndIPAddress = ((WhitelistIPAddressData)whitelistRule).EndIPAddress
-        };
-
-        _logger.LogInformation($"Item has been backed up: {_elementBeforeEdit?.Name}");
-    }
-
-    /// <summary>
-    /// Handles the cancellation of an edit operation on a row in the DatabaseIpWhitelistTable.
-    /// </summary>
-    /// <param name="whitelistRule">The object representing the whitelist rule being edited.</param>
-    private void HandleRowEditCancel(object whitelistRule)
-    {
-        if (whitelistRule is not WhitelistIPAddressData item)
-        {
-            return;
-        }
-
-        item.Name = _elementBeforeEdit.Name;
-        item.StartIPAddress = _elementBeforeEdit.StartIPAddress;
-        item.EndIPAddress = _elementBeforeEdit.EndIPAddress;
-
-        _logger.LogInformation($"Item has been reset to original values: {item.Name}");
-    }
 }

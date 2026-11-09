@@ -6,9 +6,10 @@ namespace Datahub.Functions.Extensions;
 public static class ServiceBusReceivedMessageExtensions
 {
     public const string MessagePropertyName = "message";
+
     /// <summary>
     /// Deserializes the message body of a ServiceBusReceivedMessage and unwraps the message from the envelope.
-    /// This assumes the message has been sent using MassTransit
+    /// Supports both MassTransit-style wrapped messages and plain message payloads.
     /// </summary>
     /// <typeparam name="T"></typeparam>
     /// <param name="serviceBusReceivedMessage"></param>
@@ -18,14 +19,19 @@ public static class ServiceBusReceivedMessageExtensions
         this ServiceBusReceivedMessage serviceBusReceivedMessage)
     {
         var messageEnvelope = await JsonDocument.ParseAsync(serviceBusReceivedMessage.Body.ToStream());
-        messageEnvelope.RootElement.TryGetProperty(MessagePropertyName, out var message);
-
         var deserializeOptions = new JsonSerializerOptions
         {
             PropertyNameCaseInsensitive = true,
         };
 
-        return message.Deserialize<T>(deserializeOptions) ?? throw new InvalidOperationException("Failed to deserialize message");
+        if (messageEnvelope.RootElement.ValueKind == JsonValueKind.Object &&
+            messageEnvelope.RootElement.TryGetProperty(MessagePropertyName, out var message) &&
+            message.ValueKind != JsonValueKind.Undefined)
+        {
+            return message.Deserialize<T>(deserializeOptions) ?? throw new InvalidOperationException("Failed to deserialize message");
+        }
+
+        return messageEnvelope.RootElement.Deserialize<T>(deserializeOptions) ?? throw new InvalidOperationException("Failed to deserialize message");
     }
 
     /// <summary>

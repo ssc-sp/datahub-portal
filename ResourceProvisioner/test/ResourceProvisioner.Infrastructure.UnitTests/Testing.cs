@@ -29,14 +29,7 @@ public class Testing
 
     internal static ResourceProvisionerConfiguration _resourceProvisionerConfiguration = null!;
 
-
-    internal const string ProjectAcronym = "TEST";
-
-    internal static TerraformWorkspace TestingWorkspace => new()
-    {
-        Acronym = ProjectAcronym,
-        Version = "v5.0.4",
-    };
+    internal const string TestWorkspaceVersion = "v5.0.4";
 
     internal const string RequestingUser = "Unit Test User";
     internal const string RequestingUserEmail = "unittest@user.com";
@@ -55,16 +48,16 @@ public class Testing
 
         _resourceProvisionerConfiguration = new ResourceProvisionerConfiguration();
         _configuration.Bind(_resourceProvisionerConfiguration);
-        
+
         // Set the resource module branch to the latest dev branch
         _resourceProvisionerConfiguration.ModuleRepository.Branch = "dev";
-        
+
         var httpClientFactory = new Mock<IHttpClientFactory>();
         httpClientFactory.Setup(x => x.CreateClient(It.IsAny<string>())).Returns(Mock.Of<HttpClient>());
 
         var featureManager = new Mock<IFeatureManagerSnapshot>();
         featureManager.Setup(x => x.IsEnabledAsync(It.IsAny<string>())).ReturnsAsync(true);
-        
+
         var services = new ServiceCollection();
         services.AddLogging(configure => configure.AddConsole());
         services.AddSingleton<ITerraformService, TerraformService>();
@@ -74,7 +67,7 @@ public class Testing
         services.AddSingleton(_resourceProvisionerConfiguration.AsOptions());
         services.AddSingleton<IFeatureManager>(featureManager.Object);
         var serviceProvider = services.BuildServiceProvider();
-        
+
         _terraformService = serviceProvider.GetRequiredService<ITerraformService>();
         _repositoryService = serviceProvider.GetRequiredService<IRepositoryService>();
 
@@ -88,14 +81,14 @@ public class Testing
         // Final cleanup after all tests complete
         CleanupAllTestDirectories();
     }
-    
+
     private static void CleanupAllTestDirectories()
     {
         try
         {
             var localModuleClonePath = DirectoryUtils.GetModuleRepositoryPath(_resourceProvisionerConfiguration);
             var localInfrastructureClonePath = DirectoryUtils.GetInfrastructureRepositoryPath(_resourceProvisionerConfiguration);
-            
+
             VerifyDirectoryDoesNotExist(localModuleClonePath);
             VerifyDirectoryDoesNotExist(localInfrastructureClonePath);
         }
@@ -104,7 +97,7 @@ public class Testing
             // Ignore cleanup failures during teardown
         }
     }
-    
+
     internal static void VerifyDirectoryDoesNotExist(string path)
     {
         if (!Directory.Exists(path))
@@ -114,11 +107,11 @@ public class Testing
 
         var dir = new DirectoryInfo(path);
         SetAttributesNormal(dir);
-        
+
         // Add retry logic for file system operations with exponential backoff
         var maxRetries = 5;
         var baseDelay = TimeSpan.FromMilliseconds(200);
-        
+
         for (int i = 0; i < maxRetries; i++)
         {
             try
@@ -140,14 +133,14 @@ public class Testing
             {
                 // File might be in use (like Git pack files), wait with exponential backoff
                 Thread.Sleep(TimeSpan.FromMilliseconds(baseDelay.TotalMilliseconds * Math.Pow(2, i)));
-                
+
                 // Force garbage collection to help release file handles
                 GC.Collect();
                 GC.WaitForPendingFinalizers();
                 GC.Collect();
             }
         }
-        
+
         // If we still have issues after retries, try a forced approach
         if (Directory.Exists(path))
         {
@@ -162,7 +155,7 @@ public class Testing
                 Thread.Sleep(1000);
                 new DirectoryInfo(path).Delete(true);
             }
-            catch 
+            catch
             {
                 // Final fallback - just ignore the error and proceed
                 // The test might fail but won't hang
@@ -190,20 +183,20 @@ public class Testing
         };
         try
         {
-            await _repositoryService.FetchRepositoriesAndCheckoutProjectBranch(TestingWorkspace);
+            await _repositoryService.FetchRepositoriesAndCheckoutProjectBranch(workspace);
         }
         catch (IOException)
         {
             await Task.Delay(1000);
-            await _repositoryService.FetchRepositoriesAndCheckoutProjectBranch(TestingWorkspace);
+            await _repositoryService.FetchRepositoriesAndCheckoutProjectBranch(workspace);
         }   
 
         var command = GenerateTestWorkspaceDefinition(
             workspaceAcronym, new List<string>()
             {
-                       TerraformTemplate.NewProjectTemplate,
-                       TerraformTemplate.NewProjectTemplate,
-                       TerraformTemplate.NewProjectTemplate
+                        TerraformTemplate.NewProjectTemplate,
+                        TerraformTemplate.NewProjectTemplate,
+                        TerraformTemplate.NewProjectTemplate
             });
 
         var module = new TerraformTemplate(TerraformTemplate.NewProjectTemplate,
@@ -222,7 +215,7 @@ public class Testing
     {
         return $"{Guid.NewGuid().ToString().Replace("-", "")[..8]}";
     }
-    
+
     internal static WorkspaceDefinition GenerateTestWorkspaceDefinition(string workspaceAcronym, List<string> terraformTemplates, bool withUsers = true)
     {
         return new WorkspaceDefinition
@@ -230,10 +223,10 @@ public class Testing
             Templates = terraformTemplates
                 .Select(s => new TerraformTemplate(s, TerraformStatus.CreateRequested, DateTime.UtcNow))
                 .ToList(),
-            Workspace = GenerateTestTerraformWorkspace(workspaceAcronym, withUsers, TestingWorkspace.Version),
+            Workspace = GenerateTestTerraformWorkspace(workspaceAcronym, withUsers, TestWorkspaceVersion),
             RequestingUserEmail = RequestingUser,
             ResourceGroupName = ResourceGroup,
-            AppData = new WorkspaceAppData()            
+            AppData = new WorkspaceAppData()
         };
     }
 
@@ -264,7 +257,7 @@ public class Testing
                 ObjectId = Guid.NewGuid().ToString(),
                 Role = Role.Owner
             }));
-        
+
         users.AddRange(Enumerable.Range(0, numberOfAdmins)
             .Select(i => new TerraformUser
             {
@@ -272,7 +265,7 @@ public class Testing
                 ObjectId = Guid.NewGuid().ToString(),
                 Role = Role.Admin
             }));
-        
+
         users.AddRange(Enumerable.Range(0, numberOfUsers)
             .Select(i => new TerraformUser
             {
@@ -280,7 +273,7 @@ public class Testing
                 ObjectId = Guid.NewGuid().ToString(),
                 Role = Role.User
             }));
-        
+
         users.AddRange(Enumerable.Range(0, numberOfGuests)
             .Select(i => new TerraformUser
             {

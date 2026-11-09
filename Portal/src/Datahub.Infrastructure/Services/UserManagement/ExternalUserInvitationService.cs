@@ -32,7 +32,7 @@ public class ExternalUserInvitationService : IExternalUserInvitationService
         _logger = logger;
     }
 
-    public async Task<bool> IsInvitationTokenValidAsync(
+    public async Task<bool> IsInvitationTokenExpired(
         Guid invitationToken,
         CancellationToken cancellationToken = default)
     {
@@ -51,6 +51,17 @@ public class ExternalUserInvitationService : IExternalUserInvitationService
                 i.InvitationTokenAccepted == null &&
                 i.InvitationExpiry >= now,
                 cancellationToken);
+    }
+
+    public async Task<bool> TokenExists(
+        Guid invitationToken,
+        CancellationToken cancellationToken = default)
+    {
+        if (invitationToken == Guid.Empty)
+        {
+            return false;
+        }
+        return true;
     }
 
     public async Task<WorkspaceInvitation> CreateInvitationAsync(
@@ -275,6 +286,10 @@ public class ExternalUserInvitationService : IExternalUserInvitationService
         {
             throw new InvalidOperationException($"Project {projectAcronym} was not found.");
         }
+        if (!CanInviteExternalUsers(project))
+        {
+            throw new InvalidOperationException($"Project {projectAcronym} does not allow external user invitations.");
+        }
 
         var invitation = new WorkspaceInvitation
         {
@@ -364,5 +379,23 @@ public class ExternalUserInvitationService : IExternalUserInvitationService
     private static string NormalizeInvitationCode(string code)
     {
         return code.Trim().Replace("-", string.Empty, StringComparison.Ordinal).ToUpperInvariant();
+    }
+
+    public async Task<bool> CanInviteExternalUsers(string projectAcronym)
+    {
+        await using var context = await _contextFactory.CreateDbContextAsync();
+        var project = await context.Projects
+            .FirstOrDefaultAsync(p => p.Project_Acronym_CD == projectAcronym);
+
+        if (project is null)
+        {
+            throw new InvalidOperationException($"Project {projectAcronym} was not found.");
+        }
+        return CanInviteExternalUsers(project);
+    }
+
+    public bool CanInviteExternalUsers(Datahub_Project project)
+    {
+        return project.Data_Sensitivity != Datahub.Metadata.Model.ClassificationType.ProtectedB;
     }
 }

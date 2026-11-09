@@ -418,37 +418,55 @@ public class UserInformationService(
         }
     }
 
-    private async Task UpdatePortalUserLastLogin(string userGraphId)
+    private async Task SynchronizeAuthenticatedEntraUser(string userGraphId, User graphUser)
     {
         if (string.IsNullOrWhiteSpace(userGraphId))
             throw new ArgumentException("userGraphId cannot be null or whitespace", nameof(userGraphId));
+
         await using var ctx = await datahubContextFactory.CreateDbContextAsync();
         var entraUser = await ctx.EntraUsers.Include(p => p.PortalUser).FirstOrDefaultAsync(p => p.GraphGuid == userGraphId);
 
-        if (entraUser is not null)
-        {
-            entraUser.PortalUser.LastLoginDateTime = DateTime.UtcNow;
-            await ctx.SaveChangesAsync();
-        }
-        else
+        if (entraUser is null)
         {
             logger.LogWarning("User with GraphId: {GraphId} does not exist", userGraphId);
+            return;
         }
-    }
 
-    private async Task UpdatePortalUserFirstLogin(string userGraphId)
-    {
-        await using var ctx = await datahubContextFactory.CreateDbContextAsync();
-        var entraUser = await ctx.EntraUsers.Include(p => p.PortalUser).FirstOrDefaultAsync(p => p.GraphGuid == userGraphId);
+        var portalUser = entraUser.PortalUser;
+        var profileChanged = false;
 
-        if (entraUser is not null)
+        if (!string.IsNullOrWhiteSpace(graphUser.DisplayName)
+            && !string.Equals(portalUser.DisplayName, graphUser.DisplayName, StringComparison.Ordinal))
         {
-            entraUser.PortalUser.FirstLoginDateTime = DateTime.UtcNow;
-            await ctx.SaveChangesAsync();
+            portalUser.DisplayName = graphUser.DisplayName;
+            profileChanged = true;
         }
-        else
+
+        if (!string.IsNullOrWhiteSpace(graphUser.Mail)
+            && !string.Equals(portalUser.Email, graphUser.Mail, StringComparison.Ordinal))
         {
-            logger.LogWarning("User with GraphId: {GraphId} does not exist", userGraphId);
+            portalUser.Email = graphUser.Mail;
+            profileChanged = true;
+        }
+
+        var loginTime = DateTime.UtcNow;
+        portalUser.FirstLoginDateTime ??= loginTime;
+        portalUser.LastLoginDateTime = loginTime;
+        await ctx.SaveChangesAsync();
+
+        if (profileChanged)
+        {
+            var catalogObject = new Core.Model.Catalog.CatalogObject
+            {
+                ObjectType = Core.Model.Catalog.CatalogObjectType.User,
+                ObjectId = userGraphId,
+                Name_English = portalUser.DisplayName,
+                Name_French = portalUser.DisplayName,
+                Desc_English = graphUser.Department,
+                Desc_French = graphUser.Department
+            };
+
+            await datahubCatalogSearch.AddCatalogObject(catalogObject);
         }
     }
 
@@ -551,23 +569,13 @@ public class UserInformationService(
 
     public async Task RegisterAuthenticatedEntraUser()
     {
-        var graphId = await GetCurrentUserEntraId();
+        var graphId = await GetCurrentUserEntraId()
+            ?? throw new InvalidOperationException("Authenticated user does not have an Entra ID");
+        var graphUser = await GetCurrentGraphUserAsync()
+            ?? throw new InvalidOperationException("Cannot retrieve authenticated user from Graph");
 
-        var portalUser = await GetEntraUserAsync(graphId);
-        if (portalUser is null)
-        {
-            await CreatePortalEntraUserAsync(graphId);
-            await UpdatePortalUserFirstLogin(graphId);
-        }
-        else
-        {
-            if (portalUser.FirstLoginDateTime is null)
-            {
-                await UpdatePortalUserFirstLogin(graphId);
-            }
-
-            await UpdatePortalUserLastLogin(graphId);
-        }
+        await GetEntraUserAsync(graphId);
+        await SynchronizeAuthenticatedEntraUser(graphId, graphUser);
     }
 
     public async Task<bool> UpdatePortalUserAsync(PortalUser updatedUser)

@@ -20,6 +20,9 @@ using Datahub.Shared;
 using NUnit.Framework.Internal.Execution;
 using ResourceProvisioner.Infrastructure.UnitTests.Collections;
 using ResourceProvisioner.SpecflowTests;
+using System.Net.Http.Headers;
+using Datahub.Infrastructure.Services.Security;
+using Datahub.Shared.Clients;
 
 namespace ResourceProvisioner.Infrastructure.UnitTests.Services;
 
@@ -101,6 +104,7 @@ public class RepositoryServiceTests : TemplateTestCollection
         var repositoryName = _configuration["InfrastructureRepository:Name"];
         var expectedClonePath = Path.Join(Environment.CurrentDirectory,
             repositoryLocalPath, DirectoryUtils.tempDirectory, repositoryName);
+        var workspaceAcronym = GenerateWorkspaceAcronym();
 
         Assert.That(Directory.Exists(expectedClonePath), Is.False);
 
@@ -108,10 +112,10 @@ public class RepositoryServiceTests : TemplateTestCollection
 
         Assert.That(Directory.Exists(expectedClonePath), Is.True);
 
-        await _repositoryService.CheckoutInfrastructureBranch(ProjectAcronym);
+        await _repositoryService.CheckoutInfrastructureBranch(workspaceAcronym);
 
         var repository = new Repository(expectedClonePath);
-        Assert.That(repository.Head.FriendlyName, Is.EqualTo(ProjectAcronym));
+        Assert.That(repository.Head.FriendlyName, Is.EqualTo(workspaceAcronym));
     }
 
     [Test]
@@ -120,24 +124,33 @@ public class RepositoryServiceTests : TemplateTestCollection
         var moduleRepositoryPath = DirectoryUtils.GetModuleRepositoryPath(_resourceProvisionerConfiguration);
         var infrastructureRepositoryPath =
             DirectoryUtils.GetInfrastructureRepositoryPath(_resourceProvisionerConfiguration);
+        var workspaceAcronym = GenerateWorkspaceAcronym();
+
+        var workspace = new TerraformWorkspace
+        {
+            Acronym = workspaceAcronym,
+            Version = TestWorkspaceVersion
+        };
 
         Assert.That(Directory.Exists(moduleRepositoryPath), Is.False);
         Assert.That(Directory.Exists(infrastructureRepositoryPath), Is.False);
 
-        await _repositoryService.FetchRepositoriesAndCheckoutProjectBranch(TestingWorkspace);
+        await _repositoryService.FetchRepositoriesAndCheckoutProjectBranch(workspace);
 
         Assert.That(Directory.Exists(moduleRepositoryPath), Is.True);
         Assert.That(Directory.Exists(infrastructureRepositoryPath), Is.True);
 
         var repository = new Repository(infrastructureRepositoryPath);
-        Assert.That(repository.Head.FriendlyName, Is.EqualTo(ProjectAcronym));
+        Assert.That(repository.Head.FriendlyName, Is.EqualTo(workspaceAcronym));
     }
 
     [Test]
     public async Task ShouldCommitTerraformTemplateChanges()
     {
-        var repository = InitializeTestInfrastructureRepository();
-        CreateFakeFileInTestProject();
+        var workspaceAcronym = GenerateWorkspaceAcronym();
+
+        var repository = InitializeTestInfrastructureRepository(workspaceAcronym);
+        CreateFakeFileInTestProject(workspaceAcronym);
 
         await _repositoryService.CommitTerraformTemplate(TestTemplate, RequestingUser);
 
@@ -151,7 +164,9 @@ public class RepositoryServiceTests : TemplateTestCollection
     [Test]
     public async Task ShouldExecuteResourceRun()
     {
-        InitializeTestInfrastructureRepository();
+        var workspaceAcronym = GenerateWorkspaceAcronym();
+
+        InitializeTestInfrastructureRepository(workspaceAcronym);
         var mockTerraformService = SetupMockTerraformService();
 
         var httpClientFactory = new Mock<IHttpClientFactory>();
@@ -163,7 +178,6 @@ public class RepositoryServiceTests : TemplateTestCollection
         var repositoryService = new RepositoryService(httpClientFactory.Object, Mock.Of<ILogger<RepositoryService>>(),
             _resourceProvisionerConfiguration.AsOptions(), mockTerraformService, featureManager.Object, _configuration);
 
-        var workspaceAcronym = GenerateWorkspaceAcronym();
         var command = GenerateTestWorkspaceDefinition(
             workspaceAcronym, new List<string>()
             {
@@ -180,8 +194,8 @@ public class RepositoryServiceTests : TemplateTestCollection
         {
             Assert.That(result.StatusCode, Is.EqualTo(MessageStatusCode.Success));
             Assert.That(result.Message, Contains.Substring(TestTemplate.Name));
-            Assert.That(result.Message, Contains.Substring(TestingWorkspace.Version));
-            Assert.That(result.Message, Contains.Substring(ProjectAcronym).IgnoreCase);
+            Assert.That(result.Message, Contains.Substring(command.Workspace.Version));
+            Assert.That(result.Message, Contains.Substring(workspaceAcronym));
         });
     }
 
@@ -189,7 +203,9 @@ public class RepositoryServiceTests : TemplateTestCollection
     [Test]
     public async Task ShouldReturnNoChangesIfNoCommitsWhenExecutingResourceRun()
     {
-        InitializeTestInfrastructureRepository();
+        var workspaceAcronym = GenerateWorkspaceAcronym();
+
+        InitializeTestInfrastructureRepository(workspaceAcronym);
         var mockTerraformService = SetupMockTerraformService(true);
         var httpClientFactory = new Mock<IHttpClientFactory>();
         httpClientFactory.Setup(x => x.CreateClient(It.IsAny<string>())).Returns(Mock.Of<HttpClient>());
@@ -200,7 +216,6 @@ public class RepositoryServiceTests : TemplateTestCollection
         var repositoryService = new RepositoryService(httpClientFactory.Object, Mock.Of<ILogger<RepositoryService>>(),
             _resourceProvisionerConfiguration.AsOptions(), mockTerraformService, featureManager.Object, _configuration);
 
-        var workspaceAcronym = GenerateWorkspaceAcronym();
         var command = GenerateTestWorkspaceDefinition(
             workspaceAcronym, new List<string>()
             {
@@ -218,15 +233,17 @@ public class RepositoryServiceTests : TemplateTestCollection
         {
             Assert.That(result.StatusCode, Is.EqualTo(MessageStatusCode.NoChangesDetected));
             Assert.That(result.Message, Contains.Substring(TestTemplate.Name));
-            Assert.That(result.Message, Contains.Substring(TestingWorkspace.Version));
-            Assert.That(result.Message, Contains.Substring(ProjectAcronym).IgnoreCase);
+            Assert.That(result.Message, Contains.Substring(command.Workspace.Version));
+            Assert.That(result.Message, Contains.Substring(workspaceAcronym));
         });
     }
 
     [Test]
     public async Task ShouldExecuteMultipleResourceRun()
     {
-        InitializeTestInfrastructureRepository();
+        var workspaceAcronym = GenerateWorkspaceAcronym();
+
+        InitializeTestInfrastructureRepository(workspaceAcronym);
         var mockTerraformService = SetupMockTerraformService();
 
         var httpClientFactory = new Mock<IHttpClientFactory>();
@@ -238,7 +255,6 @@ public class RepositoryServiceTests : TemplateTestCollection
         var repositoryService = new RepositoryService(httpClientFactory.Object, Mock.Of<ILogger<RepositoryService>>(),
             _resourceProvisionerConfiguration.AsOptions(), mockTerraformService, featureManager.Object, _configuration);
 
-        var workspaceAcronym = GenerateWorkspaceAcronym();
         var command = GenerateTestWorkspaceDefinition(
             workspaceAcronym, new List<string>()
             {
@@ -270,27 +286,93 @@ public class RepositoryServiceTests : TemplateTestCollection
     [Test]
     public async Task ShouldPushInfrastructureChangesToRepository()
     {
-        var repository = InitializeTestInfrastructureRepository();
+        var branchName =
+            $"TEST-PROJECT-{Guid.NewGuid().ToString("N")[..8]}";
+
+        TestContext.Out.WriteLine(
+            $"Creating remote test branch: {branchName}");
+
+        var testingWorkspace = new TerraformWorkspace
+        {
+            Acronym = branchName,
+            Version = TestWorkspaceVersion
+        };
+
         var mockTerraformService = SetupMockTerraformService();
         var httpClientFactory = new Mock<IHttpClientFactory>();
-        httpClientFactory.Setup(x => x.CreateClient(It.IsAny<string>())).Returns(Mock.Of<HttpClient>());
+        httpClientFactory
+            .Setup(x => x.CreateClient(It.IsAny<string>()))
+            .Returns(Mock.Of<HttpClient>());
 
         var featureManager = new Mock<IFeatureManagerSnapshot>();
-        featureManager.Setup(x => x.IsEnabledAsync(It.IsAny<string>())).ReturnsAsync(true);
+        featureManager
+            .Setup(x => x.IsEnabledAsync(It.IsAny<string>()))
+            .ReturnsAsync(true);
 
-        var repositoryService = new RepositoryService(httpClientFactory.Object, Mock.Of<ILogger<RepositoryService>>(),
-            _resourceProvisionerConfiguration.AsOptions(), mockTerraformService, featureManager.Object, _configuration);
+        var repositoryService = new RepositoryService(
+            httpClientFactory.Object,
+            Mock.Of<ILogger<RepositoryService>>(),
+            _resourceProvisionerConfiguration.AsOptions(),
+            mockTerraformService,
+            featureManager.Object,
+            _configuration);
 
-        await repositoryService.FetchRepositoriesAndCheckoutProjectBranch(TestingWorkspace);
+        try
+        {
+            await repositoryService.FetchRepositoriesAndCheckoutProjectBranch(
+                testingWorkspace);
 
-        await Task.Run(DeleteAllFilesInTestProject);
+            var repositoryPath =
+                DirectoryUtils.GetInfrastructureRepositoryPath(
+                    _resourceProvisionerConfiguration);
 
-        CreateFakeFileInTestProject();
-        Commands.Stage(repository, "*");
-        repository.Commit("Push test commit", new Signature(RequestingUser, RequestingUser, DateTimeOffset.Now),
-            new Signature(RequestingUser, RequestingUser, DateTimeOffset.Now));
+            using var repository = new Repository(repositoryPath);
 
-        await repositoryService.PushInfrastructureRepository(ProjectAcronym);
+            var projectPath =
+                DirectoryUtils.GetProjectPath(
+                    _resourceProvisionerConfiguration,
+                    branchName);
+
+            Directory.CreateDirectory(projectPath);
+
+            var testFilePath =
+                Path.Join(
+                    projectPath,
+                    $"{Guid.NewGuid()}.tf");
+
+            await File.WriteAllTextAsync(
+                testFilePath,
+                "# Push integration test");
+
+            Commands.Stage(repository, "*");
+
+            repository.Commit(
+                "Push test commit",
+                new Signature(
+                    RequestingUser,
+                    RequestingUser,
+                    DateTimeOffset.Now),
+                new Signature(
+                    RequestingUser,
+                    RequestingUser,
+                    DateTimeOffset.Now));
+
+            await repositoryService.PushInfrastructureRepository(
+                branchName);
+
+            TestContext.Out.WriteLine(
+                $"Successfully pushed test commit to branch: {branchName}");
+        }
+        finally
+        {
+            TestContext.Out.WriteLine(
+                $"Deleting remote test branch: {branchName}");
+
+            await DeleteRemotePushBranch(branchName);
+
+            TestContext.Out.WriteLine(
+                $"Successfully deleted remote test branch: {branchName}");
+        }
     }
 
 
@@ -299,6 +381,7 @@ public class RepositoryServiceTests : TemplateTestCollection
     {
         var fakePullRequestId = new Random().Next(9999999);
         var fakeIdentityId = Guid.NewGuid().ToString();
+        var workspaceAcronym = GenerateWorkspaceAcronym();
 
         var mockTerraformService = SetupMockTerraformService();
 
@@ -314,8 +397,7 @@ public class RepositoryServiceTests : TemplateTestCollection
                     System.Text.Json.JsonSerializer.Serialize(new
                     {
                         pullRequestId = fakePullRequestId,
-                        createdBy = new { id = fakeIdentityId },
-                        autoCompleteSetBy = new { id = fakeIdentityId }
+                        createdBy = new { id = fakeIdentityId }
                     }),
                     System.Text.Encoding.UTF8,
                     "application/json")
@@ -331,13 +413,13 @@ public class RepositoryServiceTests : TemplateTestCollection
         var repositoryService = new RepositoryService(httpClientFactory.Object, Mock.Of<ILogger<RepositoryService>>(),
             _resourceProvisionerConfiguration.AsOptions(), mockTerraformService, featureManager.Object, _configuration);
 
-        var result = await repositoryService.CreateInfrastructurePullRequest(ProjectAcronym);
+        var result = await repositoryService.CreateInfrastructurePullRequest(workspaceAcronym);
 
         Assert.That(result, Is.TypeOf<PullRequestValueObject>());
         Assert.That(result.Url,
             Is.EqualTo($"{_configuration["InfrastructureRepository:PullRequestBrowserUrl"]}/{fakePullRequestId}"));
         Assert.That(result.Url.Split('/').Last(), Is.EqualTo(fakePullRequestId.ToString()));
-        Assert.That(result.WorkspaceAcronym, Is.EqualTo(ProjectAcronym));
+        Assert.That(result.WorkspaceAcronym, Is.EqualTo(workspaceAcronym));
     }
 
     private static StringContent ExpectedPullRequestResponse(int fakePullRequestId)
@@ -358,10 +440,10 @@ public class RepositoryServiceTests : TemplateTestCollection
             "application/json");
     }
 
-    private static Repository InitializeTestInfrastructureRepository()
+    private static Repository InitializeTestInfrastructureRepository(string workspaceAcronym)
     {
         var repositoryPath = DirectoryUtils.GetInfrastructureRepositoryPath(_resourceProvisionerConfiguration);
-        var projectPath = DirectoryUtils.GetProjectPath(_resourceProvisionerConfiguration, ProjectAcronym);
+        var projectPath = DirectoryUtils.GetProjectPath(_resourceProvisionerConfiguration, workspaceAcronym);
 
         VerifyDirectoryDoesNotExist(repositoryPath);
         Directory.CreateDirectory(repositoryPath);
@@ -382,14 +464,16 @@ public class RepositoryServiceTests : TemplateTestCollection
         mockTerraformService.Setup(tf => tf.CopyTemplateAsync(
                 It.IsAny<string>(),
                 It.IsAny<WorkspaceDefinition>()))
-            .Returns(() =>
+            .Returns((string _, WorkspaceDefinition command) =>
             {
                 if (doNothing)
                 {
                     return Task.CompletedTask;
                 }
 
-                CreateFakeFileInTestProject();
+                CreateFakeFileInTestProject(
+                    command.Workspace.Acronym!);
+
                 return Task.CompletedTask;
             });
 
@@ -398,11 +482,11 @@ public class RepositoryServiceTests : TemplateTestCollection
         return mockTerraformService.Object;
     }
 
-    private static void CreateFakeFileInTestProject()
+    private static void CreateFakeFileInTestProject(string workspaceAcronym)
     {
         var fileName = $"{Guid.NewGuid()}.tf";
         const string content = "# Commit this!";
-        var projectPath = DirectoryUtils.GetProjectPath(_resourceProvisionerConfiguration, ProjectAcronym);
+        var projectPath = DirectoryUtils.GetProjectPath(_resourceProvisionerConfiguration, workspaceAcronym);
 
         if (!Directory.Exists(projectPath))
         {
@@ -412,21 +496,120 @@ public class RepositoryServiceTests : TemplateTestCollection
         File.WriteAllText(Path.Join(projectPath, fileName), content);
     }
 
-
-    private static void DeleteAllFilesInTestProject()
+    private static async Task DeleteRemotePushBranch(string branchName)
     {
-        var projectPath = DirectoryUtils.GetProjectPath(_resourceProvisionerConfiguration, ProjectAcronym);
-        if (!Directory.Exists(projectPath))
+        if (!branchName.StartsWith(
+                "TEST-PROJECT-",
+                StringComparison.OrdinalIgnoreCase))
+        {
+            throw new InvalidOperationException(
+                $"Refusing to delete non-test branch {branchName}");
+        }
+
+        var credentialService = new InfraTokenCredentialService(
+            _resourceProvisionerConfiguration
+                .InfrastructureRepository
+                .AzureDevOpsConfiguration);
+
+        var tokenManager = new AzAccessTokenManager(
+            credentialService,
+            credentialService);
+
+        var accessToken =
+            await tokenManager.AccessDevopsTokenAsync();
+
+        using var httpClient = new HttpClient();
+
+        httpClient.DefaultRequestHeaders.Authorization =
+            new AuthenticationHeaderValue(
+                "Bearer",
+                accessToken.Token);
+
+        var pullRequestUrl =
+            _resourceProvisionerConfiguration
+                .InfrastructureRepository
+                .PullRequestUrl;
+
+        var apiVersion =
+            _resourceProvisionerConfiguration
+                .InfrastructureRepository
+                .ApiVersion;
+
+        var refsUrl = pullRequestUrl.Replace(
+            "/pullrequests",
+            "/refs",
+            StringComparison.OrdinalIgnoreCase);
+
+        var branchFilter = Uri.EscapeDataString(
+            $"heads/{branchName}");
+
+        var getResponse = await httpClient.GetAsync(
+            $"{refsUrl}?filter={branchFilter}&api-version={apiVersion}");
+
+        getResponse.EnsureSuccessStatusCode();
+
+        var getContent =
+            await getResponse.Content.ReadAsStringAsync();
+
+        var getData =
+            JsonSerializer.Deserialize<JsonNode>(getContent);
+
+        var branch = getData?["value"]?
+            .AsArray()
+            .FirstOrDefault(node =>
+                node?["name"]?.ToString() ==
+                $"refs/heads/{branchName}");
+
+        var oldObjectId =
+            branch?["objectId"]?.ToString();
+
+        if (string.IsNullOrWhiteSpace(oldObjectId))
         {
             return;
         }
 
-        var projectDirectory = new DirectoryInfo(projectPath);
-        SetAttributesNormal(projectDirectory);
-
-        foreach (var file in projectDirectory.GetFiles())
+        var deleteData = new JsonArray
         {
-            file.Delete();
+            new JsonObject
+            {
+                ["name"] = $"refs/heads/{branchName}",
+                ["oldObjectId"] = oldObjectId,
+                ["newObjectId"] =
+                    "0000000000000000000000000000000000000000"
+            }
+        };
+
+        using var deleteContent = new StringContent(
+            JsonSerializer.Serialize(deleteData),
+            Encoding.UTF8,
+            "application/json");
+
+        var deleteResponse = await httpClient.PostAsync(
+            $"{refsUrl}?api-version={apiVersion}",
+            deleteContent);
+
+        deleteResponse.EnsureSuccessStatusCode();
+
+        var deleteResponseContent =
+            await deleteResponse.Content.ReadAsStringAsync();
+
+        var deleteResponseData =
+            JsonSerializer.Deserialize<JsonNode>(
+                deleteResponseContent);
+
+        var deleteResult = deleteResponseData?["value"]?
+            .AsArray()
+            .FirstOrDefault();
+
+        if (deleteResult?["success"]?.GetValue<bool>() != true)
+        {
+            var updateStatus =
+                deleteResult?["updateStatus"]?.ToString();
+
+            throw new InvalidOperationException(
+                $"Could not delete branch {branchName}. " +
+                $"Azure DevOps status: {updateStatus}");
         }
     }
+
 }

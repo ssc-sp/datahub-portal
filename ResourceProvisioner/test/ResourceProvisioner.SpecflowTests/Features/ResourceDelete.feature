@@ -21,7 +21,6 @@ This is the feature that will update the terraform files to delete the workspace
 
     Examples:
       | templateName         |
-      | azure-storage-blob   |
       | azure-databricks     |
       | azure-app-service    |
       | azure-postgresql     |
@@ -37,7 +36,6 @@ This is the feature that will update the terraform files to delete the workspace
 
     Examples:
       | templateName         |
-      | azure-storage-blob   |
       | azure-databricks     |
       | azure-app-service    |
       | azure-postgresql     |

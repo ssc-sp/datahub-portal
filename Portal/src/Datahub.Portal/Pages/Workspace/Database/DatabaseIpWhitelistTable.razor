@@ -1,4 +1,5 @@
 @using System.Net
+@using GcdsWrapper.Blazor
 
 @inject IHttpContextAccessor _httpContextAccessor
 @inject IDbContextFactory<DatahubProjectDBContext> _dbContextFactory
@@ -6,126 +7,126 @@
 @inject ISnackbar _snackbar
 @inject ILogger<DatabaseIpWhitelistTable> _logger
 @inject IUserInformationService _userInformationService
-@inject IJSRuntime _jsRuntime
-@inject IDialogService DialogService
 
 <MudStack>
-    <MudText Typo="Typo.h2" Class="mt-6">
-        @Localizer["Database Firewall Rules"]
-    </MudText>
-    <MudText>
+    <GcdsHeading Tag="h2">@Localizer["Database Firewall Rules"]</GcdsHeading>
+    <GcdsText>
         @Localizer["The following IP addresses are whitelisted for the database. Names must be unique and can only contain letters, numbers, underscores and hyphens."]
-    </MudText>
-    <MudAlert Severity="Severity.Info">
+    </GcdsText>
+    <GcdsText>
         @Localizer["Changes to the firewall rules can take up to 15 minutes to apply."]
-    </MudAlert>
+    </GcdsText>
     <MudStack Row>
-        <DHButton OnClick="@AddCurrentIpAddress">
+        <GcdsButton Type="GcdsButtonType.Button" OnClick="@AddCurrentIpAddress" Disabled="@(_userIpAddress is null || _savingRule)">
             @Localizer["Add current IP address ({0})", _userIpAddress]
-        </DHButton>
-        <DHButton OnClick="@AddNewIpOrRange">
+        </GcdsButton>
+        <GcdsButton Type="GcdsButtonType.Button" OnClick="@StartAddingIpRange" Disabled="@_savingRule">
             @Localizer["Add a new IP address"]
-        </DHButton>
+        </GcdsButton>
         <MudSpacer />
     </MudStack>
+
+    @if (_ruleFormMode is RuleFormMode.Add)
+    {
+        <DatabaseIpWhitelistRuleForm
+            @bind-RuleName="_ruleName"
+            @bind-StartIpAddress="_startIpAddress"
+            @bind-EndIpAddress="_endIpAddress"
+            Error="@_ruleFormError"
+            Saving="@_savingRule"
+            OnSave="@SaveIpRange"
+            OnCancel="@CancelIpRangeForm" />
+    }
 </MudStack>
 
-<MudTable Items="@_firewallRules"
-          Dense="true"
-          Hover="true"
-          Outlined="true"
-          Class="mt-6 mb-12"
-          CanCancelEdit="true"
-          Filter="@(new Func<WhitelistIPAddressData, bool>(FilterFunc))"
-          @bind-SelectedItem="@_selectedItem"
-          SortLabel="@Localizer["Sort by"]"
-          CommitEditTooltip="@Localizer["Commit edit"]"
-          CancelEditTooltip="@Localizer["Cancel edit"]"
-          IsEditRowSwitchingBlocked="true"
-          EditTrigger="TableEditTrigger.EditButton"
-          OnCommitEditClick="@HandleCommitEditClicked"
-          ApplyButtonPosition="TableApplyButtonPosition.Start"
-          EditButtonPosition="TableEditButtonPosition.Start"
-          RowEditPreview="@BackupItem"
-          RowEditCancel="@HandleRowEditCancel"
-          RowEditCommit="@HandleRowEditCommit">
+<GcdsHeading Tag="h3" MarginBottom="0">
+    @Localizer["Database IP Address Whitelist"]
+</GcdsHeading>
 
-    <ToolBarContent>
-        <MudText Typo="Typo.h3" Class="mt-6">
-            @Localizer["Database IP Address Whitelist"]
-        </MudText>
-        <MudSpacer />
-        <MudTextField @bind-Value="@_filterString"
-                      Label="@Localizer["Filter"]"
-                      Adornment="Adornment.End"
-                      AdornmentIcon="@SidebarIcons.Search"
-                      IconSize="Size.Small"
-                      Class="mt-0" />
-    </ToolBarContent>
+<GcdsTable Columns="@Columns"
+           Data="@Rows"
+           Filter="true"
+           Sort="true"
+           Pagination="false"
+           class="mt-6">
+    <span slot="caption" class="sr-only">@Localizer["Database IP Address Whitelist"]</span>
+</GcdsTable>
 
-    <ColGroup>
-        <col />
-        <col />
-        <col />
-        <col style="width: 50px;" />
-    </ColGroup>
 
-    <HeaderContent>
-        <MudTh>
-            <MudTableSortLabel SortBy="@(new Func<WhitelistIPAddressData, object>(x => x.Name))">@Localizer["Name"]</MudTableSortLabel>
-        </MudTh>
-        <MudTh>
-            <MudTableSortLabel SortBy="@(new Func<WhitelistIPAddressData, object>(x => x.StartIPAddress))">@Localizer["Start IP Address"]</MudTableSortLabel>
-        </MudTh>
-        <MudTh>
-            <MudTableSortLabel SortBy="@(new Func<WhitelistIPAddressData, object>(x => x.EndIPAddress))">@Localizer["End IP Address"]</MudTableSortLabel>
-        </MudTh>
-        <MudTh />
-    </HeaderContent>
+<GcdsSelect Id="firewall-rule-select"
+            Name="firewall-rule-select"
+            Label="@Localizer["Select a firewall rule"]"
+            DefaultValue="@Localizer["Please Select"]"
+            Disabled="@(!_firewallRules.Any() || _savingRule)"
+            @bind-Value="_selectedRuleName">
+    @foreach (var rule in _firewallRules)
+    {
+        <option value="@rule.Name">@rule.Name</option>
+    }
+</GcdsSelect>
+<MudStack Row Class="mb-12" AlignItems="AlignItems.End">
+    <GcdsButton Type="GcdsButtonType.Button"
+                Role="GcdsButtonRole.Secondary"
+                OnClick="@StartEditingSelectedIpRange"
+                Disabled="@(SelectedRule is null || _savingRule)">
+        @Localizer["Edit"]
+    </GcdsButton>
+    <GcdsButton Type="GcdsButtonType.Button"
+                Role="GcdsButtonRole.Danger"
+                OnClick="@DeleteSelectedIpAddress"
+                Disabled="@(SelectedRule is null || _savingRule)">
+        @Localizer["Delete"]
+    </GcdsButton>
+    <MudSpacer />
+</MudStack>
 
-    <RowTemplate>
-        <MudTd DataLabel="@Localizer["Name"]">@context.Name</MudTd>
-        <MudTd DataLabel="@Localizer["Start IP Address"]">@context.StartIPAddress</MudTd>
-        <MudTd DataLabel="@Localizer["End IP Address"]">@context.EndIPAddress</MudTd>
-        <MudTd>
-            <MudTooltip Text="@Localizer["Delete IP Address"]">
-                <MudIconButton Size="Size.Small" Icon="@SidebarIcons.Delete" aria-label="@(Localizer["Delete"])" OnClick="@(() => DeleteIpAddress(context, true))" />
-            </MudTooltip>
-        </MudTd>
-    </RowTemplate>
-
-    <RowEditingTemplate>
-        <MudTd DataLabel="@Localizer["Name"]">
-            <MudTextField @bind-Value="@context.Name" Required />
-        </MudTd>
-        <MudTd DataLabel="@Localizer["Start IP Address"]">
-            <MudTextField @bind-Value="@context.StartIPAddress" Required Converter="@BuildConverter()" />
-        </MudTd>
-        <MudTd DataLabel="@Localizer["End IP Address"]">
-            <MudTextField @bind-Value="@context.EndIPAddress" Converter="@BuildConverter()" />
-        </MudTd>
-        <MudTd />
-    </RowEditingTemplate>
-
-    <EditButtonContent Context="button">
-        <MudIconButton Size="@Size.Small" Icon="@SidebarIcons.Edit" Class="pa-0" OnClick="@button.ButtonAction" Disabled="@button.ButtonDisabled" />
-    </EditButtonContent>
-</MudTable>
+@if (_ruleFormMode is RuleFormMode.Edit)
+{
+    <DatabaseIpWhitelistRuleForm
+        IsEdit
+        @bind-RuleName="_ruleName"
+        @bind-StartIpAddress="_startIpAddress"
+        @bind-EndIpAddress="_endIpAddress"
+        Error="@_ruleFormError"
+        Saving="@_savingRule"
+        OnSave="@SaveIpRange"
+        OnCancel="@CancelIpRangeForm" />
+}
 
 @code {
 
-    [Parameter, EditorRequired] public string WorkspaceAcronym { get; set; }
+    [Parameter, EditorRequired]
+    public string WorkspaceAcronym { get; set; }
 
-    private IPAddress _userIpAddress = default;
-    private string _filterString = default;
-    private WhitelistIPAddressData _selectedItem = default;
-    private WhitelistIPAddressData _elementBeforeEdit = default;
+    private IPAddress? _userIpAddress;
+    private string? _selectedRuleName;
     private List<WhitelistIPAddressData> _firewallRules = [];
+    private RuleFormMode _ruleFormMode;
+    private string _ruleName = string.Empty;
+    private string _startIpAddress = string.Empty;
+    private string _endIpAddress = string.Empty;
+    private string _editingOriginalName = string.Empty;
+    private string _ruleFormError = string.Empty;
+    private bool _savingRule;
 
-    private IConverter<IPAddress, string> BuildConverter() =>
-        new MudBlazor.Utilities.Converter.Chain.ReversibleChain<IPAddress, string>(
-            value => value?.ToString() ?? string.Empty,
-            text => IPAddress.Parse(text));
+    private WhitelistIPAddressData? SelectedRule =>
+        _firewallRules.FirstOrDefault(rule => rule.Name == _selectedRuleName);
+
+    private IReadOnlyCollection<TableColumn> Columns =>
+    [
+        new("name", Localizer["Name"], true),
+        new("startIpAddress", Localizer["Start IP Address"]),
+        new("endIpAddress", Localizer["End IP Address"])
+    ];
+
+    private IReadOnlyCollection<IReadOnlyDictionary<string, string>> Rows => _firewallRules
+        .Select(rule => (IReadOnlyDictionary<string, string>)new Dictionary<string, string>
+        {
+            ["name"] = rule.Name,
+            ["startIpAddress"] = rule.StartIPAddress?.ToString() ?? string.Empty,
+            ["endIpAddress"] = rule.EndIPAddress?.ToString() ?? string.Empty
+        })
+        .ToArray();
 
     protected override async Task OnInitializedAsync()
     {
@@ -139,18 +140,32 @@
                 _firewallRules.Add(new WhitelistIPAddressData(firewallRule.Data));
             }
         }
-        catch(Exception x)
+        catch (Exception x)
         {
-            // do nothing
+            _logger.LogWarning(x, "Unable to load database firewall rules for workspace {WorkspaceAcronym}", WorkspaceAcronym);
         }
     }
 
     protected override void OnAfterRender(bool firstRender)
     {
         base.OnAfterRender(firstRender);
+
+        if (!firstRender)
+        {
+            return;
+        }
+
         _userIpAddress = _httpContextAccessor?.HttpContext?.Connection.RemoteIpAddress;
 
         StateHasChanged();
     }
 
+    private sealed record TableColumn(string Field, string Header, bool RowHeader = false);
+
+    private enum RuleFormMode
+    {
+        None,
+        Add,
+        Edit
+    }
 }

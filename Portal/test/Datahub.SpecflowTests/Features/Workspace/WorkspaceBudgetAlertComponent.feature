@@ -14,17 +14,17 @@ A component displayed on the workspace dashboard to alert all users of current b
 
     Scenario: The workspace is above 50% it should render the alert
         Given there is a workspace budget alert component with a percent budget of <percent>
-        Then the alert should be rendered with <percent> budget and <class> class
+        Then the alert should be rendered with <percent> budget and the <role> notice role
 
     Examples:
-      | percent | class                      |
-      | 50.00   | mud-alert-outlined-info    |
-      | 50.01   | mud-alert-outlined-info    |
-      | 74.99   | mud-alert-outlined-info    |
-      | 75.00   | mud-alert-outlined-warning |
-      | 75.01   | mud-alert-outlined-warning |
-      | 89.99   | mud-alert-outlined-warning |
-      | 90.00   | mud-alert-outlined-error   |
-      | 90.01   | mud-alert-outlined-error   |
-      | 99.99   | mud-alert-outlined-error   |
-      | 100     | mud-alert-outlined-error   |
+      | percent | role    |
+      | 50.00   | info    |
+      | 50.01   | info    |
+      | 74.99   | info    |
+      | 75.00   | warning |
+      | 75.01   | warning |
+      | 89.99   | warning |
+      | 90.00   | danger  |
+      | 90.01   | danger  |
+      | 99.99   | danger  |
+      | 100     | danger  |

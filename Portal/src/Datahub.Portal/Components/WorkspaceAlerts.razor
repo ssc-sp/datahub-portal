@@ -1,6 +1,7 @@
 ﻿@using Datahub.Core.Model.Projects
 @using Microsoft.AspNetCore.Components.RenderTree
 @using Datahub.Portal.Pages.Workspace
+@using GcdsWrapper.Blazor
 
 @inject IDbContextFactory<DatahubProjectDBContext> DbContextFactory
 
@@ -8,16 +9,13 @@
 <MudStack>
     @if (_isDeleted)
     {
-        <DHAlert Severity="Severity.Error" Dense>
-            <p>
-                <strong>
-                    @Localizer["This workspace has been deleted."]
-                </strong>
-            </p>
-            <p>
+        <GcdsNotice NoticeRole="danger"
+                    NoticeTitle="@Localizer["This workspace has been deleted."]"
+                    NoticeTitleTag="h2">
+            <GcdsText>
                 @Localizer["Please contact the workspace lead for details."]
-            </p>
-        </DHAlert>
+            </GcdsText>
+        </GcdsNotice>
     }
     else
     {

@@ -377,9 +377,9 @@ Global
 		{7399BACF-CD75-4F45-8A09-BB56823DC17C} = {7DC54F87-A118-4F67-A75A-DE4949F5C854}
 	EndGlobalSection
 	GlobalSection(ExtensibilityGlobals) = postSolution
-		SolutionGuid = {9DC4B901-16FF-4FF2-9ED6-B286EA17048E}
-		RESX_AutoCreateNewLanguageFiles = True
 		RESX_ConfirmAddLanguageFile = True
+		RESX_AutoCreateNewLanguageFiles = True
+		SolutionGuid = {9DC4B901-16FF-4FF2-9ED6-B286EA17048E}
 	EndGlobalSection
 	GlobalSection(SharedMSBuildProjectFiles) = preSolution
 		Desktop\Desktop.SharedCode\Desktop.SharedCode.projitems*{6c2d8f35-4efa-4474-9973-fe6b2881e59a}*SharedItemsImports = 5

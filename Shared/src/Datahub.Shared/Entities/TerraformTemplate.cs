@@ -5,22 +5,99 @@ namespace Datahub.Shared.Entities;
 
 public class TerraformTemplate
 {
+    private static readonly string[] SupportedTemplateNames =
+    [
+        NewProjectTemplate,
+        NewProjectTemplateEnhanced,
+        VariableUpdate,
+        AzureDatabricks,
+        AzureDatabricksEnhanced,
+        AzureVirtualMachine,
+        AzureAppService,
+        AzureAppServiceEnhanced,
+        AzurePostgres,
+        AzurePostgresEnhanced,
+        ContactUs,
+        AzureArcGis,
+        AzureAPI,
+        AzureAPIEnhanced,
+        AzurePostgresTemplateFile,
+        "azure-storage-blob"
+    ];
+
+    private static readonly HashSet<string> ReleasedTemplateNames =
+    [
+        NewProjectTemplate,
+        NewProjectTemplateEnhanced,
+        VariableUpdate,
+        AzureDatabricks,
+        AzureDatabricksEnhanced,
+        AzureAppService,
+        AzureAppServiceEnhanced,
+        AzurePostgres,
+        AzurePostgresEnhanced
+    ];
+
+    // Templates that provision the workspace resource group and storage. A workspace has exactly one of them:
+    // the enhanced template for Protected B workspaces, the base template otherwise.
+    private static readonly string[] WorkspaceTemplateNames =
+    [
+        NewProjectTemplate,
+        NewProjectTemplateEnhanced
+    ];
+
     public static string GetTerraformServiceType(string templateName) => $"terraform:{templateName}";
 
+    /// <summary>
+    /// Gets the workspace template to provision for a workspace of the given classification.
+    /// </summary>
+    /// <param name="isProtectedB">Whether the workspace is classified as Protected B.</param>
+    /// <returns>The enhanced workspace template for Protected B workspaces, the base template otherwise.</returns>
+    public static string GetWorkspaceTemplate(bool isProtectedB) =>
+        isProtectedB ? NewProjectTemplateEnhanced : NewProjectTemplate;
+
+    /// <summary>
+    /// Determines whether the template provisions the workspace resource group and storage.
+    /// </summary>
+    /// <param name="name">The template name.</param>
+    /// <returns>True for the base and enhanced workspace templates.</returns>
+    public static bool IsWorkspaceTemplate(string name) =>
+        WorkspaceTemplateNames.Contains(name, StringComparer.OrdinalIgnoreCase);
+
+    public static bool IsReleased(string name)
+    {
+        if (string.IsNullOrWhiteSpace(name))
+        {
+            return false;
+        }
+
+        var normalizedName = NormalizeTemplateName(name);
+        return ReleasedTemplateNames.Contains(normalizedName, StringComparer.OrdinalIgnoreCase);
+    }
+
     public const string NewProjectTemplate = "new-project-template";
+    public const string NewProjectTemplateEnhanced = "new-project-template-enhanced";
     public const string VariableUpdate = "variable-update";
-    public const string AzureStorageBlob = "azure-storage-blob";
     public const string AzureDatabricks = "azure-databricks";
+    public const string AzureDatabricksEnhanced = "azure-databricks-enhanced";
     public const string AzureVirtualMachine = "azure-virtual-machine";
     public const string AzureAppService = "azure-app-service";
+    public const string AzureAppServiceEnhanced = "azure-app-service-enhanced";
     public const string AzurePostgres = "azure-postgres";
+    public const string AzurePostgresEnhanced = "azure-postgres-enhanced";
     public const string ContactUs = "contact-us";
     public const string AzureArcGis = "azure-arcgis";
     public const string AzureAPI = "azure-api";
-
+    public const string AzureAPIEnhanced = "azure-api-enhanced";
     public const string AzurePostgresTemplateFile = "azure-postgresql";
 
     public const string NewProjectTemplateFile = "main";
+
+    /// <summary>
+    /// Service types (<c>terraform:{name}</c>) of the workspace templates, for matching <c>Project_Resources2.ResourceType</c>.
+    /// </summary>
+    public static readonly string[] WorkspaceTemplateServiceTypes =
+        WorkspaceTemplateNames.Select(GetTerraformServiceType).ToArray();
 
     // Parameterless constructor for deserialization
     public TerraformTemplate()
@@ -79,11 +156,10 @@ public class TerraformTemplate
         var normalizedName = NormalizeTemplateName(name);
         return normalizedName switch
         {
-            NewProjectTemplate => "Groupe de ressources de l'espace de travail",
-            AzureStorageBlob => "Blob de stockage Azure",
-            AzureDatabricks => "Azure Databricks",
-            AzureAppService => "Service App Azure",
-            AzurePostgres => "Azure Postgres",
+            NewProjectTemplate or NewProjectTemplateEnhanced => "Groupe de ressources de l'espace de travail",
+            AzureDatabricks or AzureDatabricksEnhanced => "Azure Databricks",
+            AzureAppService or AzureAppServiceEnhanced => "Service App Azure",
+            AzurePostgres or AzurePostgresEnhanced => "Azure Postgres",
             _ => throw new ArgumentException($"Unknown template name: {name}")
         };
     }
@@ -99,45 +175,68 @@ public class TerraformTemplate
         var normalizedName = NormalizeTemplateName(name);
         return normalizedName switch
         {
-            NewProjectTemplate => "Workspace Resource Group",
-            AzureStorageBlob => "Azure Storage Blob",
-            AzureDatabricks => "Azure Databricks",
-            AzureAppService => "Azure App Service",
-            AzurePostgres => "Azure Postgres",
+            NewProjectTemplate or NewProjectTemplateEnhanced => "Workspace Resource Group",
+            AzureDatabricks or AzureDatabricksEnhanced => "Azure Databricks",
+            AzureAppService or AzureAppServiceEnhanced => "Azure App Service",
+            AzurePostgres or AzurePostgresEnhanced => "Azure Postgres",
             _ => throw new ArgumentException($"Unknown template name: {name}")
         };
     }
 
     public static string NormalizeTemplateName(string name)
     {
-        var templateName = name.ToLower();
-        if (templateName.StartsWith("terraform:"))
+        if (string.IsNullOrWhiteSpace(name))
         {
-            templateName = templateName.Replace("terraform:", string.Empty);
+            throw new ArgumentException("Template name cannot be null or empty.", nameof(name));
         }
 
-        return templateName switch
+        var templateName = name.Trim();
+
+        if (templateName.StartsWith("terraform:", StringComparison.OrdinalIgnoreCase))
         {
-            NewProjectTemplate => NewProjectTemplate,
-            AzureStorageBlob => AzureStorageBlob,
-            AzureDatabricks => AzureDatabricks,
-            AzureAppService => AzureAppService,
-            AzurePostgres => AzurePostgres,
-            _ => throw new ArgumentException($"Unknown template name: {name}")
-        };
+            templateName = templateName["terraform:".Length..];
+        }
+
+        var normalizedName = templateName.Trim();
+        var match = SupportedTemplateNames.FirstOrDefault(t =>
+            string.Equals(t, normalizedName, StringComparison.OrdinalIgnoreCase));
+
+        if (match is not null)
+        {
+            return match;
+        }
+
+        throw new ArgumentException($"Unknown template name: {name}");
     }
 
 #nullable enable
-    public static IEnumerable<string>? GetDependencyNames(string toolName) => toolName switch
+    public static IEnumerable<string>? GetDependencyNames(string toolName)
     {
-        NewProjectTemplate => [],
-        VariableUpdate => [],
-        AzureStorageBlob => [NewProjectTemplate],
-        AzureDatabricks => [NewProjectTemplate],
-        AzureAppService => [NewProjectTemplate],
-        AzurePostgres => [NewProjectTemplate],
-        _ => null
-    };
+        var normalizedName = NormalizeTemplateName(toolName);
+
+        var dependencyMap = new Dictionary<string, string[]>
+        {
+            [NewProjectTemplate] = [],
+            [NewProjectTemplateEnhanced] = [],
+            [VariableUpdate] = [],
+            [AzureDatabricks] = [NewProjectTemplate],
+            [AzureDatabricksEnhanced] = [NewProjectTemplateEnhanced],
+            [AzureVirtualMachine] = [NewProjectTemplate],
+            [AzureAppService] = [NewProjectTemplate],
+            [AzureAppServiceEnhanced] = [NewProjectTemplateEnhanced],
+            [AzurePostgres] = [NewProjectTemplate],
+            [AzurePostgresEnhanced] = [NewProjectTemplateEnhanced],
+            [ContactUs] = [NewProjectTemplate],
+            [AzureArcGis] = [NewProjectTemplate],
+            [AzureAPI] = [NewProjectTemplate],
+            [AzureAPIEnhanced] = [NewProjectTemplateEnhanced],
+            [AzurePostgresTemplateFile] = [NewProjectTemplate]
+        };
+
+        return dependencyMap.TryGetValue(normalizedName, out var dependencies)
+            ? dependencies
+            : null;
+    }
 #nullable disable
 
     public static List<TerraformTemplate> GetDependenciesToCreate(string name)
@@ -147,26 +246,10 @@ public class TerraformTemplate
             .ToList() ?? throw new ArgumentException($"Unknown template name: {name}");
     }
 
-#nullable enable
-    public static IEnumerable<string>? GetPreCreatedResourceNames(string toolName) => toolName switch
-    {
-        NewProjectTemplate => [AzureStorageBlob],
-        _ => []
-    };
-#nullable disable
-
-    public static List<TerraformTemplate> GetPreCreatedResources(string name, string status)
-    {
-        return GetPreCreatedResourceNames(name)
-            .Select(t => new TerraformTemplate(t, status, DateTime.UtcNow))
-            .ToList() ?? throw new ArgumentException($"Unknown template name: {name}");
-    }
-
     public static string MapHealthResourceTypeToTemplateConstant(InfrastructureHealthResourceType resourceType)
     {
         return resourceType switch
         {
-            InfrastructureHealthResourceType.AzureStorageAccount => GetTerraformServiceType(AzureStorageBlob),
             InfrastructureHealthResourceType.AzureDatabricks => GetTerraformServiceType(AzureDatabricks),
             InfrastructureHealthResourceType.AzureWebApp => GetTerraformServiceType(AzureAppService),
             InfrastructureHealthResourceType.AzureSqlDatabase => GetTerraformServiceType(AzurePostgres),

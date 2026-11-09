@@ -1,0 +1,263 @@
+@using GcdsWrapper.Blazor
+@inject ICultureService _cultureService
+
+<section id="support-request-form" role="region" aria-labelledby="support-request-heading">
+    <MudPaper Elevation="0" Outlined Class="help-card d-flex flex-column py-2 px-3 flex-1" style="min-height:22rem">
+        <GcdsHeading Id="support-request-heading" Tag="h2" MarginTop="200">
+            @Localizer["{0} Support Request", Localizer["MainAcronym"]]
+        </GcdsHeading>
+        @if (_currentStep > StartStep)
+        {
+            <GcdsStepper CurrentStep="@(_currentStep - StartStep)" TotalSteps="@TotalSteps" Tag="h3" lang="@Language">
+                @StepHeading
+            </GcdsStepper>
+        }
+
+        @if (_currentStep == StartStep)
+        {
+            <GcdsText>@Localizer["Need a hand? We've got you covered."]</GcdsText>
+            <GcdsText>
+                @Localizer["To report an issue or request assistance, please use the {0} Support Request Form", Localizer["MainAcronym"]]
+            </GcdsText>
+        }
+        else if (_currentStep == TopicsStep)
+        {
+            <GcdsCheckboxes Name="support-request-topics"
+                            Legend="@Localizer["What are you having trouble with? (Please select all that apply)"]"
+                            Options="@TopicOptions"
+                            @bind-Value="_selectedTopics" />
+        }
+        else if (_currentStep == DescriptionStep)
+        {
+            <GcdsTextarea Id="support-request-description"
+                          Name="support-request-description"
+                          Label="@DescriptionLabel"
+                          ErrorMessage="@DescriptionErrorMessage"
+                          Required
+                          Rows="5"
+                          @bind-Value="_description"
+                          @bind-Value:after="ClearDescriptionError" />
+        }
+        else if (_currentStep == WorkspacesStep)
+        {
+            @if (Workspaces.Count > 0)
+            {
+                <GcdsCheckboxes Name="support-request-workspaces"
+                                Legend="@Localizer["Please indicate which workspaces you have this issue in. (Please select all that apply)"]"
+                                Options="@WorkspaceOptions"
+                                @bind-Value="_selectedWorkspaces" />
+            }
+            else
+            {
+                <GcdsText>@Localizer["You do not currently have any workspaces to select."]</GcdsText>
+            }
+        }
+        else if (_currentStep == LanguageStep)
+        {
+            <GcdsRadios Name="support-request-language"
+                        Legend="@Localizer["Please indicate which language you would like to be contacted in."]"
+                        Options="@LanguageOptions"
+                        Required
+                        @bind-Value="_preferredLanguage" />
+        }
+        else
+        {
+            <GcdsText>
+                @Localizer["Please confirm the following. If you see any errors, use the Previous button to change them. Otherwise, click Submit to submit your ticket."]
+            </GcdsText>
+            <GcdsText>
+                <ul>
+                    <li><strong>@Localizer["Ticket Topics"]:</strong> @FormatTopics()</li>
+                    <li><strong>@Localizer["Workspaces"]:</strong> @FormatWorkspaces()</li>
+                    <li><strong>@Localizer["Ticket Description"]:</strong> @_description</li>
+                    <li><strong>@Localizer["Preferred Contact Language"]:</strong> @PreferredLanguageLabel</li>
+                </ul>
+            </GcdsText>
+        }
+
+        <MudGrid Class="mt-auto pt-4 pb-3">
+            <MudItem xs="6" Class="d-flex justify-start">
+                @if (_currentStep == TopicsStep)
+                {
+                    <GcdsButton Type="GcdsButtonType.Button" Role="GcdsButtonRole.Danger" OnClick="BackAsync">
+                        @Localizer["Close"]
+                    </GcdsButton>
+                }
+                else if (_currentStep > TopicsStep)
+                {
+                    <GcdsButton Type="GcdsButtonType.Button" Role="GcdsButtonRole.Secondary" OnClick="BackAsync">
+                        @Localizer["Previous"]
+                    </GcdsButton>
+                }
+            </MudItem>
+            <MudItem xs="6" Class="d-flex justify-end">
+                @if (_currentStep < ReviewStep)
+                {
+                    <GcdsButton Type="GcdsButtonType.Button" OnClick="NextAsync">
+                        @(_currentStep == StartStep ? Localizer["Get Started"] : Localizer["Next"])
+                    </GcdsButton>
+                }
+                else
+                {
+                    <GcdsButton Type="GcdsButtonType.Button" OnClick="SubmitAsync" Disabled="@_isSubmitting">
+                        @(_isSubmitting ? Localizer["Submitting request..."] : Localizer["Submit"])
+                    </GcdsButton>
+                }
+            </MudItem>
+        </MudGrid>
+    </MudPaper>
+</section>
+
+@code {
+    private const int StartStep = 1;
+    private const int TopicsStep = 2;
+    private const int DescriptionStep = 3;
+    private const int WorkspacesStep = 4;
+    private const int LanguageStep = 5;
+    private const int ReviewStep = 6;
+    private const int TotalSteps = 5;
+
+    private static readonly string[] TopicValues =
+    [
+        "Workspace",
+        "Databricks",
+        "Storage",
+        "PostgreSQL",
+        "Web App",
+        "User Management",
+        "Documentation",
+        "Tool Requesting",
+        "Extended Storage Token",
+        "Other"
+    ];
+
+    [Parameter, EditorRequired]
+    public IReadOnlyCollection<string> Workspaces { get; set; } = [];
+
+    [Parameter]
+    public EventCallback<SupportRequestFormData> OnSubmit { get; set; }
+
+    private int _currentStep = StartStep;
+    private string[]? _selectedTopics = [];
+    private string[]? _selectedWorkspaces = [];
+    private string? _description;
+    private string? _preferredLanguage = "en";
+    private bool _showDescriptionError;
+    private bool _isSubmitting;
+
+    private string Language => _cultureService.IsFrench
+        ? ICultureService.CanadaFrench
+        : ICultureService.CanadaEnglish;
+
+    private string StepHeading => _currentStep switch
+    {
+        TopicsStep => Localizer["Select support request topics"],
+        DescriptionStep => Localizer["Describe your support request"],
+        WorkspacesStep => Localizer["Select affected workspaces"],
+        LanguageStep => Localizer["Choose your preferred contact language"],
+        _ => Localizer["Review your support request"]
+    };
+
+    private string DescriptionLabel => (_selectedTopics ?? []).Contains("Extended Storage Token", StringComparer.Ordinal)
+        ? Localizer["Please describe why you need an extended storage token and any additional information for your request."]
+        : Localizer["Please provide additional information that we can use to investigate this issue."];
+
+    private string? DescriptionErrorMessage => _showDescriptionError
+        ? Localizer["Please provide a description."]
+        : null;
+
+    private IReadOnlyCollection<GcdsCheckboxOption> TopicOptions => TopicValues
+        .Select((topic, index) => new GcdsCheckboxOption($"support-topic-{index}", Localizer[topic], topic))
+        .ToArray();
+
+    private IReadOnlyCollection<GcdsCheckboxOption> WorkspaceOptions => Workspaces
+        .Select((workspace, index) => new GcdsCheckboxOption($"support-workspace-{index}", workspace, workspace))
+        .ToArray();
+
+    private IReadOnlyCollection<GcdsRadioOption> LanguageOptions =>
+    [
+        new("support-language-en", Localizer["English"], "en"),
+        new("support-language-fr", Localizer["French"], "fr")
+    ];
+
+    private string PreferredLanguageLabel => _preferredLanguage == "fr"
+        ? Localizer["French"]
+        : Localizer["English"];
+
+    private Task NextAsync()
+    {
+        if (_currentStep == DescriptionStep && string.IsNullOrWhiteSpace(_description))
+        {
+            _showDescriptionError = true;
+            return Task.CompletedTask;
+        }
+
+        if (_currentStep < ReviewStep)
+        {
+            _currentStep++;
+        }
+
+        return InvokeAsync(StateHasChanged);
+    }
+
+    private Task BackAsync()
+    {
+        if (_currentStep > StartStep)
+        {
+            _currentStep--;
+        }
+
+        return InvokeAsync(StateHasChanged);
+    }
+
+    private async Task SubmitAsync()
+    {
+        if (_isSubmitting || string.IsNullOrWhiteSpace(_description))
+        {
+            return;
+        }
+
+        _isSubmitting = true;
+        try
+        {
+            var request = new SupportRequestFormData(
+                _selectedTopics ?? [],
+                _selectedWorkspaces ?? [],
+                _description.Trim(),
+                _preferredLanguage ?? "en");
+
+            await OnSubmit.InvokeAsync(request);
+            Reset();
+        }
+        finally
+        {
+            _isSubmitting = false;
+        }
+    }
+
+    private void ClearDescriptionError()
+    {
+        if (!string.IsNullOrWhiteSpace(_description))
+        {
+            _showDescriptionError = false;
+        }
+    }
+
+    private string FormatTopics() => _selectedTopics is { Length: > 0 }
+        ? string.Join(", ", _selectedTopics.Select(topic => Localizer[topic]))
+        : Localizer["Issue"];
+
+    private string FormatWorkspaces() => _selectedWorkspaces is { Length: > 0 }
+        ? string.Join(", ", _selectedWorkspaces)
+        : Localizer["N/A"];
+
+    private void Reset()
+    {
+        _currentStep = StartStep;
+        _selectedTopics = [];
+        _selectedWorkspaces = [];
+        _description = null;
+        _preferredLanguage = "en";
+        _showDescriptionError = false;
+    }
+}

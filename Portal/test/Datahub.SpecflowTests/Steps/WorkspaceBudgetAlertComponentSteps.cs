@@ -5,11 +5,11 @@ using Datahub.Infrastructure.Offline;
 using Datahub.Portal.Pages.Workspace;
 using Datahub.SpecflowTests.Utils;
 using FluentAssertions;
+using GcdsWrapper.Blazor;
 using Microsoft.AspNetCore.Hosting;
 using Microsoft.Extensions.DependencyInjection;
 using MudBlazor.Services;
 using Reqnroll;
-using Xunit;
 
 namespace Datahub.SpecflowTests.Steps;
 
@@ -47,16 +47,16 @@ public class WorkspaceBudgetAlertComponentSteps(
     {
         var workspaceBudgetAlert = scenarioContext["workspaceBudgetAlert"] as IRenderedComponent<WorkspaceBudgetAlert>;
 
-        Assert.Throws<ElementNotFoundException>(() => { workspaceBudgetAlert!.Find(".mud-alert"); });
+        workspaceBudgetAlert!.FindComponents<GcdsNotice>().Should().BeEmpty();
     }
 
-    [Then(@"the alert should be rendered with (.*) budget and (.*) class")]
-    public void ThenTheAlertShouldBeRenderedWithBudgetAndClass(decimal percent, string classname)
+    [Then(@"the alert should be rendered with (.*) budget and the (.*) notice role")]
+    public void ThenTheAlertShouldBeRenderedWithBudgetAndNoticeRole(decimal percent, string role)
     {
         var workspaceBudgetAlert = scenarioContext["workspaceBudgetAlert"] as IRenderedComponent<WorkspaceBudgetAlert>;
 
-        var alert = workspaceBudgetAlert!.Find(".mud-alert");
-        alert.ClassList.Should().Contain(classname);
-        alert.TextContent.Should().Contain(percent.ToString(CultureInfo.InvariantCulture));
+        var notice = workspaceBudgetAlert!.FindComponent<GcdsNotice>();
+        notice.Instance.NoticeRole.Should().Be(role);
+        notice.Instance.NoticeTitle.Should().Contain(percent.ToString(CultureInfo.InvariantCulture));
     }
 }

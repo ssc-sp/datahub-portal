@@ -9,9 +9,8 @@ namespace Datahub.Core.Extensions
     {
         public static string? GetResourceGroupName(this Datahub_Project project)
         {
-            var newProjectTemplateType =
-                TerraformTemplate.GetTerraformServiceType(TerraformTemplate.NewProjectTemplate);
-            var newProjectResource = project.Resources?.FirstOrDefault(r => r.ResourceType == newProjectTemplateType);
+            var newProjectResource = project.Resources?.FirstOrDefault(r =>
+                TerraformTemplate.WorkspaceTemplateServiceTypes.Contains(r.ResourceType));
             if (newProjectResource is not null && newProjectResource.CreatedAt.HasValue)
             {
                 if (string.IsNullOrEmpty(newProjectResource.JsonContent))
@@ -19,8 +18,8 @@ namespace Datahub.Core.Extensions
                     throw new Exception("Resource group name not found");
                 }
                 var jsonContent = JsonSerializer.Deserialize<JsonObject>(newProjectResource.JsonContent);
-                string rgName = jsonContent?["resource_group_name"]?.ToString() ?? throw new Exception("Resource group name not found");
-                if (rgName == "Missing") throw new Exception("Resource group name not found");
+                string? rgName = jsonContent?["resource_group_name"]?.ToString();
+                if (rgName is null || rgName == "Missing") throw new Exception($"Resource group name not found for {project.Project_Acronym_CD}");
                 return rgName;
             }
             return null;
@@ -44,17 +43,25 @@ namespace Datahub.Core.Extensions
 
         public static string GetResourceGroupNameFromBlob(this Datahub_Project project)
         {
-            var blobStorageTemplateType = TerraformTemplate.GetTerraformServiceType(TerraformTemplate.AzureStorageBlob);
-            var blobStorageResource = project.Resources?.FirstOrDefault(r => r.ResourceType == blobStorageTemplateType);
+            var blobStorageResource = project.Resources?.FirstOrDefault(r =>
+                TerraformTemplate.WorkspaceTemplateServiceTypes.Contains(r.ResourceType));
             if (blobStorageResource is not null && blobStorageResource.CreatedAt.HasValue)
             {
                 if (string.IsNullOrEmpty(blobStorageResource.JsonContent))
                 {
                     throw new Exception("Resource group name not found");
                 }
-                var jsonContent = JsonSerializer.Deserialize<JsonObject>(blobStorageResource.JsonContent)!;
-                var rgName = jsonContent["resource_group_name"]!.ToString();
-                if (rgName == "Missing") throw new Exception("Resource group name not found");
+
+                var jsonContent = JsonSerializer.Deserialize<JsonObject>(blobStorageResource.JsonContent);
+                if (jsonContent is null ||
+                    !jsonContent.TryGetPropertyValue("resource_group_name", out var resourceGroupNameNode) ||
+                    resourceGroupNameNode is null)
+                {
+                    throw new Exception("Resource group name not found");
+                }
+
+                var rgName = resourceGroupNameNode.ToString();
+                if (string.IsNullOrWhiteSpace(rgName) || rgName == "Missing") throw new Exception("Resource group name not found");
                 return rgName;
             }
 

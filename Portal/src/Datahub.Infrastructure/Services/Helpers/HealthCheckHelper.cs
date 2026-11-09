@@ -66,7 +66,7 @@ namespace Datahub.Infrastructure.Services.Helpers
         IWorkspaceWebAppManagementService workspaceWebAppManagementService,
         IConfiguration configuration,
         IHttpClientFactory httpClientFactory,
-        ILoggerFactory loggerFactory,
+        ILogger<HealthCheckHelper> logger,
         AzAccessTokenManager tokenManager,
         ISendEndpointProvider sendEndpointProvider,
         IResourceMessagingService resourceMessagingService,
@@ -75,7 +75,6 @@ namespace Datahub.Infrastructure.Services.Helpers
         IHttpContextAccessor? httpContextAccessor = null,   // MADE OPTIONAL & NULLABLE
         IGCNotifyService? gcNotifyService = null)
     {
-        private readonly ILogger<HealthCheckHelper> logger = loggerFactory.CreateLogger<HealthCheckHelper>();
         private readonly IHttpContextAccessor? _httpContextAccessor = httpContextAccessor; // nullable now
         private readonly IGCNotifyService? gcNotifyService = gcNotifyService;
 
@@ -171,7 +170,7 @@ namespace Datahub.Infrastructure.Services.Helpers
         }
 
 
-        // TODO: Verify correct key vault addresses
+        // TODO: Verify correct key vault addresses 
         /// <summary>
         /// Function that gets the Azure Key Vault URL based on the request.
         /// </summary>
@@ -312,84 +311,12 @@ namespace Datahub.Infrastructure.Services.Helpers
         /// </summary>
         /// <param name="request"></param>
         /// <returns>An IntermediateHealthCheckResult indicating the result of the check.</returns>
-        public async Task<IntermediateHealthCheckResult> CheckAzureStorageAccount(InfrastructureHealthCheckMessage request)
+        public async Task<IntermediateHealthCheckResult?> CheckAzureStorageAccount(InfrastructureHealthCheckMessage request)
         {
-            var errors = new List<string>();
-            var status = InfrastructureHealthStatus.Healthy;
-
-            // Get the projects that match the request.Name
-            try
-            {
-                await using var ctx = await dbContextFactory.CreateDbContextAsync();
-
-                var project = await ctx.Projects
-                    .AsNoTracking()
-                    .Include(p => p.Resources)
-                    .FirstOrDefaultAsync(p => p.Project_Acronym_CD == request.Name);
-
-                if (project == null)
-                {
-                    status = InfrastructureHealthStatus.Unhealthy;
-                    errors.Add("Unable to retrieve project.");
-                }
-                else
-                {
-                    var isRequested = TerraformVariableExtraction.IsResourceRequested(project, TerraformTemplate.AzureStorageBlob);
-
-                    if (!isRequested)
-                    {
-                        status = InfrastructureHealthStatus.Undefined;
-                    }
-                    else
-                    {
-                        string accountName = projectStorageConfigurationService.GetProjectStorageAccountName(request.Name);
-                        var accountKey = await projectStorageConfigurationService.GetProjectStorageAccountKey(request.Name);
-
-                        if (accountKey is null)
-                        {
-                            status = InfrastructureHealthStatus.Undefined;
-                            errors.Add("System cannot access storage account (expected in Protected B)");
-                        }
-                        else
-                        {
-                            var projectStorageManager = new AzureCloudStorageManager(accountName, accountKey);
-
-                            if (projectStorageManager is null)
-                            {
-                                status = InfrastructureHealthStatus.Unhealthy;
-                                errors.Add("Unable to find the data container.");
-                            }
-                            else
-                            {
-                                var containers = await projectStorageManager.GetContainersAsync();
-                                if (containers is null || containers.Count < 1)
-                                {
-                                    errors.Add("Storage account appears to have no containers.");
-                                    status = InfrastructureHealthStatus.Degraded;
-                                }
-                                else
-                                {
-                                    var metadata = await projectStorageManager.GetStorageMetadataAsync(containers[0]);
-                                    if (metadata is null)
-                                    {
-                                        errors.Add("Unable to get container metadata. There may be something wrong with the container.");
-                                        status = InfrastructureHealthStatus.Degraded;
-                                    }
-                                }
-                            }
-                        }
-                    }
-                }
-            }
-            catch (Exception ex)
-            {
-                status = InfrastructureHealthStatus.Unhealthy;
-                errors.Add("Error while verifying project storage. " + ex.GetType().ToString());
-                errors.Add($"Details: {ex.Message}");
-            }
-
-            return new(status, errors);
+            return await TriggerWorkspaceRBACSync(request);
         }
+
+
 
         public async Task<IntermediateHealthCheckResult?> TriggerWorkspaceRBACSync(InfrastructureHealthCheckMessage request)
         {
@@ -508,8 +435,8 @@ namespace Datahub.Infrastructure.Services.Helpers
                 // [VB] Datahub SP has different default subscription: we have explicitely select correct one 
                 //var subscription = await armClient.GetDefaultSubscriptionAsync();
                 var subscriptionResourceId = SubscriptionResource.CreateResourceIdentifier(portalConfiguration.SubscriptionId);
-                var subscription = armClient.GetSubscriptionResource(subscriptionResourceId); 
-                
+                var subscription = armClient.GetSubscriptionResource(subscriptionResourceId);
+
                 var resourceGroup = await subscription.GetResourceGroupAsync($"fsdh-{configuration.GetCurrentEnvironment()}-rg");
                 var functionApp = await resourceGroup.Value.GetWebSiteAsync($"{InfrastructureHealthCheckConstants.FSDHFunctionPrefix}-{configuration.GetCurrentEnvironment()}");
                 var hostKeys = await functionApp.Value.GetHostKeysAsync();
@@ -706,7 +633,7 @@ namespace Datahub.Infrastructure.Services.Helpers
                     if (!isRequested)
                     {
                         status = InfrastructureHealthStatus.Undefined;
-                    } 
+                    }
                     else if (appServiceConfig is null)
                     {
                         errors.Add("Unable to retrieve App Service configuration from project resource.");
@@ -762,7 +689,7 @@ namespace Datahub.Infrastructure.Services.Helpers
         /// <param name="request"></param>
         /// <returns>An InfrastructureHealthCheckResponse, containing InfrastructureHealthCheck record and list of errors.</returns>
         /// <exception cref="InvalidOperationException"></exception>
-        public async Task<InfrastructureHealthCheckResponse> RunHealthCheck(InfrastructureHealthCheckMessage request)
+        public async Task<InfrastructureHealthCheckResponse> RunHealthCheck(InfrastructureHealthCheckMessage request, bool persistResult = true)
         {
             var intermediateResult = request?.Type switch
             {
@@ -797,8 +724,10 @@ namespace Datahub.Infrastructure.Services.Helpers
                     Details = details,
                 };
 
-                await StoreHealthCheck(result);
-                await StoreHealthCheckRun(result);
+                if (persistResult)
+                {
+                    await StoreHealthCheck(result);
+                }
 
                 return new(result, intermediateResult.Errors);
             }
@@ -824,6 +753,8 @@ namespace Datahub.Infrastructure.Services.Helpers
         private bool IsLocalEnvironment => string.IsNullOrEmpty(configuration.GetCurrentEnvironment()) || configuration.GetCurrentEnvironment() == "local";
 
         private string DefaultFunctionUrl => $"https://{InfrastructureHealthCheckConstants.FSDHFunctionPrefix}-{configuration.GetCurrentEnvironment()}.azurewebsites.net";
+
+        private const int MaxHealthCheckConcurrency = 4;
 
         /// <summary>
         /// Function that runs all infrastructure health checks.
@@ -860,9 +791,26 @@ namespace Datahub.Infrastructure.Services.Helpers
                 new(InfrastructureHealthResourceType.AsureServiceBus, InfrastructureHealthCheckConstants.PoisonQueueRequestGroup, q)
             });
 
-            var allChecks = coreChecks.Concat(workspaceChecks).Concat(queueChecks);
+            var allChecks = coreChecks.Concat(workspaceChecks).Concat(queueChecks).ToList();
+            using var throttler = new SemaphoreSlim(MaxHealthCheckConcurrency, MaxHealthCheckConcurrency);
 
-            var results = await Task.WhenAll(allChecks.Select(RunHealthCheck));
+            var results = await Task.WhenAll(allChecks.Select(async request =>
+            {
+                await throttler.WaitAsync();
+                try
+                {
+                    return await RunHealthCheck(request, persistResult: false);
+                }
+                finally
+                {
+                    throttler.Release();
+                }
+            }));
+
+            await StoreHealthChecks(results
+                .Select(r => r.Check)
+                .Where(check => check is not null)
+                .Cast<InfrastructureHealthCheck>());
 
             return results;
         }
@@ -877,60 +825,6 @@ namespace Datahub.Infrastructure.Services.Helpers
             Status = healthCheck.Status,
             Url = healthCheck.Url,
         };
-
-        public async Task StoreHealthCheck(InfrastructureHealthCheck check)
-        {
-            if (string.IsNullOrEmpty(check.Name) || string.IsNullOrEmpty(check.Group))
-            {
-                logger.LogWarning("Got a health check with empty identifier");
-                return;
-            }
-
-            await using var ctx = await dbContextFactory.CreateDbContextAsync();
-
-            var existingChecks = await ctx.InfrastructureHealthChecks
-                .Where(c => c.Group == check.Group && c.Name == check.Name && c.ResourceType == check.ResourceType)
-                .ToListAsync();
-
-            if (existingChecks?.Count > 0)
-            {
-                ctx.InfrastructureHealthChecks.RemoveRange(existingChecks);
-            }
-
-            ctx.InfrastructureHealthChecks.Add(CloneWithoutId(check));
-
-            try
-            {
-                await ctx.SaveChangesAsync();
-            }
-            catch (Exception ex)
-            {
-                logger.LogError(ex, $"Error saving health check (type: {check.ResourceType}; group: {check.Group}; name: {check.Name})");
-            }
-
-        }
-
-        public async Task StoreHealthCheckRun(InfrastructureHealthCheck check)
-        {
-            if (string.IsNullOrEmpty(check.Name) || string.IsNullOrEmpty(check.Group))
-            {
-                logger.LogWarning("Got a health check run with empty identifier");
-                return;
-            }
-
-            await using var ctx = await dbContextFactory.CreateDbContextAsync();
-
-            ctx.InfrastructureHealthCheckRuns.Add(CloneWithoutId(check));
-
-            try
-            {
-                await ctx.SaveChangesAsync();
-            }
-            catch (Exception ex)
-            {
-                logger.LogError(ex, $"Error saving health check run (type: {check.ResourceType}; group: {check.Group}; name: {check.Name})");
-            }
-        }
 
         public BugReportMessage? CreateBugReportMessage(InfrastructureHealthCheck result)
         {
@@ -972,6 +866,64 @@ namespace Datahub.Infrastructure.Services.Helpers
                 return correlationId.ToString();
             }
             return Guid.NewGuid().ToString();
+        }
+
+        public async Task StoreHealthCheck(InfrastructureHealthCheck check)
+        {
+            await StoreHealthChecks([check]);
+        }
+
+        public async Task StoreHealthChecks(IEnumerable<InfrastructureHealthCheck> checks)
+        {
+            var checksToStore = (checks ?? [])
+                .Where(check => check is not null && !string.IsNullOrEmpty(check.Name) && !string.IsNullOrEmpty(check.Group))
+                .Select(CloneWithoutId)
+                .ToList();
+
+            if (checksToStore.Count == 0)
+            {
+                return;
+            }
+
+            await using var ctx = await dbContextFactory.CreateDbContextAsync();
+
+            var checkKeys = checksToStore
+                .Select(check => new { check.Group, check.Name, check.ResourceType })
+                .Distinct()
+                .ToList();
+
+            foreach (var check in checksToStore)
+            {
+                var existingCheckRecords = await ctx.InfrastructureHealthChecks
+                    .Where(existing => existing.Group == check.Group && existing.Name == check.Name && existing.ResourceType == check.ResourceType)
+                    .ToListAsync();
+
+                if (existingCheckRecords.Count > 0)
+                {
+                    ctx.InfrastructureHealthChecks.RemoveRange(existingCheckRecords);
+                }
+
+                var existingRunRecords = await ctx.InfrastructureHealthCheckRuns
+                    .Where(existing => existing.Group == check.Group && existing.Name == check.Name && existing.ResourceType == check.ResourceType)
+                    .ToListAsync();
+
+                if (existingRunRecords.Count > 0)
+                {
+                    ctx.InfrastructureHealthCheckRuns.RemoveRange(existingRunRecords);
+                }
+            }
+
+            ctx.InfrastructureHealthChecks.AddRange(checksToStore);
+            ctx.InfrastructureHealthCheckRuns.AddRange(checksToStore);
+
+            try
+            {
+                await ctx.SaveChangesAsync();
+            }
+            catch (Exception ex)
+            {
+                logger.LogError(ex, $"Error saving {checksToStore.Count} health checks");
+            }
         }
     }
 

@@ -1,12 +1,13 @@
+@using GcdsWrapper.Blazor
 <MudStack>
-    <MudText>
+    <GcdsText MarginBottom="0">
         <strong>
             @Label
         </strong>
-    </MudText>
-    <MudText>
+    </GcdsText>
+    <GcdsText MarginBottom="0" MarginTop="0">
         @Description
-    </MudText>
+    </GcdsText>
     <MudElement>
         @ChildContent
     </MudElement>

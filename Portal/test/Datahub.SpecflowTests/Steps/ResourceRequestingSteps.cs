@@ -160,7 +160,6 @@ namespace Datahub.SpecflowTests.Steps
             nameof(TerraformTemplate.AzureArcGis) => TerraformTemplate.AzureArcGis,
             nameof(TerraformTemplate.AzureDatabricks) => TerraformTemplate.AzureDatabricks,
             nameof(TerraformTemplate.AzurePostgres) => TerraformTemplate.AzurePostgres,
-            nameof(TerraformTemplate.AzureStorageBlob) => TerraformTemplate.AzureStorageBlob,
             nameof(TerraformTemplate.AzureVirtualMachine) => TerraformTemplate.AzureVirtualMachine,
             nameof(TerraformTemplate.ContactUs) => TerraformTemplate.ContactUs,
             nameof(TerraformTemplate.NewProjectTemplate) => TerraformTemplate.NewProjectTemplate,

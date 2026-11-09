@@ -25,7 +25,6 @@ using Microsoft.Extensions.Logging;
 using Newtonsoft.Json;
 using Newtonsoft.Json.Linq;
 using NSubstitute;
-using Octokit;
 using Reqnroll;
 using System.IO;
 using System.Text;

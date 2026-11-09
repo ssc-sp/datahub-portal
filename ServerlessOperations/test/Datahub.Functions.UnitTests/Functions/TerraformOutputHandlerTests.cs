@@ -83,7 +83,7 @@ public class TerraformOutputHandlerTests
             {
                 Project = project,
                 RequestedBy = currentPortalUser,
-                ResourceType = TerraformTemplate.GetTerraformServiceType(TerraformTemplate.AzureStorageBlob),
+                ResourceType = TerraformTemplate.GetTerraformServiceType(TerraformTemplate.NewProjectTemplate),
                 RequestedAt = laterequest,
                 Status = TerraformStatus.CreateRequested
             },
@@ -154,7 +154,7 @@ public class TerraformOutputHandlerTests
         {
             Project = project,
             RequestedBy = currentPortalUser,
-            ResourceType = TerraformTemplate.GetTerraformServiceType(TerraformTemplate.AzureStorageBlob)
+            ResourceType = TerraformTemplate.GetTerraformServiceType(TerraformTemplate.NewProjectTemplate)
         };
 
         _context.Project_Resources2.Add(storageResource);
@@ -467,6 +467,40 @@ public class TerraformOutputHandlerTests
         Assert.That(updatedProject, Is.Not.Null);
     }
 
+    [TestCase(TerraformTemplate.NewProjectTemplate)]
+    [TestCase(TerraformTemplate.NewProjectTemplateEnhanced)]
+    public async Task ShouldCompleteWorkspaceTemplateResource(string workspaceTemplate)
+    {
+        var resource = new Project_Resources2
+        {
+            ResourceType = TerraformTemplate.GetTerraformServiceType(workspaceTemplate),
+            Status = TerraformStatus.CreateRequested
+        };
+
+        var project = new Datahub_Project
+        {
+            Project_Acronym_CD = $"WS{Guid.NewGuid():N}"[..10].ToUpper(),
+            Resources = [resource]
+        };
+
+        _context.Projects.Add(project);
+        await _context.SaveChangesAsync();
+
+        var outputVariables = JsonSerializer.Deserialize<Dictionary<string, TerraformOutputVariable>>(
+            TerraformOutputHelper.GetExpectedTerraformOutput(project),
+            new JsonSerializerOptions { PropertyNameCaseInsensitive = true });
+
+        await _terraformOutputHandler.ProcessWorkspaceStatus(outputVariables!);
+        await _terraformOutputHandler.ProcessAzureStorageBlob(outputVariables!);
+
+        var updatedResource = await _context.Project_Resources2
+            .AsNoTracking()
+            .SingleAsync(r => r.ProjectId == project.Project_ID);
+
+        Assert.That(updatedResource.Status, Is.EqualTo(TerraformStatus.Completed));
+        Assert.That(updatedResource.JsonContent, Does.Contain("storage_account"));
+    }
+
     [Test]
     public async Task Run_ShouldThrowOnBadParams()
     {
@@ -487,7 +521,7 @@ public class TerraformOutputHandlerTests
         Func<Task> act = async () => await _terraformOutputHandler.RunAsync(serviceBusReceivedMessage);
 
         // Assert
-        await act.Should().ThrowAsync<Exception>().WithMessage("The given key 'project_cd' was not present in the dictionary.");
+        await act.Should().NotThrowAsync();
     }
 
     [Test]

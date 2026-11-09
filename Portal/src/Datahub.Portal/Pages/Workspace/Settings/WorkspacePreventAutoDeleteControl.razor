@@ -1,7 +1,8 @@
 @using Datahub.Portal.Pages.Account
+@using GcdsWrapper.Blazor
 
 <SettingsField Label="@Localizer["Prevent auto-delete"]" Description="@Localizer["This setting will prevent the workspace from being automatically deleted after a period of inactivity or from going over budget"]">
-    <MudCheckBox T="bool" Value="@_autoDelete" Disabled="@Disabled" ValueChanged="@HandleValueChanged" Label="@Localizer["Prevent auto-delete"]" />
+    <GcdsCheckboxes Name="prevent-auto-delete" Legend="@Localizer["Prevent auto-delete"]" Options="@PreventAutoDeleteOptions" Value="@PreventAutoDeleteValue" ValueChanged="HandleValueChanged" ValueExpression="@(() => PreventAutoDeleteValue)" Disabled="@Disabled" />
 </SettingsField>
 
 @code {
@@ -12,16 +13,21 @@
 
     private bool _autoDelete;
 
+    private IReadOnlyCollection<GcdsCheckboxOption> PreventAutoDeleteOptions =>
+        [new("prevent-auto-delete-option", Localizer["Prevent auto-delete"], "enabled")];
+
+    private string[] PreventAutoDeleteValue => _autoDelete ? ["enabled"] : [];
+
     protected override void OnInitialized()
     {
         base.OnInitialized();
         _autoDelete = InitialValue;
     }
     
-    private async Task HandleValueChanged(bool arg)
+    private async Task HandleValueChanged(string[]? values)
     {
-        _autoDelete = arg;
-        await OnValueChanged.InvokeAsync(arg);
+        _autoDelete = values?.Contains("enabled") == true;
+        await OnValueChanged.InvokeAsync(_autoDelete);
     }
 
 }

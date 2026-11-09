@@ -1,4 +1,3 @@
-using Datahub.Infrastructure.Services.Azure;
 using Datahub.Shared.Clients;
 using Datahub.Shared.Configuration;
 using Microsoft.Extensions.Configuration;

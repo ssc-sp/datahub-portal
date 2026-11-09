@@ -1,9 +1,6 @@
 using Azure.Core;
 using Datahub.Application.Services.Security;
-using System;
-using System.Collections.Generic;
 using System.Security.Claims;
-using System.Text;
 
 namespace Datahub.Functions.Services
 {

@@ -95,10 +95,10 @@ else
             return;
         }
 
-        var isValid = await _externalUserInvitationService.IsInvitationTokenValidAsync(InvitationToken);
+        var isValid = await _externalUserInvitationService.IsInvitationTokenExpired(InvitationToken);
         if (!isValid || !_gccfEnabled)
         {
-            _navigationManager.NavigateTo(PageRoutes.NotFound, forceLoad: true);
+            _navigationManager.NavigateTo(PageRoutes.ExternalInvitationExpired, forceLoad: true);
             return;
         }
 

@@ -1,4 +1,4 @@
-﻿using System.Reflection;
+using System.Reflection;
 using Bunit;
 using Bunit.TestDoubles;
 using Datahub.Application.Commands;
@@ -16,6 +16,7 @@ using Datahub.Portal.Layout;
 using Datahub.Portal.Pages.Workspace.Users;
 using Datahub.SpecflowTests.Utils;
 using FluentAssertions;
+using Google.Protobuf.WellKnownTypes;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Components.Forms;
 using Microsoft.AspNetCore.Hosting;
@@ -96,6 +97,23 @@ namespace Datahub.SpecflowTests.Steps
         [Given("the user is on the workspace users page")]
         public async Task GivenTheUserIsOnTheWorkspaceUsersPage()
         {
+            await RenderWorkspaceUsersPage(RoleConstants.WORKSPACE_LEAD_SUFFIX);
+        }
+
+        [Given("a Collaborator is on the workspace users page")]
+        public async Task GivenACollaboratorIsOnTheWorkspaceUsersPage()
+        {
+            await RenderWorkspaceUsersPage(RoleConstants.COLLABORATOR_SUFFIX);
+        }
+
+        [Given("an Admin is on the workspace users page")]
+        public async Task GivenAnAdminIsOnTheWorkspaceUsersPage()
+        {
+            await RenderWorkspaceUsersPage(RoleConstants.ADMIN_SUFFIX);
+        }
+
+        private async Task RenderWorkspaceUsersPage(string currentUserWorkspaceRoleSuffix)
+        {
             ArgumentNullException.ThrowIfNull(hostingEnvironment);
 
             Services.AddSingleton(hostingEnvironment);
@@ -120,6 +138,11 @@ namespace Datahub.SpecflowTests.Steps
 
             var userInfoService = Substitute.For<IUserInformationService>();
             Services.AddSingleton(userInfoService);
+
+            var externalUserInvitationService = Substitute.For<IExternalUserInvitationService>();
+            externalUserInvitationService.CanInviteExternalUsers(Arg.Any<string>()).Returns(Task.FromResult(true));
+            Services.AddSingleton(externalUserInvitationService);
+
 
             var mockRequestManagementService = Substitute.For<IRequestManagementService>();
             Services.AddSingleton(mockRequestManagementService);
@@ -183,7 +206,9 @@ namespace Datahub.SpecflowTests.Steps
 
             var authContext = this.AddAuthorization();
             authContext.SetAuthorized("TEST USER");
-            authContext.SetRoles(RoleConstants.DATAHUB_ROLE_ADMIN, $"{workspace.Project_Acronym_CD}{RoleConstants.WORKSPACE_LEAD_SUFFIX}");
+            authContext.SetRoles(
+                RoleConstants.DATAHUB_ROLE_ADMIN,
+                $"{workspace.Project_Acronym_CD}{currentUserWorkspaceRoleSuffix}");
 
             Services.AddSingleton(mockAuthorizationPolicyProvider);
             Services.AddMudServices();
