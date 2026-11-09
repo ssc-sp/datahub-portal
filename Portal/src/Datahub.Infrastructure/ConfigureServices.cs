@@ -142,7 +142,7 @@ public static class ConfigureServices
         services.AddScoped<IQueuePongService, QueuePongService>();
         services.AddScoped<IGCNotifyService, GCNotifyService>();
         services.AddScoped<IResourceMessagingService, ResourceMessagingService>();
-        services.AddScoped<IProjectStorageConfigurationService, ProjectStorageConfigurationService>();
+        services.AddSingleton<IProjectStorageConfigurationService, ProjectStorageConfigurationService>();
         services.AddScoped<IProjectInactivityNotificationService, ProjectInactivityNotificationService>();
         services.AddScoped<IUserInactivityNotificationService, UserInactivityNotificationService>();
         services.AddScoped<IWorkspaceWebAppManagementService, WorkspaceWebAppManagementService>();

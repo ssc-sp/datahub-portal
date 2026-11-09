@@ -1,4 +1,4 @@
-﻿using Azure.Messaging.ServiceBus;
+using Azure.Messaging.ServiceBus;
 using Datahub.Core.Model.Context;
 using Datahub.Functions.Services;
 using Datahub.Infrastructure.Queues.Messages;
@@ -85,10 +85,11 @@ namespace Datahub.Functions.UnitTests.Functions
                 It.IsAny<Dictionary<string, string>>(),
                 It.IsAny<Dictionary<string, string>>()))
                 .Returns(emailRequestMessage);
+            await
 
-            // Act
-            //await _handler.Run(serviceBusReceivedMessage);
-            Assert.ThrowsAsync<SocketException>(async () => await _handler.Run(serviceBusReceivedMessage));
+                        // Act
+                        //await _handler.Run(serviceBusReceivedMessage);
+                        Assert.ThrowsAsync<SocketException>(async () => await _handler.Run(serviceBusReceivedMessage));
 
             // Assert
             _emailServiceMock.Verify(es => es.BuildEmail(

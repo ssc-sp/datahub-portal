@@ -309,9 +309,8 @@ public static class TerraformVariableExtraction
     /// <returns>The resource group name of the workspace if available; otherwise, null.</returns>
     public static string? ExtractWorkspaceResourceGroupName(Datahub_Project? workspace)
     {
-        var resourceGroupTemplateName = TerraformTemplate.GetTerraformServiceType(TerraformTemplate.NewProjectTemplate);
         return ExtractStringVariable(
-            workspace?.Resources?.FirstOrDefault(r => r.ResourceType == resourceGroupTemplateName)?.JsonContent,
+            GetWorkspaceTemplateResource(workspace)?.JsonContent,
             "resource_group_name");
     }
 
@@ -322,11 +321,13 @@ public static class TerraformVariableExtraction
     /// <returns>The Azure Storage Account name, or null if not found.</returns>
     public static string? ExtractAzureStorageAccountName(Datahub_Project? workspace)
     {
-        var storageAccountTemplateName = TerraformTemplate.GetTerraformServiceType(TerraformTemplate.NewProjectTemplate);
         return ExtractStringVariable(
-            workspace?.Resources?.FirstOrDefault(r => r.ResourceType == storageAccountTemplateName)?.JsonContent,
+            GetWorkspaceTemplateResource(workspace)?.JsonContent,
             "storage_account");
     }
+
+    private static Project_Resources2? GetWorkspaceTemplateResource(Datahub_Project? workspace) =>
+        workspace?.Resources?.FirstOrDefault(r => TerraformTemplate.WorkspaceTemplateServiceTypes.Contains(r.ResourceType));
 
     private static Project_Resources2? GetProjectResource(Datahub_Project? workspace, string terraformTemplateName)
     {

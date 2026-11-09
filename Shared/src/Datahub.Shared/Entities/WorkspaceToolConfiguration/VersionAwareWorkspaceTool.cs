@@ -19,6 +19,7 @@ public class VersionAwareWorkspaceToolInfo
     public Version MinAvailableVersion { get; set; } = ALWAYS;
     public bool CanBeDeleted { get; set; } = true;
     public bool IsDisabled { get; set; } = false;
+    public bool EnhancedPB { get; set; } = false;
     public (string Name, object[] Parameters) ToolCostInformation { get; set; } = ("No cost information available for this resource.", []);
     // Unfortunately, we can't use the IWorkspaceToolConfiguration interface here due to language constraints on static abstract members (error CS8920)
     public Func<object, (string Name, object[] Parameters)>? ToolCostSummaryFunction { get; set; } = (config) => (string.Empty, []);

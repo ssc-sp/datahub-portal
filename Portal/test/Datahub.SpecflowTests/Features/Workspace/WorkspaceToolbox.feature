@@ -111,7 +111,6 @@ the correct information in the page.
 	  | azure-databricks     | true      | true         | Datahub.Shared.Entities.WorkspaceToolConfiguration.DatabricksConfiguration | v5.2.1  |
 	  | azure-app-service    | true      | false        | null                                                                       | v5.0.6  |
 	  | azure-postgres       | true      | true         | Datahub.Shared.Entities.WorkspaceToolConfiguration.PostgresConfiguration   | v5.0.6  |
-	  | azure-arcgis         | false     | false        | null                                                                       | v5.0.6  |
 	  | azure-api            | false     | false        | null                                                                       | v5.0.6  |
 
     Scenario: User sees the appropriate tools in the summary after removing them
@@ -226,7 +225,6 @@ the correct information in the page.
       | azure-databricks     |
       | azure-app-service    |
       | azure-postgres       |
-      | azure-arcgis         |
       | azure-api            |
 
       # CONFIGURE AND REVIEW

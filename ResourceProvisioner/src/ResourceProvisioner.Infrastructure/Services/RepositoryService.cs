@@ -608,8 +608,8 @@ public async Task<PullRequestValueObject> CreateInfrastructurePullRequest(string
         //await ValidateWorkspaceVersion(command.Workspace);
 
 
-        // Execute each module but make sure the `new-project-template` module is first for creation
-        workspaceDefinition.Templates = workspaceDefinition.Templates.OrderBy(x => x.Name != TerraformTemplate.NewProjectTemplate).ToList();
+        // Execute each module but make sure the workspace template module is first for creation
+        workspaceDefinition.Templates = workspaceDefinition.Templates.OrderBy(x => !TerraformTemplate.IsWorkspaceTemplate(x.Name)).ToList();
 
         foreach (var resourcetemplate in workspaceDefinition.Templates)
         {
@@ -627,7 +627,7 @@ public async Task<PullRequestValueObject> CreateInfrastructurePullRequest(string
         {
             if (resourceTemplate.Status == TerraformStatus.DeleteRequested)
             {
-                if (resourceTemplate.Name == TerraformTemplate.NewProjectTemplate)
+                if (TerraformTemplate.IsWorkspaceTemplate(resourceTemplate.Name))
                 {
                     await terraformService.DeleteWorkspaceAsync(command.Workspace, command.ResourceGroupName);
                 }
@@ -682,14 +682,13 @@ public async Task<PullRequestValueObject> CreateInfrastructurePullRequest(string
     private async Task ExtractVariables(TerraformTemplate template, WorkspaceDefinition command)
     {
         await terraformService.ExtractVariables(template.Name, command);
-        switch (template.Name)
+        if (TerraformTemplate.IsWorkspaceTemplate(template.Name))
         {
-            case TerraformTemplate.NewProjectTemplate:
-                await terraformService.ExtractBackendConfig(command.Workspace.Acronym!);
-                break;
-            case TerraformTemplate.VariableUpdate:
-                await terraformService.ExtractAllVariables(command);
-                break;
+            await terraformService.ExtractBackendConfig(command.Workspace.Acronym!);
+        }
+        else if (template.Name == TerraformTemplate.VariableUpdate)
+        {
+            await terraformService.ExtractAllVariables(command);
         }
     }
 

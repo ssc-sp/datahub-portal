@@ -2,6 +2,17 @@ using static System.String;
 
 namespace Datahub.Shared.Entities.WorkspaceToolConfiguration
 {
+    public class AppServiceConfigurationEnhanced : AppServiceConfiguration
+    {
+        public static new IWorkspaceToolConfiguration ReadFromWorkspaceDefinition(WorkspaceDefinition workspaceDefinition) => workspaceDefinition.AppData.AppServiceConfiguration
+            ?? new AppServiceConfigurationEnhanced
+            {
+                Framework = AppServiceTemplates.CUSTOM,
+                GitRepo = string.Empty,
+                ComposePath = string.Empty
+            };
+    }
+
     public class AppServiceConfiguration : IWorkspaceToolConfiguration, IWorkspaceToolWithSuffix
     {
         public required string Framework { get; set; }

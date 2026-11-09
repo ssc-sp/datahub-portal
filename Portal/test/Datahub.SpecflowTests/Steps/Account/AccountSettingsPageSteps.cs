@@ -36,17 +36,17 @@ using Toolbelt.Blazor.Globalization;
 namespace Datahub.SpecflowTests.Steps.Account;
 
 [Binding]
-public class AccountPageSteps : BunitTestSteps
+public class AccountSettingsPageSteps : BunitTestSteps
 {
     private readonly ScenarioContext _scenarioContext;
-    private IRenderedComponent<CascadingAuthenticationState>? _accountPageRender;
+    private IRenderedComponent<CascadingAuthenticationState>? _accountSettingsPageRender;
     private readonly DatahubPortalConfiguration _portalConfig = new();
 
     private const string TEST_USER_EMAIL = "test@example.com";
     private const string TEST_USER_DISPLAY_NAME = "Test User";
     private const string TEST_USER_OID = "test-graph-id";
 
-    public AccountPageSteps(ScenarioContext scenarioContext)
+    public AccountSettingsPageSteps(ScenarioContext scenarioContext)
     {
         _scenarioContext = scenarioContext;
     }
@@ -159,7 +159,7 @@ public class AccountPageSteps : BunitTestSteps
         mockUserInfo.GetCurrentUserEntraId().Returns(TEST_USER_OID);
 
         Services.AddSingleton<IUserInformationService>(mockUserInfo);
-        Services.AddSingleton<ILogger<AccountPage>>(new LoggerFactory().CreateLogger<AccountPage>());
+        Services.AddSingleton<ILogger<AccountSettingsPage>>(new LoggerFactory().CreateLogger<AccountSettingsPage>());
 
         Services.AddSingleton(_portalConfig);
         Services.AddDatahubLocalization(_portalConfig);
@@ -212,59 +212,23 @@ public class AccountPageSteps : BunitTestSteps
         await SetupAuthenticationWithUser(false);
     }
 
-    [Given(@"the user is on the account page")]
-    public void GivenTheUserIsOnTheAccountPage()
+    [Given(@"the user is on the account settings page")]
+    public void GivenTheUserIsOnTheAccountSettingsPage()
     {
-        _accountPageRender = Render<CascadingAuthenticationState>(parameters =>
+        _accountSettingsPageRender = Render<CascadingAuthenticationState>(parameters =>
         {
-            parameters.AddChildContent<AccountPage>();
+            parameters.AddChildContent<AccountSettingsPage>();
         });
 
-        _scenarioContext["accountPage"] = _accountPageRender;
+        _scenarioContext["AccountSettingsPage"] = _accountSettingsPageRender;
     }
 
     [Then(@"the user should see their display name and email")]
     public void ThenTheUserShouldSeeTheirDisplayNameAndEmail()
     {
-        var render = _scenarioContext["accountPage"] as IRenderedComponent<CascadingAuthenticationState>;
+        var render = _scenarioContext["AccountSettingsPage"] as IRenderedComponent<CascadingAuthenticationState>;
         render!.Find(".mud-typography").TextContent.Should().Contain("Test User");
         render!.Find(".mud-typography.mud-typography-caption").TextContent.Should().Contain("test@example.com");
-    }
-
-    private IRenderedComponent<MudChip<string>>? FindLoginProviderChip(IRenderedComponent<CascadingAuthenticationState> render, bool gocLogin)
-    {
-        var which = gocLogin ? AccountPublicProfile.TRUSTED_LOGIN_TAG : AccountPublicProfile.EXTERNAL_USER_TAG;
-
-        var allChips = render.FindComponents<MudChip<string>>();
-        var loginChip = allChips.FirstOrDefault(c => c.Instance.Tag is string tagStr && tagStr == which);
-        return loginChip;
-    }
-
-    private void ThenTheUserShouldSeeTheirLoginProvider(bool gocLogin)
-    {
-        var render = _scenarioContext["accountPage"] as IRenderedComponent<CascadingAuthenticationState>;
-        var loginChip = FindLoginProviderChip(render!, gocLogin);
-        loginChip.Should().NotBeNull();
-    }
-
-    [Then(@"the user should see their GOC login provider chip")]
-    public void ThenTheUserShouldSeeTheirGocLoginProvider()
-    {
-        ThenTheUserShouldSeeTheirLoginProvider(true);
-    }
-
-    [Then(@"the user should see their external login provider chip")]
-    public void ThenTheUserShouldSeeTheirExternalLoginProvider()
-    {
-        ThenTheUserShouldSeeTheirLoginProvider(false);
-    }
-
-    [Then(@"the user should see their project")]
-    public void ThenTheUserShouldSeeTheirProject()
-    {
-        var render = _scenarioContext["accountPage"] as IRenderedComponent<CascadingAuthenticationState>;
-        var projectTitleComponent = render!.FindAll(".mud-typography").FirstOrDefault(c => c.TextContent.Contains("TEST1"));
-        projectTitleComponent.Should().NotBeNull();
     }
 
     // Helper auth/test classes copied from other test steps

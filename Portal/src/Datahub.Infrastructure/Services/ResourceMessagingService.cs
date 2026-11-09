@@ -44,6 +44,7 @@ public class ResourceMessagingService(
             .Include(p => p.Resources)
             .Include(p => p.DatahubAzureSubscription)
             .Include(p => p.ParentGCHostingBudget)
+            .Include(p => p.WorkspaceSubnets).ThenInclude(s => s.Subnet)
             .AsSingleQuery()
             .FirstOrDefaultAsync(p => p.Project_Acronym_CD == projectAcronym);
 

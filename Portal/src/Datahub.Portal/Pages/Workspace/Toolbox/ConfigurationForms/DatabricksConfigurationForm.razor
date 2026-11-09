@@ -1,31 +1,24 @@
 ﻿@using Datahub.Portal.Pages.Account
 @using Datahub.Shared.Entities
 @using Datahub.Shared.Entities.WorkspaceToolConfiguration
+@using GcdsWrapper.Blazor
 
 <div id=@DatabricksConfigurationFormId>
     <SettingsField Label="@Localizer["General Purpose Compute"]"
                    Description="@Localizer["This is the compute node for general purpose Databricks tasks."]">
         @if (IsEditingGeneralPurpose)
         {
-            <MudSelect 
-                T=DatabricksTier 
-                Label="@Localizer["General purpose compute tier"]" 
-                @bind-Value="@SelectedGeneralPurposeTier" 
-                id=@GeneralPurposeTierSelectId 
-                ToStringFunc="TierDescription">
+            <GcdsSelect Id="@GeneralPurposeTierSelectId"
+                        Name="@GeneralPurposeTierSelectId"
+                        Label="@Localizer["General purpose compute tier"]"
+                        @bind-Value="SelectedGeneralPurposeTierSku">
                 @foreach (var tier in AvailableGeneralPurposeTiers)
                 {
-                    <MudSelectItem Value="@tier" >
-                        <MudStack Row id="@WorkspaceToolboxPage.ElementId([GeneralPurposeTierSelectId, tier.DatabricksSKU])">
-                            @TierDescription(tier)
-                            <MudSpacer/>
-                            <MudText Style="font-style: italic">
-                                @tier.DatabricksSKU
-                            </MudText>
-                        </MudStack>
-                    </MudSelectItem>
+                    <option id="@WorkspaceToolboxPage.ElementId([GeneralPurposeTierSelectId, tier.DatabricksSKU])" value="@tier.DatabricksSKU">
+                        @TierDescription(tier) — @tier.DatabricksSKU
+                    </option>
                 }
-            </MudSelect>
+            </GcdsSelect>
         }
         else
         {
@@ -40,56 +33,44 @@
     </SettingsField>
     <SettingsField Label="@Localizer["Machine Learning Compute"]"
                    Description="@Localizer["This node type is tuned for machine learning tasks. It may incur higher usage costs than the general purpose tier."]">
-        <MudCheckBox @bind-Value=@Configuration.EnableMachineLearning id=@EnableMLCheckBoxId>
-            @Localizer["Enable Machine Learning Cluster"]
-        </MudCheckBox>
+        <GcdsCheckboxes Name="@EnableMLCheckBoxId"
+                        Legend="@Localizer["Enable Machine Learning Cluster"]"
+                        Options="@MachineLearningOptions"
+                        @bind-Value="MachineLearningValue" />
         @if (Configuration.EnableMachineLearning)
         {
-            <MudSelect 
-                T=DatabricksTier 
-                Label="@Localizer["Machine learning compute tier"]" 
-                @bind-Value="@SelectedMachineLearningTier" 
-                id=@MLTierSelectId>
+            <GcdsSelect Id="@MLTierSelectId"
+                        Name="@MLTierSelectId"
+                        Label="@Localizer["Machine learning compute tier"]"
+                        @bind-Value="SelectedMachineLearningTierSku">
                 @foreach (var tier in AvailableMLTiers)
                 {
-                    <MudSelectItem Value="@tier">
-                        <MudStack Row id="@WorkspaceToolboxPage.ElementId([MLTierSelectId, tier.DatabricksSKU])">
-                            @TierDescription(tier)
-                            <MudSpacer />
-                            <MudText Style="font-style: italic">
-                                @tier.DatabricksSKU
-                            </MudText>
-                        </MudStack>
-                    </MudSelectItem>
+                    <option id="@WorkspaceToolboxPage.ElementId([MLTierSelectId, tier.DatabricksSKU])" value="@tier.DatabricksSKU">
+                        @TierDescription(tier) — @tier.DatabricksSKU
+                    </option>
                 }
-            </MudSelect>
+            </GcdsSelect>
         }
     </SettingsField>
     <SettingsField Label="@Localizer["Machine Learning Compute with GPU"]"
                    Description="@Localizer["This enables GPU-accelerated compute nodes for deep learning and other heavy machine learning tasks. Depending on usage, this will likely incur higher costs."]">
-        <MudCheckBox @bind-Value=@Configuration.EnableMachineLearningGpu id=@EnableMLGpuCheckBoxId>
-            @Localizer["Enable Machine Learning Cluster with GPU"]
-        </MudCheckBox>
+        <GcdsCheckboxes Name="@EnableMLGpuCheckBoxId"
+                        Legend="@Localizer["Enable Machine Learning Cluster with GPU"]"
+                        Options="@MachineLearningGpuOptions"
+                        @bind-Value="MachineLearningGpuValue" />
         @if (Configuration.EnableMachineLearningGpu)
         {
-            <MudSelect 
-                T=DatabricksTier 
-                Label="@Localizer["Machine learning (GPU) tier"]" 
-                @bind-Value="@SelectedMachineLearningGpuTier" 
-                id=@MLGPUTierSelectId >
+            <GcdsSelect Id="@MLGPUTierSelectId"
+                        Name="@MLGPUTierSelectId"
+                        Label="@Localizer["Machine learning (GPU) tier"]"
+                        @bind-Value="SelectedMachineLearningGpuTierSku">
                 @foreach (var tier in AvailableMLGPUTiers)
                 {
-                    <MudSelectItem Value="@tier">
-                        <MudStack Row id="@WorkspaceToolboxPage.ElementId([MLGPUTierSelectId, tier.DatabricksSKU])">
-                            @TierDescription(tier)
-                            <MudSpacer />
-                            <MudText Style="font-style: italic">
-                                @tier.DatabricksSKU
-                            </MudText>
-                        </MudStack>
-                    </MudSelectItem>
+                    <option id="@WorkspaceToolboxPage.ElementId([MLGPUTierSelectId, tier.DatabricksSKU])" value="@tier.DatabricksSKU">
+                        @TierDescription(tier) — @tier.DatabricksSKU
+                    </option>
                 }
-            </MudSelect>
+            </GcdsSelect>
         }
 
     </SettingsField>
@@ -112,27 +93,48 @@
 
     private bool IsEditingGeneralPurpose => false;
 
+    private IReadOnlyCollection<GcdsCheckboxOption> MachineLearningOptions =>
+        [new(EnableMLCheckBoxId, Localizer["Enable Machine Learning Cluster"], "enabled")];
+
+    private IReadOnlyCollection<GcdsCheckboxOption> MachineLearningGpuOptions =>
+        [new(EnableMLGpuCheckBoxId, Localizer["Enable Machine Learning Cluster with GPU"], "enabled")];
+
+    private string[]? MachineLearningValue
+    {
+        get => Configuration.EnableMachineLearning ? ["enabled"] : [];
+        set => Configuration.EnableMachineLearning = value?.Contains("enabled") == true;
+    }
+
+    private string[]? MachineLearningGpuValue
+    {
+        get => Configuration.EnableMachineLearningGpu ? ["enabled"] : [];
+        set => Configuration.EnableMachineLearningGpu = value?.Contains("enabled") == true;
+    }
+
     private DatabricksTier LookupDatabricksTier(IEnumerable<DatabricksTier> tierList, string sku)
     {
         return tierList.FirstOrDefault(t => t.DatabricksSKU.Equals(sku, StringComparison.OrdinalIgnoreCase));
     }
 
-    private DatabricksTier SelectedGeneralPurposeTier
+    private DatabricksTier SelectedGeneralPurposeTier =>
+        LookupDatabricksTier(AvailableGeneralPurposeTiers, Configuration.GeneralPurposeTierSku);
+
+    private string? SelectedGeneralPurposeTierSku
     {
-        get => LookupDatabricksTier(AvailableGeneralPurposeTiers, Configuration.GeneralPurposeTierSku);
-        set => Configuration.GeneralPurposeTierSku = value?.DatabricksSKU;
+        get => Configuration.GeneralPurposeTierSku;
+        set => Configuration.GeneralPurposeTierSku = value;
     }
 
-    private DatabricksTier SelectedMachineLearningTier
+    private string? SelectedMachineLearningTierSku
     {
-        get => LookupDatabricksTier(AvailableMLTiers, Configuration.MachineLearningTierSku);
-        set => Configuration.MachineLearningTierSku = value?.DatabricksSKU;
+        get => Configuration.MachineLearningTierSku;
+        set => Configuration.MachineLearningTierSku = value;
     }
 
-    private DatabricksTier SelectedMachineLearningGpuTier
+    private string? SelectedMachineLearningGpuTierSku
     {
-        get => LookupDatabricksTier(AvailableMLGPUTiers, Configuration.MachineLearningGpuTierSku);
-        set => Configuration.MachineLearningGpuTierSku = value?.DatabricksSKU;
+        get => Configuration.MachineLearningGpuTierSku;
+        set => Configuration.MachineLearningGpuTierSku = value;
     }
 
     private string TierDescription(DatabricksTier tier) => Localizer["{0} - {1} vCPUs, {2} RAM, GPU(s): {3}, {4}", tier.SKUName, tier.Cores, tier.MemorySize, tier.GPUs, tier.Cost];

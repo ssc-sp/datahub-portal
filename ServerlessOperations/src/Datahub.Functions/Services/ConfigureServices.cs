@@ -32,7 +32,7 @@ public static class ConfigureServices
         services.AddScoped<AzAccessTokenManager>();
         services.AddSingleton<IEmailService, EmailService>();
         services.AddScoped<ILockedUserManagementService, LockedUserManagementService>();
-        services.AddScoped<IKeyVaultUserService, ServerKeyVaultService>();
+        services.AddSingleton<IKeyVaultUserService, ServerKeyVaultService>();
         services.AddScoped<IDateProvider, DateProvider>();
         services.AddScoped<EmailNotificationHandler>();
         services.AddScoped<VirusScanNotificationHandler>();
@@ -69,11 +69,15 @@ public static class ConfigureServices
             x.AddConsumersFromNamespaceContaining<EmailNotificationHandler>();
         }, DATAHUB_SERVICE_BUS_CONNECTION_STRING_KEY);
 
-        services
-            .AddOptions<APITargets>()
-            .Bind(configuration.GetSection(nameof(APITargets)))
-            .Validate(o => !string.IsNullOrWhiteSpace(o.KeyVaultName), "KeyVaultName is required")
-            .ValidateOnStart();
+        var apiTargetsSection = configuration.GetSection(nameof(APITargets));
+        if (apiTargetsSection.Exists())
+        {
+            services
+                .AddOptions<APITargets>()
+                .Bind(apiTargetsSection)
+                .Validate(o => !string.IsNullOrWhiteSpace(o.KeyVaultName), "KeyVaultName is required")
+                .ValidateOnStart();
+        }
 
         ConfigurationHelper.DumpRedactedToConsole("Datahub configuration", datahubConfiguration);
 

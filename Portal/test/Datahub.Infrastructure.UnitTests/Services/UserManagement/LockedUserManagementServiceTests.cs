@@ -70,7 +70,7 @@ public class LockedUserManagementServiceTests
     }
 
     [Test]
-    public void UnlockUserAsync_ThrowsAndDoesNotCreateEvent_WhenExternalUserMissing()
+    public async Task UnlockUserAsync_ThrowsAndDoesNotCreateEvent_WhenExternalUserMissing()
     {
         var dbName = Guid.NewGuid().ToString();
         var options = new DbContextOptionsBuilder<DatahubProjectDBContext>()
@@ -102,8 +102,7 @@ public class LockedUserManagementServiceTests
             .ReturnsAsync(() => new DatahubProjectDBContext(options));
 
         var service = new LockedUserManagementService(factory.Object);
-
-        Assert.ThrowsAsync<InvalidOperationException>(async () =>
+        await Assert.ThrowsAsync<InvalidOperationException>(async () =>
             await service.UnlockUserAsync(1, "Unlocked for testing", 2));
 
         using var verifyCtx = new DatahubProjectDBContext(options);

@@ -1,19 +1,15 @@
-﻿namespace Datahub.Functions.Providers
+namespace Datahub.Functions.Providers
 {
     public interface IDateProvider
     {
-        
-        public DateTime Now => DateTime.Now;
-        public DateTime Today => DateTime.Today;
+        DateTime Now { get; set; }
+        DateTime Today { get; set; }
 
-        public int[] ProjectNotificationDays();
-        
-        public int ProjectSoftDeletionDay();
-        public int ProjectHardDeletionDay();
-        public int[] UserInactivityNotificationDays();
-
-        public int UserInactivityLockedDay();
-
-        public int UserInactivityDeletionDay();
+        int[] ProjectNotificationDays();
+        int ProjectSoftDeletionDay();
+        int ProjectHardDeletionDay();
+        int[] UserInactivityNotificationDays();
+        int UserInactivityLockedDay();
+        int UserInactivityDeletionDay();
     }
 }

@@ -17,6 +17,7 @@ using MediatR;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.Logging;
+using Microsoft.Extensions.Logging.Abstractions;
 using NSubstitute;
 
 namespace Datahub.Functions.UnitTests.Functions
@@ -27,7 +28,7 @@ namespace Datahub.Functions.UnitTests.Functions
 
         private readonly IDateProvider _dateProvider = Substitute.For<IDateProvider>();
         private readonly IMediator _mediator = Substitute.For<IMediator>();
-        private readonly ILoggerFactory _loggerFactory = Substitute.For<ILoggerFactory>();
+        private readonly ILoggerFactory _loggerFactory = NullLoggerFactory.Instance;
 
         private readonly IDbContextFactory<DatahubProjectDBContext> _dbContextFactory =
             Substitute.For<IDbContextFactory<DatahubProjectDBContext>>();
@@ -40,7 +41,6 @@ namespace Datahub.Functions.UnitTests.Functions
 
         private readonly IConfiguration _config = Substitute.For<IConfiguration>();
 
-
         private AzureConfig _azConfig;
         private IQueuePongService _pongService;
         private IGCNotifyService _gcNotifyService;
@@ -49,11 +49,16 @@ namespace Datahub.Functions.UnitTests.Functions
         [SetUp]
         public async Task Setup()
         {
-
             _iSendEndpointProvider = Substitute.For<ISendEndpointProvider>();
             _azConfig = new AzureConfig(_config);
             _pongService = new QueuePongService(_iSendEndpointProvider);
             _gcNotifyService = Substitute.For<IGCNotifyService>();
+
+            _dateProvider.Today.Returns(new DateTime(2024, 1, 1));
+            _dateProvider.UserInactivityLockedDay().Returns(30);
+            _dateProvider.UserInactivityDeletionDay().Returns(60);
+            _dateProvider.UserInactivityNotificationDays().Returns(new[] { 7, 2 });
+
             _sut = new UserInactivityNotifier(_loggerFactory, _dbContextFactory, _dateProvider, _azConfig,
                 _pongService, _userInactivityNotificationService, _iSendEndpointProvider,
                 _projectUserManagementService, _gcNotifyService);
@@ -116,14 +121,9 @@ namespace Datahub.Functions.UnitTests.Functions
             var projectId1 = "AAAA";
             var projectId2 = "BBBB";
 
-            // Mock the projects associated with the portal user
-            var projects = new List<string>
-            {
-                projectId1 , projectId2 
-            };
+            var projects = new List<string> { projectId1, projectId2 };
             _projectUserManagementService.GetProjectListForPortalUser(portalUserId).Returns(projects);
 
-            // Mock the project users for each project
             var projectUser1 = new UserRoleLinks
             {
                 PortalUser = new PortalUser { Id = portalUserId, EntraUser = new() { GraphGuid = Guid.NewGuid().ToString(), PortalUser = null! }, Email = "john.doe@ssc-spc.gc.ca" },

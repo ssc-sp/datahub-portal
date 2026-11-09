@@ -225,32 +225,32 @@ function Export-Settings(
         Write-Output "Writing json object to $tgtFile"
         Write-Host "Processing Sensitive entries"
         $nonAkvJson | Out-File -FilePath $tgtFile
-        Push-Location
-        Set-Location $ProjectFolder
-        try {       
-            Write-Host "Setting user secrets from keyvault values" 
-            foreach ($entry in $akvEntries)
-            {
-                $key = $entry.Name
-                Write-Host "Setting user secret $key"
-                try {
-                    $secretValue = Read-AllSecrets $entry.Value
-                    if ($null -eq $secretValue -or $secretValue -eq "") {
-                        throw "Secret value for $key is null or empty."
-                    }
-                    $result = dotnet user-secrets set $key $secretValue 2>&1
-                    if ($LASTEXITCODE -ne 0) {
-                        throw "Failed to set user secret for $key. dotnet user-secrets returned exit code $LASTEXITCODE. Output: $result"
-                    }
-                } catch {
-                    throw "Error processing secret $key`: $($_.Exception.Message)"
+
+        $secretValues = @{}
+        foreach ($entry in $akvEntries)
+        {
+            $key = $entry.Name
+            $secretValue = Read-AllSecrets $entry.Value
+            if ($null -eq $secretValue -or $secretValue -eq "") {
+                throw "Secret value for $key is null or empty."
+            }
+            $secretValues[$key] = $secretValue
+        }
+
+        if ($secretValues.Count -gt 0)
+        {
+            Push-Location
+            Set-Location $ProjectFolder
+            try {
+                $secretJson = $secretValues | ConvertTo-Json -Depth 100
+                $secretJson | dotnet user-secrets set 2>&1 | Out-String
+                if ($LASTEXITCODE -ne 0) {
+                    throw "Failed to set user secrets for $ProjectFolder. dotnet user-secrets returned exit code $LASTEXITCODE."
                 }
             }
-
-        } catch {
-            throw "Error setting user secrets: $($_.Exception.Message)"
-        } finally {
-            Pop-Location
+            finally {
+                Pop-Location
+            }
         }
 
         Write-Output "Done"
@@ -274,34 +274,32 @@ function Export-Settings(
         $functionSettings = "{`n  `"IsEncrypted`": false,`n  `"Values`":   $valuesJson `n}"
         $functionSettings | Out-File -FilePath $tgtFile
 
-        Push-Location
-        Set-Location $ProjectFolder
-        try {       
-            Write-Host "Setting user secrets from keyvault values" 
-            foreach ($entry in $akvEntries)
-            {
-                $key = $entry.Name
-                Write-Host "Setting user secret $key"
-                try {
-                    $secretValue = Read-AllSecrets $entry.Value
-                    if ($null -eq $secretValue -or $secretValue -eq "") {
-                        throw "Secret value for $key is null or empty."
-                    }
-                    $result = dotnet user-secrets set $key $secretValue 2>&1
-                    if ($LASTEXITCODE -ne 0) {
-                        throw "Failed to set user secret for $key. dotnet user-secrets returned exit code $LASTEXITCODE. Output: $result"
-                    }
-                } catch {
-                    throw "Error processing secret $key`: $($_.Exception.Message)"
-                }
+        $secretValues = @{}
+        foreach ($entry in $akvEntries)
+        {
+            $key = $entry.Name
+            $secretValue = Read-AllSecrets $entry.Value
+            if ($null -eq $secretValue -or $secretValue -eq "") {
+                throw "Secret value for $key is null or empty."
             }
-
-        } catch {
-            throw "Error setting user secrets: $($_.Exception.Message)"
-        } finally {
-            Pop-Location
+            $secretValues[$key] = $secretValue
         }
 
+        if ($secretValues.Count -gt 0)
+        {
+            Push-Location
+            Set-Location $ProjectFolder
+            try {
+                $secretJson = $secretValues | ConvertTo-Json -Depth 100
+                $secretJson | dotnet user-secrets set 2>&1 | Out-String
+                if ($LASTEXITCODE -ne 0) {
+                    throw "Failed to set user secrets for $ProjectFolder. dotnet user-secrets returned exit code $LASTEXITCODE."
+                }
+            }
+            finally {
+                Pop-Location
+            }
+        }
 
 		Write-Output "Done"	        
 	} elseif ($Target -eq "Environment") {

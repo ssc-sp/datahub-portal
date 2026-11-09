@@ -203,10 +203,10 @@ namespace Datahub.Infrastructure.UnitTests.Services
         [TestCase("Hot")]
         [TestCase("REDUCED_REDUNDANCY")]
         [TestCase("standard")]
-        public void InvalidDestinationDoesNotCallS3(string tier)
+        public async System.Threading.Tasks.Task InvalidDestinationDoesNotCallS3(string tier)
         {
             var client = new Mock<IAmazonS3>(MockBehavior.Strict);
-            Assert.ThrowsAsync<StorageTierChangeException>(() => _manager.SetFileStorageTierAsync(client.Object, "nested/file.txt", tier));
+            await Assert.ThrowsAsync<StorageTierChangeException>(() => _manager.SetFileStorageTierAsync(client.Object, "nested/file.txt", tier));
             client.VerifyNoOtherCalls();
         }
 
@@ -219,23 +219,23 @@ namespace Datahub.Infrastructure.UnitTests.Services
         }
 
         [Test]
-        public void LargeObjectsAreRejectedBeforeCopying()
+        public async Task LargeObjectsAreRejectedBeforeCopying()
         {
             var client = MetadataClient(new GetObjectMetadataResponse { ContentLength = 5L * 1024 * 1024 * 1024 + 1 });
-            var error = Assert.ThrowsAsync<StorageTierChangeException>(() =>
+            var error = await Assert.ThrowsAsync<StorageTierChangeException>(() =>
                 _manager.SetFileStorageTierAsync(client.Object, "nested/file.txt", "STANDARD_IA"));
             Assert.That(error!.Message, Does.Contain("5 GB"));
             client.VerifyAll();
         }
 
         [Test]
-        public void CustomerProvidedEncryptionIsRejected()
+        public async System.Threading.Tasks.Task CustomerProvidedEncryptionIsRejected()
         {
             var client = MetadataClient(new GetObjectMetadataResponse
             {
                 ServerSideEncryptionCustomerMethod = ServerSideEncryptionCustomerMethod.AES256
             });
-            Assert.ThrowsAsync<StorageTierChangeException>(() =>
+            await Assert.ThrowsAsync<StorageTierChangeException>(() =>
                 _manager.SetFileStorageTierAsync(client.Object, "nested/file.txt", "STANDARD_IA"));
             client.VerifyAll();
         }
@@ -265,10 +265,10 @@ namespace Datahub.Infrastructure.UnitTests.Services
         }
 
         [Test]
-        public void AnUnavailableArchiveCannotBeCopied()
+        public async System.Threading.Tasks.Task AnUnavailableArchiveCannotBeCopied()
         {
             var client = MetadataClient(new GetObjectMetadataResponse { StorageClass = S3StorageClass.Glacier });
-            Assert.ThrowsAsync<StorageTierChangeException>(() =>
+            await Assert.ThrowsAsync<StorageTierChangeException>(() =>
                 _manager.SetFileStorageTierAsync(client.Object, "nested/file.txt", "STANDARD"));
         }
 
@@ -286,29 +286,29 @@ namespace Datahub.Infrastructure.UnitTests.Services
         }
 
         [Test]
-        public void CopyFailuresPropagate()
+        public async System.Threading.Tasks.Task CopyFailuresPropagate()
         {
             var client = MetadataClient(new GetObjectMetadataResponse { ETag = "etag" });
             client.Setup(c => c.CopyObjectAsync(It.IsAny<CopyObjectRequest>(), It.IsAny<CancellationToken>()))
                 .ThrowsAsync(new AmazonS3Exception("Access denied"));
-            Assert.ThrowsAsync<AmazonS3Exception>(() => _manager.SetFileStorageTierAsync(client.Object, "nested/file.txt", "GLACIER_IR"));
+            await Assert.ThrowsAsync<AmazonS3Exception>(() => _manager.SetFileStorageTierAsync(client.Object, "nested/file.txt", "GLACIER_IR"));
         }
 
         [Test]
-        public void MissingSourceConditionsPreventCopying()
+        public async System.Threading.Tasks.Task MissingSourceConditionsPreventCopying()
         {
             var client = MetadataClient(new GetObjectMetadataResponse());
-            Assert.ThrowsAsync<StorageTierChangeException>(() =>
+            await Assert.ThrowsAsync<StorageTierChangeException>(() =>
                 _manager.SetFileStorageTierAsync(client.Object, "nested/file.txt", "STANDARD_IA"));
         }
 
         [Test]
-        public void MetadataFailuresPropagateWithoutCopying()
+        public async System.Threading.Tasks.Task MetadataFailuresPropagateWithoutCopying()
         {
             var client = new Mock<IAmazonS3>(MockBehavior.Strict);
             client.Setup(c => c.GetObjectMetadataAsync(It.IsAny<GetObjectMetadataRequest>(), It.IsAny<CancellationToken>()))
                 .ThrowsAsync(new AmazonS3Exception("Access denied"));
-            Assert.ThrowsAsync<AmazonS3Exception>(() =>
+            await Assert.ThrowsAsync<AmazonS3Exception>(() =>
                 _manager.SetFileStorageTierAsync(client.Object, "nested/file.txt", "STANDARD_IA"));
         }
 
@@ -383,13 +383,12 @@ namespace Datahub.Infrastructure.UnitTests.Services
         }
 
         [Test]
-        public void ListFoldersAsyncPropagatesStorageFailures()
+        public async System.Threading.Tasks.Task ListFoldersAsyncPropagatesStorageFailures()
         {
             var client = new Mock<IAmazonS3>();
             client.Setup(c => c.ListObjectsV2Async(It.IsAny<ListObjectsV2Request>(), It.IsAny<CancellationToken>()))
                 .ThrowsAsync(new AmazonS3Exception("Access denied"));
-
-            Assert.ThrowsAsync<AmazonS3Exception>(() => _manager.ListFoldersAsync(client.Object, ""));
+            await Assert.ThrowsAsync<AmazonS3Exception>(() => _manager.ListFoldersAsync(client.Object, ""));
         }
 
         private static ListObjectsV2Response Page(bool truncated, string? token, params string[] keys)
