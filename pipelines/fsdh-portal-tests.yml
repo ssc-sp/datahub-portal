@@ -59,7 +59,7 @@ jobs:
           command: 'test'
           projects: '$(testProject)'
           testRunTitle: '$(testRunTitle)'
-          arguments: '--configuration $(BuildConfiguration)'
+          arguments: '--configuration $(BuildConfiguration) --coverlet --coverlet-output-format cobertur'
 
   - job: Portal_Testing_Coverage
     displayName: 'Agent job - Portal Testing Coverage'
@@ -72,6 +72,18 @@ jobs:
         clean: true
         lfs: true
         fetchTags: false
+
+      - task: UseDotNet@2
+        displayName: 'Use .NET Core sdk 10.0.x'
+        inputs:
+          version: 10.0.x
+
+      - task: DownloadPipelineArtifact@2
+        displayName: 'Download coverage results'
+        inputs:
+          buildType: 'current'
+          itemPattern: 'coverage-*/**'
+          targetPath: '$(Pipeline.Workspace)/coverage'
 
       - script: |
           dotnet tool install -g dotnet-reportgenerator-globaltool
