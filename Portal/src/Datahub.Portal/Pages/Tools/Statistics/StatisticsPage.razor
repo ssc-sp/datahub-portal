@@ -293,6 +293,7 @@ else
     {
         await using var ctx = await DbContextFactory.CreateDbContextAsync();
         var allWorkspaces = await ctx.Projects
+            .AsSplitQuery()
             .Include(w => w.UserRoles)
             .ThenInclude(pu => pu.PortalUser)
             .Include(w => w.Resources)

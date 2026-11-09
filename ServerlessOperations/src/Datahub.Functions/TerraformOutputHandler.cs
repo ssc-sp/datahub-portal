@@ -369,7 +369,7 @@ public class TerraformOutputHandler(
             GetStatusMapping(outputVariables[TerraformVariables.OutputAzureStorageBlobStatus].Value);
 
         var projectResource = await GetProjectResource(outputVariables,
-            TerraformTemplate.GetTerraformServiceType(TerraformTemplate.NewProjectTemplate));
+            TerraformTemplate.WorkspaceTemplateServiceTypes);
 
         if (storageBlobStatus == TerraformStatus.Completed)
         {
@@ -496,8 +496,8 @@ public class TerraformOutputHandler(
 
         var resourceGroupStatus = GetStatusMapping(resourceGroupStatusValue);
         var projectResource = await GetProjectResource(outputVariables,
-            TerraformTemplate.GetTerraformServiceType(TerraformTemplate.NewProjectTemplate));
-        
+            TerraformTemplate.WorkspaceTemplateServiceTypes);
+
         if (resourceGroupStatus == TerraformStatus.Completed)
         {
             if (!TryGetRequiredValue(outputVariables, TerraformVariables.OutputAzureResourceGroupName, out var resourceGroupName))
@@ -565,8 +565,10 @@ public class TerraformOutputHandler(
     }
 
     private async Task<Project_Resources2> GetProjectResource(
-        IReadOnlyDictionary<string, TerraformOutputVariable> outputVariables, string terraformServiceType)
+        IReadOnlyDictionary<string, TerraformOutputVariable> outputVariables, params string[] terraformServiceTypes)
     {
+        var terraformServiceType = string.Join(", ", terraformServiceTypes);
+
         if (!TryGetRequiredValue(outputVariables, TerraformVariables.OutputProjectAcronym, out var projectAcronymValue))
         {
             _logger.LogWarning("Terraform output is missing project_cd; unable to resolve project resource");
@@ -584,7 +586,7 @@ public class TerraformOutputHandler(
         }
 
         var projectResource = project.Resources
-            .FirstOrDefault(x => x.ResourceType == terraformServiceType);
+            .FirstOrDefault(x => terraformServiceTypes.Contains(x.ResourceType));
 
         if (projectResource is null)
         {

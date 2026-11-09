@@ -597,7 +597,12 @@ namespace Datahub.Portal.Pages.Workspace.Toolbox
         {
             var existingTools = GetExistingWorkspaceTools();
             var isPB = classificationType == ClassificationType.ProtectedB;
-            _toolCatalog.AddRange(WorkspaceToolCatalog.VersionAwareTools.Where(v => v.Value.EnhancedPB == isPB && !existingTools.Contains(v.Key)).Select(kvp => kvp.Key));
+            // A workspace only ever has one workspace template, even if it is not the one matching its classification
+            var hasWorkspaceTemplate = existingTools.Any(TerraformTemplate.IsWorkspaceTemplate);
+            _toolCatalog.AddRange(WorkspaceToolCatalog.VersionAwareTools
+                .Where(v => v.Value.EnhancedPB == isPB && !existingTools.Contains(v.Key))
+                .Where(v => !(hasWorkspaceTemplate && TerraformTemplate.IsWorkspaceTemplate(v.Key)))
+                .Select(kvp => kvp.Key));
         }
 
         /// <summary>

@@ -6,7 +6,7 @@
     <PackageVersion Include="Ae.MudBlazor.Forms" Version="1.0.0" />
     <PackageVersion Include="AspNetCore.Localizer.Json" Version="1.0.5" />
     <PackageVersion Include="AutoFixture" Version="4.18.1" />
-    <PackageVersion Include="AwesomeAssertions" Version="9.4.0" />
+    <PackageVersion Include="AwesomeAssertions" Version="9.6.0" />
     <PackageVersion Include="AWSSDK.S3" Version="4.0.104.5" />
     <PackageVersion Include="Azure.Core" Version="1.63.0" />
     <PackageVersion Include="Azure.Data.Tables" Version="12.13.0" />
@@ -40,8 +40,8 @@
     <PackageVersion Include="BlazorInputFile" Version="0.2.0" />
     <PackageVersion Include="BlazorTemplater" Version="1.5.1" />
     <PackageVersion Include="BuildBundlerMinifier" Version="3.2.449" />
-    <PackageVersion Include="bunit" Version="2.12.5" />
-    <PackageVersion Include="bunit.generators" Version="2.12.5" />
+    <PackageVersion Include="bunit" Version="2.13.3" />
+    <PackageVersion Include="bunit.generators" Version="2.13.3" />
     <PackageVersion Include="ByteSize" Version="2.1.2" />
     <PackageVersion Include="BytexDigital.Blazor.Components.CookieConsent" Version="1.3.0" />
     <PackageVersion Include="ColorCode.HTML" Version="2.0.15" />
@@ -63,7 +63,7 @@
     <PackageVersion Include="GcdsWrapper.Blazor" Version="0.2.1" />
     <PackageVersion Include="Google.Cloud.Storage.V1" Version="5.0.0" />
     <PackageVersion Include="itext" Version="9.8.0" />
-    <PackageVersion Include="JunitXml.TestLogger" Version="8.0.0" />
+    <PackageVersion Include="JunitXml.TestLogger" Version="8.1.0" />
     <PackageVersion Include="LibGit2SharpFork" Version="1.8.0" />
     <PackageVersion Include="Localization.AspNetCore.TagHelpers" Version="0.6.0" />
     <PackageVersion Include="LoxSmoke.DocXml" Version="3.9.0" />
@@ -88,7 +88,7 @@
     <PackageVersion Include="Microsoft.AspNetCore.Components.WebAssembly.DevServer" Version="10.0.13" />
     <PackageVersion Include="Microsoft.AspNetCore.Components.WebAssembly.Server" Version="10.0.13" />
     <PackageVersion Include="Microsoft.AspNetCore.Http" Version="2.3.13" />
-    <PackageVersion Include="Microsoft.AspNetCore.Mvc.Testing" Version="10.0.13" />
+    <PackageVersion Include="Microsoft.AspNetCore.Mvc.Testing" Version="10.0.14" />
     <PackageVersion Include="Microsoft.AspNetCore.Razor.Language" Version="6.0.36" />
     <PackageVersion Include="Microsoft.AspNetCore.SignalR.Core" Version="1.2.11" />
     <PackageVersion Include="Microsoft.AspNetCore.WebUtilities" Version="10.0.13" />
@@ -106,19 +106,19 @@
     <PackageVersion Include="Microsoft.Azure.WebJobs" Version="3.0.47" />
     <PackageVersion Include="Microsoft.Azure.WebJobs.Extensions" Version="5.2.1" />
     <PackageVersion Include="Microsoft.CodeAnalysis.Analyzer.Testing" Version="1.1.4" />
-    <PackageVersion Include="Microsoft.CodeAnalysis.Analyzers" Version="5.3.0" />
-    <PackageVersion Include="Microsoft.CodeAnalysis.CSharp" Version="5.3.0" />
+    <PackageVersion Include="Microsoft.CodeAnalysis.Analyzers" Version="5.9.0" />
+    <PackageVersion Include="Microsoft.CodeAnalysis.CSharp" Version="5.9.0" />
     <PackageVersion Include="Microsoft.CodeAnalysis.CSharp.Analyzer.Testing" Version="1.1.4" />
     <PackageVersion Include="Microsoft.CodeAnalysis.CSharp.CodeFix.Testing" Version="1.1.4" />
-    <PackageVersion Include="Microsoft.CodeAnalysis.CSharp.Workspaces" Version="5.3.0" />
+    <PackageVersion Include="Microsoft.CodeAnalysis.CSharp.Workspaces" Version="5.9.0" />
     <PackageVersion Include="Microsoft.CodeAnalysis.ResxSourceGenerator" Version="3.11.0-beta1.26226.5" />
-    <PackageVersion Include="Microsoft.CodeAnalysis.Workspaces.MSBuild" Version="5.3.0" />
+    <PackageVersion Include="Microsoft.CodeAnalysis.Workspaces.MSBuild" Version="5.9.0" />
     <PackageVersion Include="Microsoft.Data.SqlClient" Version="7.1.1" />
     <PackageVersion Include="Microsoft.Data.Sqlite.Core" Version="10.0.9" />
     <PackageVersion Include="Microsoft.Data.SqlClient.Extensions.Azure" Version="7.1.1" />
 
     <PackageVersion Include="Microsoft.EntityFrameworkCore" Version="10.0.9" />
-    <PackageVersion Include="Microsoft.EntityFrameworkCore.Analyzers" Version="10.0.9" />
+    <PackageVersion Include="Microsoft.EntityFrameworkCore.Analyzers" Version="10.0.14" />
     <PackageVersion Include="Microsoft.EntityFrameworkCore.Design" Version="10.0.13" />
     <PackageVersion Include="Microsoft.EntityFrameworkCore.InMemory" Version="10.0.13" />
     <PackageVersion Include="Microsoft.EntityFrameworkCore.Relational" Version="10.0.13" />
@@ -141,7 +141,7 @@
     <PackageVersion Include="Microsoft.Extensions.Logging.AzureAppServices" Version="10.0.13" />
     <PackageVersion Include="Microsoft.Extensions.Logging.Console" Version="10.0.13" />
     <PackageVersion Include="Microsoft.Extensions.Logging.Debug" Version="10.0.13" />
-    <PackageVersion Include="Microsoft.Extensions.TimeProvider.Testing" Version="10.7.0" />
+    <PackageVersion Include="Microsoft.Extensions.TimeProvider.Testing" Version="10.11.0" />
     <PackageVersion Include="Microsoft.FeatureManagement" Version="4.8.0" />
     <PackageVersion Include="Microsoft.FeatureManagement.AspNetCore" Version="4.8.0" />
     <PackageVersion Include="Microsoft.Graph" Version="6.8.0" />
@@ -157,7 +157,7 @@
     <PackageVersion Include="Microsoft.NET.Sdk.Functions" Version="4.6.0" />
     <PackageVersion Include="Microsoft.NET.Test.Sdk" Version="18.11.0" />
     <PackageVersion Include="Microsoft.OpenApi" Version="3.11.0" />
-    <PackageVersion Include="Microsoft.Playwright.NUnit" Version="1.63.0" />
+    <PackageVersion Include="Microsoft.Playwright.NUnit" Version="1.64.1" />
     <PackageVersion Include="Microsoft.PowerBI.JavaScript" Version="2.25.0" />
     <PackageVersion Include="Microsoft.TeamFoundationServer.Client" Version="20.256.2" />
     <PackageVersion Include="Microsoft.Testing.Extensions.TrxReport" Version="2.5.1" />
@@ -185,12 +185,12 @@
     <PackageVersion Include="Polly" Version="8.8.0" />
     <PackageVersion Include="Polly.Contrib.WaitAndRetry" Version="1.1.1" />
     <PackageVersion Include="PSC.Blazor.Components.MarkdownEditor" Version="10.0.13" />
-    <PackageVersion Include="ReportGenerator" Version="5.5.10" />
+    <PackageVersion Include="ReportGenerator" Version="5.5.11" />
     <PackageVersion Include="Reqnroll" Version="3.3.4" />
     <PackageVersion Include="Reqnroll.NUnit" Version="3.3.4" />
     <PackageVersion Include="Reqnroll.xUnit" Version="3.3.4" />
     <PackageVersion Include="Reqnroll.xUnit.v3" Version="3.3.4" />
-    <PackageVersion Include="RichardSzalay.MockHttp" Version="7.0.0" />
+    <PackageVersion Include="RichardSzalay.MockHttp" Version="7.1.0" />
     <PackageVersion Include="RulesEngine" Version="6.0.1" />
     <PackageVersion Include="StyleCop.Analyzers" Version="1.2.0-beta.556" />
     <PackageVersion Include="SuchByte.SpeedTestSharp" Version="1.0.2" />

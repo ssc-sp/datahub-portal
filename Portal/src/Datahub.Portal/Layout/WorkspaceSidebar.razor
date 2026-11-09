@@ -23,6 +23,7 @@
 @inject IOpenDataPublishingService _publishingService
 @inject IDialogService _dialogService
 @inject Microsoft.FeatureManagement.IFeatureManagerSnapshot _featureManager
+@inject IExternalUserInvitationService _externalUserInvitationService
 
 <MudDrawerContainer Style="overflow: hidden auto">
     <MudStack Row Class="py-7 px-4" AlignItems="AlignItems.Center">
@@ -486,7 +487,7 @@ DatahubAuthView.AuthLevels.Unauthorized,
         if (toolSection == SectionViews.ExternalUsers)
         {
             // Only show External Users section if workspace is not Protected B and GCCF is enabled
-            return _project.Data_Sensitivity != ClassificationType.ProtectedB && _GCCFEnabled;
+            return _externalUserInvitationService.CanInviteExternalUsers(_project) && _GCCFEnabled;
         }
         return true;
 

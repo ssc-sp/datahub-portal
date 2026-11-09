@@ -75,7 +75,7 @@ public class RequestManagementService(
 
             await ctx.Project_Resources2.AddAsync(resource);
 
-            if (requestedTemplate.Name == TerraformTemplate.NewProjectTemplate)
+            if (TerraformTemplate.IsWorkspaceTemplate(requestedTemplate.Name))
             { 
                 project.Version = await workspaceVersionService.GetLatestVersionAsync();
             }
