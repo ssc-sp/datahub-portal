@@ -17,6 +17,7 @@
 @inject DatahubPortalConfiguration DatahubPortalConfiguration
 @inject IWorkspaceVersionService WorkspaceVersionService
 @inject Microsoft.FeatureManagement.IFeatureManagerSnapshot _featureManager
+@inject ICultureService CultureService;
 
 @if (_userRoles is null)
 {
@@ -407,13 +408,22 @@ else
             return label.ToString();
         }
 
-        label.Append(Localizer[" workspaces where you are a "]);
-
+        label.Append(Localizer[" workspaces where you are "]);
+        var isFirst = true;
         anyCondition = false;
         foreach (var group in RoleDisplayGroups)
         {
             if (Show(group))
             {
+                if (isFirst)
+                {
+                    if (group == _adminGroup)
+                    {
+                        label.Append(Localizer["an-filter "]);  
+                    }
+                    else label.Append(Localizer["a-filter "]);
+                }
+                isFirst = false;
                 if (anyCondition)
                 {
                     label.Append(Localizer[", "]);
