@@ -16,19 +16,19 @@
                 <DHMainContentTitle Title="@Localizer["Public profile"]"/>
                 <MudDivider/>
             </MudStack> *@
-            <SettingsField Label="@Localizer["Display Name"]" Description="@Localizer["Your display name will be shown around DataHub as your username."]">
+            <SettingsField Label="@Localizer["Display Name"]" Description="@Localizer["Your display name on DataHub."]">
                 <GcdsInput Id="profile-display-name" Name="profile-display-name" Disabled Value="@ViewedUser.DisplayName" ValueExpression="@(() => ViewedUser.DisplayName)" Label="@Localizer["Display name"]" />
             </SettingsField>
-            <SettingsField Label="@Localizer["Email Address"]" Description="@Localizer["Your email address will be used to send you notifications."]">
+            <SettingsField Label="@Localizer["Email Address"]" Description="@Localizer["Your email address is used to send you notifications."]">
                 <GcdsInput Id="profile-email" Name="profile-email" Disabled Value="@ViewedUser.Email" ValueExpression="@(() => ViewedUser.Email)" Label="@Localizer["Email"]" />
             </SettingsField>
-            <SettingsField Label="@Localizer["Profile Picture"]" Description="@Localizer["Your profile picture will be displayed beside your name around DataHub. You can it at any time and unlock more variations from completing achievements."]">
+            <SettingsField Label="@Localizer["Profile Picture"]" Description="@Localizer["Your profile picture appears beside your name on DataHub. You can unlock more options by completing achievements."]">
                 <ImageSelectionView
                     ViewedUser="@ViewedUser"
                     IsProfilePictureDialog="@true"
                     OnImageSelected="@(code => HandleImageSelected(code, true))"/>
             </SettingsField>
-            <SettingsField Label="@Localizer["Profile Background"]" Description="@Localizer["Your profile background will be displayed on your profile page. You can unlock more variations from completing achievements and change it at any time."]">
+            <SettingsField Label="@Localizer["Profile Background"]" Description="@Localizer["Your profile background is displayed on your profile page. You can unlock more options by completing achievements."]">
                 <ImageSelectionView
                     ViewedUser="@ViewedUser"
                     IsProfilePictureDialog="@false"
@@ -40,7 +40,7 @@
             </SettingsField>
             <SettingsField Label="@Localizer["Display page alerts and tutorials"]" Description="@Localizer["Choose whether to hide or display alert and tutorial dialogs in Datahub."]">
                 <GcdsCheckboxes Name="show-alerts" Legend="@Localizer["Show alerts and tutorials"]" Options="@ShowAlertsOptions" Value="@ShowAlertsValue" ValueChanged="HandleShowAlertsChanged" ValueExpression="@(() => ShowAlertsValue)" />
-                <GcdsButton Type="GcdsButtonType.Button" OnClick="ClearAlerts">@Localizer["Reset alert settings"]</GcdsButton>
+                @* <GcdsButton Type="GcdsButtonType.Button" OnClick="ClearAlerts">@Localizer["Reset alert settings"]</GcdsButton> *@
             </SettingsField>
         </MudStack>
     </Authorized>
