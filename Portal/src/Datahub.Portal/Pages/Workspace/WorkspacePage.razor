@@ -36,15 +36,13 @@
     <WorkspaceSidebar WorkspaceAcronym="@WorkspaceAcronymParam" ElevatedWorkspaceAccessEnabled="@_showToDatahubAdmins" />
 </DHSidebarDrawer>
 
-@{
+@* While a deleted workspace's section is being redirected to its dashboard, render nothing. *@
+@if (!_redirectingDeletedWorkspace)
+{
     var containsKey = !string.IsNullOrWhiteSpace(Section)
                       && _sectionComponents.ContainsKey(Section);
 
-    if (_redirectingDeletedWorkspace)
-    {
-        // Redirecting a deleted workspace's section to its dashboard; render nothing meanwhile.
-    }
-    else if (containsKey)
+    if (containsKey)
     {
         <DatahubAuthView AuthLevel="@WorkspaceSidebar.GetAuthLevel(Section)"
                          AllowedUsers="@WorkspaceSidebar.GetAllowedUsers(Section)"
