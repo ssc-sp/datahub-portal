@@ -247,6 +247,8 @@
   "An external user with this email address already exists. Existing profile details have been loaded.": "An external user with this email address already exists. Existing profile details have been loaded.",
   "Analytics": "Analytics",
   "Analyzing forest coverage": "Analyzing forest coverage",
+  "a-filter ":  "a ",
+  "an-filter " :  "an ",
   "Announcement has an end date": "Announcement has an end date",
   "Announcements": "Announcements",
   "Announcements - {0}": "Announcements - {0}",
