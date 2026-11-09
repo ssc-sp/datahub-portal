@@ -321,6 +321,15 @@ gccfUserId);
         _navigationManager.NavigateTo($"/w/{projectAcronym}", true);
     }
 
+    /// <summary>
+    /// Whether a workspace section can still be opened once the workspace is deleted.
+    /// Only the dashboard (which shows the deleted notice) and the support-only Sudo page
+    /// (used to retry a stuck delete) stay reachable; every other section redirects to the dashboard.
+    /// </summary>
+    public static bool IsSectionAvailableForDeletedWorkspace(string? section) =>
+        string.IsNullOrWhiteSpace(section)
+        || section is SectionViews.Dashboard or SectionViews.Dashboard_FR or SectionViews.Sudo;
+
     public static DatahubAuthView.UserType GetAllowedUsers(string toolName)
     {
         return toolName switch

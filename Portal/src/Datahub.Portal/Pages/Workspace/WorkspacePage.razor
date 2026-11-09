@@ -20,6 +20,7 @@
 @inject UserLocationManagerService _userLocationManagerService
 @inject ILogger<WorkspacePage> _logger
 @inject IDbContextFactory<DatahubProjectDBContext> _dbContextFactory
+@inject NavigationManager _navigationManager
 
 @attribute [Route(PageRoutes.WorkspaceDefault)]
 @attribute [Route(PageRoutes.Workspace)]
@@ -39,7 +40,11 @@
     var containsKey = !string.IsNullOrWhiteSpace(Section)
                       && _sectionComponents.ContainsKey(Section);
 
-    if (containsKey)
+    if (_redirectingDeletedWorkspace)
+    {
+        // Redirecting a deleted workspace's section to its dashboard; render nothing meanwhile.
+    }
+    else if (containsKey)
     {
         <DatahubAuthView AuthLevel="@WorkspaceSidebar.GetAuthLevel(Section)"
                          AllowedUsers="@WorkspaceSidebar.GetAllowedUsers(Section)"
@@ -83,6 +88,7 @@
     [Parameter] public string SubSection { get; set; } = string.Empty;
 
     private bool _showToDatahubAdmins = false;
+    private bool _redirectingDeletedWorkspace = false;
     public Datahub_Project _project;
 
     private string? _prevAcronym;
@@ -164,6 +170,18 @@
         await base.OnParametersSetAsync();
 
         var newAcronym = WorkspaceAcronymParam.ToUpperInvariant();
+
+        // A deleted workspace only exposes its dashboard (and Sudo for support), even by direct URL.
+        _redirectingDeletedWorkspace = _project.IsDeleted
+                                       && !WorkspaceSidebar.IsSectionAvailableForDeletedWorkspace(Section);
+        if (_redirectingDeletedWorkspace)
+        {
+            _needsRender = true;
+            // Explicit dashboard section: the section-less route would keep the previous Section value.
+            _navigationManager.NavigateTo($"/{PageRoutes.WorkspacePrefix}/{newAcronym}/{WorkspaceSidebar.SectionViews.Dashboard}", replace: true);
+            return;
+        }
+
         bool changed = newAcronym != _prevAcronym
                     || Section != _prevSection
                     || SubSection != _prevSubSection;
