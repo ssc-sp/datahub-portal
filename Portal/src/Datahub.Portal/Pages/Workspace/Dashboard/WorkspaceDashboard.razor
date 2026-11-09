@@ -171,7 +171,7 @@
             .FirstAsync(w => w.Project_Acronym_CD == WorkspaceAcronym);
         _workspaceCBR = _project.ParentGCHostingBudget?.CBRID;
         _resources = _project.Resources
-            .Where(r => r.ResourceType != TerraformTemplate.GetTerraformServiceType(TerraformTemplate.NewProjectTemplate))
+            .Where(r => !TerraformTemplate.WorkspaceTemplateServiceTypes.Contains(r.ResourceType))
             .OrderBy(r => r.ResourceType)
             .ToList();
 

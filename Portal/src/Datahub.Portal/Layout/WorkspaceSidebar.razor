@@ -23,6 +23,7 @@
 @inject IOpenDataPublishingService _publishingService
 @inject IDialogService _dialogService
 @inject Microsoft.FeatureManagement.IFeatureManagerSnapshot _featureManager
+@inject IExternalUserInvitationService _externalUserInvitationService
 
 <MudDrawerContainer Style="overflow: hidden auto">
     <MudStack Row Class="py-7 px-4" AlignItems="AlignItems.Center">
@@ -33,7 +34,7 @@
         </SkipLink>
         @if (Drawer.Open)
         {
-            @if (_project is not null && _allProjects is not null && _allProjects.Select(p => p.Project_Acronym_CD).Contains(WorkspaceAcronym))
+            @if (_project is not null && _allProjects.Select(p => p.Project_Acronym_CD).Contains(WorkspaceAcronym))
             {
                 <span class="sr-only">
                     @Localizer["Workspace selected. Selecting a new workspace from this dropdown will navigate to the selected workspace."]
@@ -338,7 +339,7 @@ gccfUserId);
             SectionViews.Dashboard => DatahubAuthView.AuthLevels.Authenticated,
             SectionViews.Databricks => DatahubAuthView.AuthLevels.WorkspaceGuest,
             SectionViews.Storage => DatahubAuthView.AuthLevels.Storage,
-            SectionViews.Publishing => DatahubAuthView.AuthLevels.WorkspaceGuest,
+            SectionViews.Publishing => DatahubAuthView.AuthLevels.WorkspaceAdmin,
             SectionViews.WebApp => DatahubAuthView.AuthLevels.WebApp,
             SectionViews.SqlDatabase => DatahubAuthView.AuthLevels.WorkspaceCollaborator,
             SectionViews.Repositories => DatahubAuthView.AuthLevels.WorkspaceGuest,
@@ -486,7 +487,7 @@ DatahubAuthView.AuthLevels.Unauthorized,
         if (toolSection == SectionViews.ExternalUsers)
         {
             // Only show External Users section if workspace is not Protected B and GCCF is enabled
-            return _project.Data_Sensitivity != ClassificationType.ProtectedB && _GCCFEnabled;
+            return _externalUserInvitationService.CanInviteExternalUsers(_project) && _GCCFEnabled;
         }
         return true;
 

@@ -99,4 +99,23 @@ public interface IExternalUserInvitationService
         string invitationCode,
         string externalUserOid,
         CancellationToken cancellationToken = default);
+
+
+    /// <summary>
+    /// Interface method to check if external users can be invited to a specific project. Right now this returns false for every Protected B project
+    /// but in the future we may want to allow external users to be invited to Protected B projects if they have a valid security clearance.
+    /// </summary>
+    /// <param name="projectAcronym">The acronym of the project to check for external user invitations.</param>
+    /// <returns><see langword="true"/> if external users can be invited; otherwise <see langword="false"/>.</returns>
+    Task<bool> CanInviteExternalUsers(string projectAcronym);
+
+    /// <summary>
+    /// Interface method to check if external users can be invited to a specific project. Right now this returns false for every Protected B project
+    /// but in the future we may want to allow external users to be invited to Protected B projects if they have a valid security clearance.
+    /// </summary>
+    /// <param name="project">The project object to check for external user invitations.</param>
+    /// <returns><see langword="true"/> if external users can be invited; otherwise <see langword="false"/>.</returns>
+    bool CanInviteExternalUsers(Datahub_Project project);
 }
+
+

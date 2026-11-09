@@ -89,15 +89,14 @@ public class ProjectUserManagementService : IProjectUserManagementService
             var userRoles = await dbContext.UserRolesLinks
                 .Include(u => u.Role)
                 .Include(u => u.Project)
-                .ThenInclude(p => p.UserRoles)
-                .Include(u => u.Project)
                 .ThenInclude(p => p.Credits) // Include the Credits table
                 .Include(u => u.PortalUser)
                 .Where(u => u.PortalUser != null
                     && u.PortalUser.ExternalUser != null
                     && u.PortalUser.ExternalUser.ExternalSubject == gccfUserId
                     && u.PortalUser.ExternalUser.UserDeactivatedAt == null
-                    && u.PortalUser.ExternalUser.UserExpiryDate > DateTimeOffset.UtcNow)
+                    && u.PortalUser.ExternalUser.UserExpiryDate > DateTimeOffset.UtcNow
+                    && u.RoleId != (int)Project_Role.RoleNames.Removed)
                 .ToListAsync();
             return userRoles.Select(u => u.Project).Where(p => !p.IsDeleted).ToList();
         }
@@ -106,11 +105,12 @@ public class ProjectUserManagementService : IProjectUserManagementService
             var userRoles = await dbContext.UserRolesLinks
                 .Include(u => u.Role)
                 .Include(u => u.Project)
-                .ThenInclude(p => p.UserRoles)
-                .Include(u => u.Project)
                 .ThenInclude(p => p.Credits) // Include the Credits table
                 .Include(u => u.PortalUser)
-                .Where(u => u.PortalUser != null && u.PortalUser.EntraUser != null && u.PortalUser.EntraUser.GraphGuid == graphUserGuid)
+                .Where(u => u.PortalUser != null
+                    && u.PortalUser.EntraUser != null
+                    && u.PortalUser.EntraUser.GraphGuid == graphUserGuid
+                    && u.RoleId != (int)Project_Role.RoleNames.Removed)
                 .ToListAsync();
             return userRoles.Select(u => u.Project).Where(p => !p.IsDeleted).ToList();
         }
