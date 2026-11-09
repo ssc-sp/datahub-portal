@@ -49,9 +49,10 @@ public class UserInformationService(
 
     public async Task<ClaimsPrincipal> GetAuthenticatedUser(bool forceReload = false)
     {
-        if (authenticatedUser == null || forceReload)
+        var currentAuthenticationState = await authenticationStateProvider!.GetAuthenticationStateAsync();
+        if (authenticatedUser == null || forceReload || !ReferenceEquals(authenticatedUser, currentAuthenticationState.User))
         {
-            authenticatedUser = (await authenticationStateProvider!.GetAuthenticationStateAsync()).User;
+            authenticatedUser = currentAuthenticationState.User;
             var traceClaims = await featureManager.IsEnabledAsync(Features.Trace_Claims);
             if (traceClaims)
             {

@@ -20,6 +20,7 @@ public class RoleClaimTransformer(IServiceAuthManager serviceAuthManager, Datahu
     ILogger<RoleClaimTransformer> logger)
     : IClaimsTransformation
 {
+    public const string GENERATED_CLAIM_ISSUER = "Datahub.RoleClaimTransformer";
     // Not included in ClaimTypes or ClaimConstants
     public const string IDENTITY_PROVIDER_CLAIM_TYPE = "http://schemas.microsoft.com/identity/claims/identityprovider";
     //public const string IDP_PROVIDER_CLAIM = "idp_provider";
@@ -31,7 +32,14 @@ public class RoleClaimTransformer(IServiceAuthManager serviceAuthManager, Datahu
 
     private void AddAndTraceClaim(ClaimsIdentity claimsIdentity, Claim claim, string? message = null)
     {
-        claimsIdentity.AddClaim(claim);
+        var generatedClaim = new Claim(
+            claim.Type,
+            claim.Value,
+            claim.ValueType,
+            GENERATED_CLAIM_ISSUER,
+            GENERATED_CLAIM_ISSUER,
+            claimsIdentity);
+        claimsIdentity.AddClaim(generatedClaim);
         if (traceClaimsEnabled == true)
         {
             logger.LogInformation("Adding claim to user {UserId}: {ClaimType} = {ClaimValue}{Message}", claimsIdentity.Name, claim.Type, claim.Value, $" ({message})");
@@ -39,6 +47,20 @@ public class RoleClaimTransformer(IServiceAuthManager serviceAuthManager, Datahu
     }
 
     public async Task<ClaimsPrincipal> TransformAsync(ClaimsPrincipal principal)
+    {
+        return await TransformAsync(principal, forceRefresh: false, throwOnFailure: false);
+    }
+
+    /// <summary>
+    /// Rebuilds portal-generated role claims from current database state.
+    /// </summary>
+    public async Task<ClaimsPrincipal> RefreshAsync(ClaimsPrincipal principal)
+    {
+        var refreshedPrincipal = CloneWithoutGeneratedClaims(principal);
+        return await TransformAsync(refreshedPrincipal, forceRefresh: true, throwOnFailure: true);
+    }
+
+    private async Task<ClaimsPrincipal> TransformAsync(ClaimsPrincipal principal, bool forceRefresh, bool throwOnFailure)
     {
         try
         {
@@ -48,13 +70,19 @@ public class RoleClaimTransformer(IServiceAuthManager serviceAuthManager, Datahu
             }
             if (principal?.Identity is not ClaimsIdentity claims)
                 return principal!;
+            foreach (var generatedClaim in claims.Claims.Where(claim => claim.Issuer == GENERATED_CLAIM_ISSUER).ToList())
+            {
+                claims.RemoveClaim(generatedClaim);
+            }
             bool isEntra = VerifyTrustedEntraLogin(claims);
             ImmutableList<(Project_Role Role, Datahub_Project Project)> authorizedProjects;
             if (!isEntra)
             {
                 var externalId = principal.FindFirstValue(ClaimTypes.NameIdentifier) ?? throw new InvalidOperationException("No GCCF ID available");
                 AddAndTraceClaim(claims, new Claim(ClaimTypes.Role, externalId.ToString()));
-                authorizedProjects = await serviceAuthManager.GetExternalUserAuthorizations(externalId);
+                authorizedProjects = forceRefresh
+                    ? await serviceAuthManager.GetFreshExternalUserAuthorizations(externalId)
+                    : await serviceAuthManager.GetExternalUserAuthorizations(externalId);
                 foreach (var (role, project) in authorizedProjects)
                 {
                     foreach (var roleSuffix in RoleConstants.GetRoleSuffixes(role))
@@ -68,7 +96,9 @@ public class RoleClaimTransformer(IServiceAuthManager serviceAuthManager, Datahu
 
                 var userEntraId = principal.Claims.FirstOrDefault(c => c.Type == ClaimConstants.ObjectId)?.Value ?? throw new InvalidOperationException("User Entra ID not found");
                 AddAndTraceClaim(claims, new Claim(ClaimTypes.Role, userEntraId.ToString()));
-                authorizedProjects = await serviceAuthManager.GetEntraUserAuthorizations(userEntraId);
+                authorizedProjects = forceRefresh
+                    ? await serviceAuthManager.GetFreshEntraUserAuthorizations(userEntraId)
+                    : await serviceAuthManager.GetEntraUserAuthorizations(userEntraId);
 
                 var userEmail = principal.Claims.FirstOrDefault(c => c.Type == ClaimTypes.Email)?.Value;
                 if (userEmail is null)
@@ -79,7 +109,10 @@ public class RoleClaimTransformer(IServiceAuthManager serviceAuthManager, Datahu
                 {
                     AddAndTraceClaim(claims, new Claim(ClaimTypes.Role, RoleConstants.CBR_OWNER_ROLE));
                     var cbrWorkspaces = await serviceAuthManager.GetUserCbrWorkspaceAcronyms(userEmail);
-                    claims.AddClaims(cbrWorkspaces.Select(w => new Claim(ClaimTypes.Role, $"{w}{RoleConstants.CBR_OWNER_SUFFIX}")));
+                    foreach (var workspace in cbrWorkspaces)
+                    {
+                        AddAndTraceClaim(claims, new Claim(ClaimTypes.Role, $"{workspace}{RoleConstants.CBR_OWNER_SUFFIX}"));
+                    }
                 }
 
                 // Ensure that the user can't be both approver and admin
@@ -114,8 +147,31 @@ public class RoleClaimTransformer(IServiceAuthManager serviceAuthManager, Datahu
         catch (Exception ex)
         {
             logger.LogCritical(ex, "Cannot load project permissions");
+            if (throwOnFailure)
+            {
+                throw;
+            }
         }
         return principal!;
+    }
+
+    private static ClaimsPrincipal CloneWithoutGeneratedClaims(ClaimsPrincipal principal)
+    {
+        var identities = principal.Identities.Select(identity =>
+        {
+            var clone = new ClaimsIdentity(
+                identity.Claims.Where(claim => claim.Issuer != GENERATED_CLAIM_ISSUER),
+                identity.AuthenticationType,
+                identity.NameClaimType,
+                identity.RoleClaimType)
+            {
+                Label = identity.Label,
+                BootstrapContext = identity.BootstrapContext
+            };
+            return clone;
+        });
+
+        return new ClaimsPrincipal(identities);
     }
 
     private bool VerifyTrustedEntraLogin(ClaimsIdentity claims)

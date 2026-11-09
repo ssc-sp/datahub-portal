@@ -212,7 +212,8 @@ public static class ConfigureAuthenticationServices
 
         services.AddMicrosoftIdentityConsentHandler();
 
-        services.AddScoped<IClaimsTransformation, RoleClaimTransformer>();
+        services.AddScoped<RoleClaimTransformer>();
+        services.AddScoped<IClaimsTransformation>(provider => provider.GetRequiredService<RoleClaimTransformer>());
         services.Configure<SessionsConfig>(configuration.GetSection("Sessions"));
     }
 

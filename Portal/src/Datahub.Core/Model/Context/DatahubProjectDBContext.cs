@@ -23,6 +23,8 @@ namespace Datahub.Core.Model.Context;
 /// </summary>
 public class DatahubProjectDBContext : DbContext //, ISeedable<DatahubProjectDBContext>
 {
+    private readonly HashSet<UserRoleLinks> _roleChangesRecorded = new(ReferenceEqualityComparer.Instance);
+
     public DbSet<Datahub_Project> Projects { get; set; }
     public DbSet<UserRoleLinks> UserRolesLinks { get; set; }
 
@@ -174,6 +176,63 @@ public class DatahubProjectDBContext : DbContext //, ISeedable<DatahubProjectDBC
 
     protected DatahubProjectDBContext(DbContextOptions options) : base(options)
     {
+    }
+
+    public override int SaveChanges(bool acceptAllChangesOnSuccess)
+    {
+        AddRoleChangeRecords();
+        var result = base.SaveChanges(acceptAllChangesOnSuccess);
+        if (acceptAllChangesOnSuccess)
+        {
+            _roleChangesRecorded.Clear();
+        }
+
+        return result;
+    }
+
+    public override async Task<int> SaveChangesAsync(bool acceptAllChangesOnSuccess, CancellationToken cancellationToken = default)
+    {
+        AddRoleChangeRecords();
+        var result = await base.SaveChangesAsync(acceptAllChangesOnSuccess, cancellationToken);
+        if (acceptAllChangesOnSuccess)
+        {
+            _roleChangesRecorded.Clear();
+        }
+
+        return result;
+    }
+
+    private void AddRoleChangeRecords()
+    {
+        ChangeTracker.DetectChanges();
+
+        var roleChanges = ChangeTracker.Entries<UserRoleLinks>()
+            .Where(entry => entry.State == EntityState.Added
+                || (entry.State == EntityState.Modified && entry.Property(link => link.RoleId).IsModified))
+            .Where(entry => entry.Entity.PortalUserId.HasValue && entry.Entity.RoleId.HasValue)
+            .Where(entry => !_roleChangesRecorded.Contains(entry.Entity))
+            .Where(entry => entry.State == EntityState.Added
+                || entry.Property(link => link.RoleId).OriginalValue != entry.Property(link => link.RoleId).CurrentValue)
+            .Select(entry => new
+            {
+                Link = entry.Entity,
+                Change = new PortalUserRoleChange
+                {
+                    PortalUserId = entry.Entity.PortalUserId!.Value,
+                    RoleId = (Project_Role.RoleNames)entry.Entity.RoleId!.Value,
+                    ChangeDate = DateTime.UtcNow
+                }
+            })
+            .ToList();
+
+        if (roleChanges.Count > 0)
+        {
+            foreach (var roleChange in roleChanges)
+            {
+                _roleChangesRecorded.Add(roleChange.Link);
+                PortalUserRoleChanges.Add(roleChange.Change);
+            }
+        }
     }
 
     public void Seed(DatahubProjectDBContext context, IConfiguration configuration)
