@@ -519,8 +519,8 @@ DatahubAuthView.AuthLevels.Unauthorized,
             SectionViews.Healthcheck => true,
             SectionViews.Databricks => _project.Resources.Any(r => r.ResourceType ==
 TerraformTemplate.GetTerraformServiceType(TerraformTemplate.AzureDatabricks) && r.Status != TerraformStatus.Deleted),
-            SectionViews.Storage => _isExternalUser || _project.Resources.Any(r => r.ResourceType ==
-TerraformTemplate.GetTerraformServiceType(TerraformTemplate.NewProjectTemplate) && r.Status != TerraformStatus.Deleted),
+            SectionViews.Storage => _isExternalUser || _project.Resources.Any(r =>
+TerraformTemplate.WorkspaceTemplateServiceTypes.Contains(r.ResourceType) && r.Status != TerraformStatus.Deleted),
             SectionViews.Publishing => _datahubPortalConfiguration.CkanConfiguration.IsFeatureEnabled && _project.Resources.Any(r =>
 r.ResourceType == TerraformTemplate.GetTerraformServiceType(TerraformTemplate.NewProjectTemplate)),
             SectionViews.WebApp => _project.Resources.Any(r => r.ResourceType ==
@@ -543,8 +543,8 @@ TerraformTemplate.GetTerraformServiceType(TerraformTemplate.AzureArcGis) && r.St
             SectionViews.Healthcheck => false,
             SectionViews.Databricks => !_project?.Resources.Any(r => r.ResourceType ==
 TerraformTemplate.GetTerraformServiceType(TerraformTemplate.AzureDatabricks) && r.CreatedAt.HasValue) ?? true,
-            SectionViews.Storage => !_isExternalUser && (!_project?.Resources.Any(r => r.ResourceType ==
-TerraformTemplate.GetTerraformServiceType(TerraformTemplate.NewProjectTemplate) && r.CreatedAt.HasValue) ?? true),
+            SectionViews.Storage => !_isExternalUser && (!_project?.Resources.Any(r =>
+TerraformTemplate.WorkspaceTemplateServiceTypes.Contains(r.ResourceType) && r.CreatedAt.HasValue) ?? true),
             SectionViews.Publishing => !_datahubPortalConfiguration.CkanConfiguration.IsFeatureEnabled ||
 (!_project?.Resources.Any(r => r.ResourceType ==
 TerraformTemplate.GetTerraformServiceType(TerraformTemplate.NewProjectTemplate) && r.CreatedAt.HasValue) ?? true),

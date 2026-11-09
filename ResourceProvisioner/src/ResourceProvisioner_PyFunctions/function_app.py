@@ -65,11 +65,20 @@ def get_sync_func_mappings():
             "keyvault users and storage policies",
             sync_new_project_template,
         ),
+        # Protected B workspaces only get the enhanced workspace template
+        "new-project-template-enhanced": (
+            "keyvault users and storage policies",
+            sync_new_project_template,
+        ),
         "azure-storage-blob": (
             "storage account policies",
             sync_storage_workspace_users_function,
         ),
         "azure-databricks": (
+            "databricks users",
+            sync_databricks_workspace_users_function,
+        ),
+        "azure-databricks-enhanced": (
             "databricks users",
             sync_databricks_workspace_users_function,
         ),
