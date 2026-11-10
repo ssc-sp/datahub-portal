@@ -81,6 +81,8 @@
 
                 <GcdsDateInput Name="external-user-account-expiry"
                                Legend="@Localizer["Account Expiry"]"
+                               Min="@MinimumAccountExpiryValue"
+                               ErrorMessage="@AccountExpiryErrorMessage"
                                Required
                                Disabled="@(_existingExternalPortalUser is not null)"
                                @bind-Value="AccountExpiryValue" />
@@ -176,7 +178,7 @@
              && HasMinimumTrimmedLength(_command.LastName, 2)
              && HasMinimumTrimmedLength(_command.Organization, 2)
              && _command.Role is not null
-             && _command.AccountExpiry is not null,
+             && HasFutureAccountExpiry,
         3 => !string.IsNullOrWhiteSpace(_command.CollaborationObjectives),
         _ => true
     };
@@ -201,6 +203,15 @@
                 ? date
                 : null;
     }
+
+    private string MinimumAccountExpiryValue => DateTime.Today.AddDays(1)
+        .ToString("yyyy-MM-dd", System.Globalization.CultureInfo.InvariantCulture);
+
+    private bool HasFutureAccountExpiry => _command.AccountExpiry?.Date > DateTime.Today;
+
+    private string? AccountExpiryErrorMessage => _command.AccountExpiry is not null && !HasFutureAccountExpiry
+        ? Localizer["Account expiry date must be in the future"]
+        : null;
 
     private string StepHeading => _page switch
     {
@@ -283,7 +294,7 @@
         _command.FirstName = string.Empty;
         _command.LastName = string.Empty;
         _command.Organization = string.Empty;
-        _command.AccountExpiry = DateTime.Today;
+        _command.AccountExpiry = DateTime.Today.AddDays(1);
     }
 
     private void LoadExistingExternalUserDetails(PortalUser portalUser)
@@ -324,6 +335,12 @@
         if (_command.AccountExpiry is null)
         {
             _snackbar.Add(Localizer["Account expiry date is required"], Severity.Error);
+            return;
+        }
+
+        if (!HasFutureAccountExpiry)
+        {
+            _snackbar.Add(Localizer["Account expiry date must be in the future"], Severity.Error);
             return;
         }
 
