@@ -51,54 +51,48 @@
 @implements IDisposable
 @inject ISystemTokenCredentialService _systemTokenCredentialService
 
-<MudPaper Class="py-4 px-6">
-    <MudStack>
-        <DHMainContentTitle>
-            <MudText Typo="Typo.h1">@Localizer["Workspace"] @WorkspaceAcronym @Localizer["Health Check"]</MudText>
-        </DHMainContentTitle>
-    </MudStack>
-    <MudStack>
-        <MudText Typo="Typo.body1">
-            @Localizer["View the health of the infrastructure that supports the workspace."]
-        </MudText>
-        <MudTable Items="_statusList" Hover Dense>
-            <HeaderContent>
-                <MudTh>@Localizer["Resource"]</MudTh>
-                <MudTh>@Localizer["Status"]</MudTh>
-                <MudTh>@Localizer["Updated"]</MudTh>
-                <MudTh>@Localizer["Run Check"]</MudTh>
-            </HeaderContent>
-            <RowTemplate Context="context">
-                <MudTd>@context.ResourceType</MudTd>
-                <MudTd>
-                    @if (_isLoadingDict[context.ResourceType])
-                    {
-                        <SpinnerButton />
-                    }
-                    else
-                    {
-                        <MudTooltip Delay="600" Text="@HealthCheckPageUtil.GetStatusDetails(context)">
+<MudStack>
+    <DHMainContentTitle Title="@Localizer["Workspace Health Check"]"/>
+            <MudText Class="mb-4" Typo="Typo.body1">
+                @Localizer["View the health of the infrastructure that supports the workspace."]
+            </MudText>
+                <MudPaper Elevation="0" Outlined>
+            <MudTable Items="_statusList" Striped>
+                <HeaderContent>
+                    <MudTh>@Localizer["Resource"]</MudTh>
+                    <MudTh>@Localizer["Status"]</MudTh>
+                    <MudTh>@Localizer["Updated"]</MudTh>
+                    <MudTh>@Localizer["Run Check"]</MudTh>
+                </HeaderContent>
+                <RowTemplate Context="context">
+                    <MudTd>@context.ResourceType</MudTd>
+                    <MudTd>
+                        @if (_isLoadingDict[context.ResourceType])
+                        {
+                            <SpinnerButton />
+                        }
+                        else
+                        {
                             <MudChip Class="dh_themed_chip" T="string" Color="@HealthCheckPageUtil.GetDisplayColor(context)" Size="Size.Small">
                                 @Localizer[HealthCheckPageUtil.GetDisplayStatusText(context)]
                             </MudChip>
-                        </MudTooltip>
-                    }
-                </MudTd>
-                <MudTd>
-                    @* <span><LocalDateTime DateTime="DateTime.SpecifyKind(context.HealthCheckTimeUtc, DateTimeKind.Utc)"/></span> *@
-                    <span><LocalDateTime DateTime="context.HealthCheckTimeUtc" SourceTimeZone="UTC"/></span>
-                </MudTd>
-                <MudTd>
-                        <DHButton Variant="Variant.Filled" Color="Color.Primary"
-                        OnClick="@(() => CallFunction(context.ResourceType, context.Name, context.Group))"
-                              Size="Size.Small" Disabled="_isLoadingDict[context.ResourceType]">
-                            @Localizer["Run"]
-                        </DHButton>
-                </MudTd>
-            </RowTemplate>
-        </MudTable>
-    </MudStack>
-</MudPaper>
+                        }
+                    </MudTd>
+                    <MudTd>
+                        <LocalDateTime DateTime="context.HealthCheckTimeUtc" SourceTimeZone="UTC"/>
+                    </MudTd>
+                    <MudTd>
+                            <DHButton Variant="Variant.Filled" Color="Color.Primary"
+                            OnClick="@(() => CallFunction(context.ResourceType, context.Name, context.Group))"
+                                  Size="Size.Small" Disabled="_isLoadingDict[context.ResourceType]">
+                                @Localizer["Run"]
+                                <span class="sr-only">@context.ResourceType</span>
+                            </DHButton>
+                    </MudTd>
+                </RowTemplate>
+            </MudTable>
+        </MudPaper>
+</MudStack>
 
 @code {
     private List<InfrastructureHealthResourceType> _workspaceChecks = HealthCheckHelper.WorkspaceHealthChecks;
@@ -261,7 +255,7 @@
 
     private async Task CallFunction(InfrastructureHealthResourceType type, string name, string group)
     {
-        Snackbar.Add(Localizer["HealthCheckStarted"], Severity.Info);
+        Snackbar.Add((Localizer["HealthCheckStarted"]), Severity.Info);
 
         if(_isLoadingDict.ContainsKey(type))
         {
