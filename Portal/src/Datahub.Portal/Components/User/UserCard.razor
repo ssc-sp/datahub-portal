@@ -90,7 +90,7 @@
       try
       {
         var localTz = await _localTz.GetLocalTimeZoneAsync(null);
-        _timezone = LocalizeTimeZone(GetTimeZoneShortCode(localTz));
+        _timezone = TimeZoneExtensions.LocalizeTimeZone(TimeZoneExtensions.GetTimeZoneShortCode(localTz), CultureService.IsFrench);
         _lastLogin = TimeZoneInfo.ConvertTime(lastLoginDt.Value, localTz);
       }
       catch (Microsoft.JSInterop.JSDisconnectedException)
@@ -99,56 +99,6 @@
         _navigationManager.NavigateTo(_navigationManager.Uri, forceLoad: true);
       }
     }
-  }
-
-  private string GetTimeZoneShortCode(TimeZoneInfo timeZoneInfo)
-  {
-    // Use StandardName or DaylightName to derive the short code
-    var name = timeZoneInfo.IsDaylightSavingTime(DateTime.UtcNow)
-        ? timeZoneInfo.DaylightName
-        : timeZoneInfo.StandardName;
-
-    // Extract the first letter of each word
-    return string.Concat(name.Split(' ').Select(word => word[0])).ToUpperInvariant();
-  }
-
-  private string LocalizeTimeZone(string engTimeZone)
-  {
-    if (CultureService.IsFrench)
-    {
-      switch (engTimeZone)
-      {
-        case("UTC"): // Universal time zone
-          return "UTC";
-        case ("PST"):
-          return "HNP";
-        case ("MST"):
-          return "HNR";
-        case ("CST"):
-          return "HNC";
-        case ("EST"):
-          return "HNE";
-        case ("AST"):
-          return "HNA";
-        case ("NST"):
-          return "HNT";
-        case ("PDT"): // Daylight timezones
-          return "HAP";
-        case ("MDT"):
-          return "HAR";
-        case ("CDT"):
-          return "HAC";
-        case ("EDT"):
-          return "HAE";
-        case ("ADT"):
-          return "HAA";
-        case ("NDT"):
-          return "HAT";
-        default:
-          return String.Empty;
-      }
-    }
-    return engTimeZone;
   }
 
   private void OnViewedUserUpdated(object sender, PortalUserUpdatedEventArgs e)
