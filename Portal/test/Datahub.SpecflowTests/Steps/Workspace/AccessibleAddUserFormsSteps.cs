@@ -188,8 +188,9 @@ public class AccessibleAddUserFormsSteps : BunitTestSteps, IDisposable
     public void ThenTheInvalidGcEmailErrorIsDisplayed()
     {
         ArgumentNullException.ThrowIfNull(_entraForm);
-        var alert = _entraForm.Find("[role='alert']");
-        alert.TextContent.Trim().Should().Be("Please enter a valid GC email address");
+        var errorMessage = _entraForm.FindComponent<GcdsErrorMessage>();
+        errorMessage.Instance.MessageId.Should().Be("entra-user-email-error");
+        errorMessage.Markup.Should().Contain("Please enter a valid GC email address");
     }
 
     [Then("no Entra user is pending")]

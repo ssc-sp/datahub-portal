@@ -34,7 +34,9 @@
     </MudStack>
     @if (_error)
     {
-        <div role="alert" class="mud-error-text mt-2">@_errorMessage</div>
+        <GcdsErrorMessage MessageId="entra-user-email-error">
+            @_errorMessage
+        </GcdsErrorMessage>
     }
     @if (_usersToAdd.Count > 0)
     {
