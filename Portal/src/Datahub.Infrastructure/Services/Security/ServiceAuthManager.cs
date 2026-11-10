@@ -97,20 +97,16 @@ public class ServiceAuthManager : IServiceAuthManager
 
     public bool InvalidateAuthCache()
     {
-        var cache = serviceAuthCache as MemoryCache;
-        if (cache != null)
-        {
-            //https://stackoverflow.com/questions/49176244/asp-net-core-clear-cache-from-imemorycache-set-by-set-method-of-cacheextensions/49425102#49425102
-            //this weird trick removes all the entries
-            var percentage = 1.0; //100%
-            cache.Compact(percentage);
-            _logger.LogDebug("ServiceAuth cache invalidated (compacted to {Percentage:P0}).", percentage);
-            return true;
-        }
-        else
-        {
-            return false;
-        }
+        InvalidateWorkspaceAuthorizationCache();
+        return true;
+    }
+
+    public void InvalidateWorkspaceAuthorizationCache()
+    {
+        serviceAuthCache.Remove(ENTRA_AUTH_KEY);
+        serviceAuthCache.Remove(PROJECT_ADMIN_KEY);
+        serviceAuthCache.Remove(EXTERNAL_AUTH_KEY);
+        _logger.LogDebug("Workspace authorization cache entries invalidated.");
     }
 
     public async Task<bool> IsProjectAdmin(PortalUser portalUser, string projectAcronym)
@@ -263,6 +259,20 @@ public class ServiceAuthManager : IServiceAuthManager
         return ImmutableList<(Project_Role, Datahub_Project)>.Empty;
     }
 
+    public async Task<ImmutableList<(Project_Role Role, Datahub_Project Project)>> GetFreshEntraUserAuthorizations(string userGraphId)
+    {
+        await using var ctx = await dbFactory.CreateDbContextAsync();
+        var links = await ctx.UserRolesLinks
+            .AsNoTracking()
+            .Include(link => link.Role)
+            .Include(link => link.Project)
+            .Where(link => link.PortalUser != null
+                && link.PortalUser.EntraUser != null
+                && link.PortalUser.EntraUser.GraphGuid == userGraphId)
+            .ToListAsync();
+        return links.Select(link => (link.Role!, link.Project!)).ToImmutableList();
+    }
+
     public async Task<bool> IsUserCbrOwner(string userEmail)
     {
         using var ctx = await dbFactory.CreateDbContextAsync();
@@ -332,5 +342,23 @@ public class ServiceAuthManager : IServiceAuthManager
 
         _logger.LogDebug("No external authorizations found for externalId {ExternalId}. Returning empty.", externalId);
         return ImmutableList<(Project_Role, Datahub_Project)>.Empty;
+    }
+
+    public async Task<ImmutableList<(Project_Role Role, Datahub_Project Project)>> GetFreshExternalUserAuthorizations(string externalId)
+    {
+        await using var ctx = await dbFactory.CreateDbContextAsync();
+        var links = await ctx.UserRolesLinks
+            .AsNoTracking()
+            .Include(link => link.Role)
+            .Include(link => link.Project)
+            .Where(link => link.PortalUser != null
+                && link.PortalUser.ExternalUser != null
+                && link.PortalUser.ExternalUser.ExternalSubject == externalId
+                && link.PortalUser.ExternalUser.UserDeactivatedAt == null
+                && link.PortalUser.ExternalUser.UserExpiryDate > DateTimeOffset.UtcNow
+                && link.Role != null
+                && link.Role.IsExternalRole)
+            .ToListAsync();
+        return links.Select(link => (link.Role!, link.Project!)).ToImmutableList();
     }
 }

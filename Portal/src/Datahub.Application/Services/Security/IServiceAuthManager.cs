@@ -47,6 +47,21 @@ public interface IServiceAuthManager
     bool InvalidateAuthCache();
 
     /// <summary>
+    /// Invalidates only cached workspace authorization data.
+    /// </summary>
+    void InvalidateWorkspaceAuthorizationCache();
+
+    /// <summary>
+    /// Gets the current Entra authorizations directly from the database, bypassing cached values.
+    /// </summary>
+    Task<ImmutableList<(Project_Role Role, Datahub_Project Project)>> GetFreshEntraUserAuthorizations(string userGraphId);
+
+    /// <summary>
+    /// Gets the current external-user authorizations directly from the database, bypassing cached values.
+    /// </summary>
+    Task<ImmutableList<(Project_Role Role, Datahub_Project Project)>> GetFreshExternalUserAuthorizations(string externalId);
+
+    /// <summary>
     /// Determines whether the specified user id is an administrator of the given project.
     /// </summary>
     /// <param name="userid">The user's identifier (graph id).</param>
