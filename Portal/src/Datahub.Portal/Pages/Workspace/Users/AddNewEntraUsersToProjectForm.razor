@@ -1,5 +1,4 @@
 @using System.ComponentModel.DataAnnotations
-@using System.Net.Mail
 @using Datahub.Application.Commands
 @using Datahub.Application.Services
 @using Datahub.Application.Services.UserManagement
@@ -9,7 +8,6 @@
 @using GcdsWrapper.Blazor
 @using MudBlazor.Utilities
 @inject IMSGraphService _msGraphService
-@inject IUserEnrollmentService _userEnrollmentService
 @inject IUserInformationService _userInformationService
 
 <section id="entra-invite-form" role="region" aria-labelledby="entra-invite-heading">
@@ -149,12 +147,11 @@
             var user = existingUsers.Values.FirstOrDefault(candidate =>
                 candidate.Mail.Equals(search, StringComparison.OrdinalIgnoreCase));
 
-            user ??= new GraphUser
+            if (user is null)
             {
-                MailAddress = new MailAddress(search),
-                DisplayName = Localizer["Add New User"],
-                Id = ProjectUserAddEntraUserCommand.NEW_USER_GUID
-            };
+                ShowError(NotValidEmailError);
+                return;
+            }
 
             await AddUserAsync(user);
         }
@@ -179,12 +176,6 @@
             return;
         }
 
-        if (user.Id.Equals(ProjectUserAddEntraUserCommand.NEW_USER_GUID) && !_userEnrollmentService.IsValidGcEmail(user.Mail))
-        {
-            ShowError(NotValidEmailError);
-            return;
-        }
-
         ClearError();
         var addUserCommand = new ProjectUserAddEntraUserCommand
         {
@@ -192,13 +183,9 @@
             GraphGuid = user.Id,
             Email = user.Mail,
             DisplayName = user.DisplayName,
-            RoleId = (int)Project_Role.RoleNames.Guest
+            RoleId = (int)Project_Role.RoleNames.Guest,
+            PortalUser = await _userInformationService.GetEntraUserAsync(user.Id)
         };
-
-        if (!user.Id.Equals(ProjectUserAddEntraUserCommand.NEW_USER_GUID))
-        {
-            addUserCommand.PortalUser = await _userInformationService.GetEntraUserAsync(user.Id);
-        }
 
         _usersToAdd.Add(new PendingEntraUser(addUserCommand, $"role-{_nextRoleSelectId++}"));
         _userSearch = string.Empty;
@@ -221,8 +208,7 @@
         _usersToAdd.RemoveAll(u => u.Command.Email.Equals(user.Email, StringComparison.OrdinalIgnoreCase));
     }
 
-    private static string GetListText(ProjectUserAddEntraUserCommand command)
-        => command.GraphGuid == ProjectUserAddEntraUserCommand.NEW_USER_GUID ? command.Email : command.DisplayName;
+    private static string GetListText(ProjectUserAddEntraUserCommand command) => command.DisplayName;
 
     private Task CompleteAsync() => OnCompleted.InvokeAsync(_usersToAdd.Select(user => user.Command).ToList());
 
