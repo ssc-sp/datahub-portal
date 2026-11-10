@@ -23,6 +23,7 @@
 @inject IOpenDataPublishingService _publishingService
 @inject IDialogService _dialogService
 @inject Microsoft.FeatureManagement.IFeatureManagerSnapshot _featureManager
+@inject IExternalUserInvitationService _externalUserInvitationService
 
 <MudDrawerContainer Style="overflow: hidden auto">
     <MudStack Row Class="py-7 px-4" AlignItems="AlignItems.Center">
@@ -33,7 +34,7 @@
         </SkipLink>
         @if (Drawer.Open)
         {
-            @if (_project is not null && _allCurrentProjects is not null && _allCurrentProjects.Select(p => p.Project_Acronym_CD).Contains(WorkspaceAcronym))
+            @if (_project is not null && _allProjects.Select(p => p.Project_Acronym_CD).Contains(WorkspaceAcronym))
             {
                 <span class="sr-only">
                     @Localizer["Workspace selected. Selecting a new workspace from this dropdown will navigate to the selected workspace."]
@@ -43,7 +44,7 @@
                            Label="@Localizer["Current workspace"]"
                            title="@Localizer["Workspace selected. Selecting a new workspace from this dropdown will navigate to the selected workspace."]"
                            Dense Variant="Variant.Outlined">
-                    @foreach (var project in _allCurrentProjects)
+                    @foreach (var project in _allProjects)
                     {
                         <MudSelectItem Value="@project.Project_Acronym_CD">
                             <MudStack Row AlignItems="AlignItems.Center">
@@ -183,12 +184,10 @@
 
     [Parameter] public required string WorkspaceAcronym { get; set; } = null!;
     [Parameter] public bool ElevatedWorkspaceAccessEnabled { get; set; } = false;
-    [Parameter] public required PortalUser PortalUser { get; set; } = null!;
     [CascadingParameter] private DHSidebarDrawer Drawer { get; set; } = null!;
 
     private Datahub_Project _project = null!;
     private List<Datahub_Project> _allProjects = new();
-    private List<Datahub_Project> _allCurrentProjects = new();
     private bool _isPublishingBlockedForWorkspace = false;
     private int _externalProjectUsersCount;
     private bool _isExternalUser;
@@ -315,17 +314,21 @@ System.Net.HttpStatusCode.NotFound);
 
         _allProjects = await _projectUserManagementService.GetProjectsForUser(graphUserGuid: entraUserGuid, gccfUserId:
 gccfUserId);
-
-    // Excluding any projects from which the user has been removed
-    _allCurrentProjects = _allProjects
-                          .Where(p => p.UserRoles.All(u => u.RoleId != (int)Project_Role.RoleNames.Removed))
-                          .ToList();
-        }
+    }
 
     public async Task HandleProjectChange(string projectAcronym)
     {
         _navigationManager.NavigateTo($"/w/{projectAcronym}", true);
     }
+
+    /// <summary>
+    /// Whether a workspace section can still be opened once the workspace is deleted.
+    /// Only the dashboard (which shows the deleted notice) and the support-only Sudo page
+    /// (used to retry a stuck delete) stay reachable; every other section redirects to the dashboard.
+    /// </summary>
+    public static bool IsSectionAvailableForDeletedWorkspace(string? section) =>
+        string.IsNullOrWhiteSpace(section)
+        || section is SectionViews.Dashboard or SectionViews.Dashboard_FR or SectionViews.Sudo;
 
     public static DatahubAuthView.UserType GetAllowedUsers(string toolName)
     {
@@ -493,7 +496,7 @@ DatahubAuthView.AuthLevels.Unauthorized,
         if (toolSection == SectionViews.ExternalUsers)
         {
             // Only show External Users section if workspace is not Protected B and GCCF is enabled
-            return _project.Data_Sensitivity != ClassificationType.ProtectedB && _GCCFEnabled;
+            return _externalUserInvitationService.CanInviteExternalUsers(_project) && _GCCFEnabled;
         }
         return true;
 
@@ -516,8 +519,8 @@ DatahubAuthView.AuthLevels.Unauthorized,
             SectionViews.Healthcheck => true,
             SectionViews.Databricks => _project.Resources.Any(r => r.ResourceType ==
 TerraformTemplate.GetTerraformServiceType(TerraformTemplate.AzureDatabricks) && r.Status != TerraformStatus.Deleted),
-            SectionViews.Storage => _isExternalUser || _project.Resources.Any(r => r.ResourceType ==
-TerraformTemplate.GetTerraformServiceType(TerraformTemplate.NewProjectTemplate) && r.Status != TerraformStatus.Deleted),
+            SectionViews.Storage => _isExternalUser || _project.Resources.Any(r =>
+TerraformTemplate.WorkspaceTemplateServiceTypes.Contains(r.ResourceType) && r.Status != TerraformStatus.Deleted),
             SectionViews.Publishing => _datahubPortalConfiguration.CkanConfiguration.IsFeatureEnabled && _project.Resources.Any(r =>
 r.ResourceType == TerraformTemplate.GetTerraformServiceType(TerraformTemplate.NewProjectTemplate)),
             SectionViews.WebApp => _project.Resources.Any(r => r.ResourceType ==
@@ -540,8 +543,8 @@ TerraformTemplate.GetTerraformServiceType(TerraformTemplate.AzureArcGis) && r.St
             SectionViews.Healthcheck => false,
             SectionViews.Databricks => !_project?.Resources.Any(r => r.ResourceType ==
 TerraformTemplate.GetTerraformServiceType(TerraformTemplate.AzureDatabricks) && r.CreatedAt.HasValue) ?? true,
-            SectionViews.Storage => !_isExternalUser && (!_project?.Resources.Any(r => r.ResourceType ==
-TerraformTemplate.GetTerraformServiceType(TerraformTemplate.NewProjectTemplate) && r.CreatedAt.HasValue) ?? true),
+            SectionViews.Storage => !_isExternalUser && (!_project?.Resources.Any(r =>
+TerraformTemplate.WorkspaceTemplateServiceTypes.Contains(r.ResourceType) && r.CreatedAt.HasValue) ?? true),
             SectionViews.Publishing => !_datahubPortalConfiguration.CkanConfiguration.IsFeatureEnabled ||
 (!_project?.Resources.Any(r => r.ResourceType ==
 TerraformTemplate.GetTerraformServiceType(TerraformTemplate.NewProjectTemplate) && r.CreatedAt.HasValue) ?? true),

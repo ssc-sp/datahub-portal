@@ -183,11 +183,11 @@ public class WorkspaceCreationService(
     public async Task CreateNewTemplateWorkspaceResourceAsync(int projectId, bool isProtectedB)
     {
         await using var context = await datahubProjectDbFactory.CreateDbContextAsync();
-        var template = isProtectedB ? TerraformTemplate.NewProjectTemplateEnhanced : TerraformTemplate.NewProjectTemplate;
+        var template = TerraformTemplate.GetWorkspaceTemplate(isProtectedB);
+        // A workspace only ever has one workspace template, so don't add one if either already exists
         var exists = context.Project_Resources2
             .Any(r => r.ProjectId == projectId
-                      && r.ResourceType ==
-                      TerraformTemplate.GetTerraformServiceType(template));
+                      && TerraformTemplate.WorkspaceTemplateServiceTypes.Contains(r.ResourceType));
         if (exists) return;
 
         var project = await context.Projects
@@ -209,7 +209,7 @@ public class WorkspaceCreationService(
         {
             ProjectId = project.Project_ID,
             RequestedById = id,
-            ResourceType = TerraformTemplate.GetTerraformServiceType(TerraformTemplate.NewProjectTemplate),
+            ResourceType = TerraformTemplate.GetTerraformServiceType(template),
             Status = TerraformStatus.CreateRequested
         };
 

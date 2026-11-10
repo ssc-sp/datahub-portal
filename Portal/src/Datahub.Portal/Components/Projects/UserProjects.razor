@@ -17,6 +17,7 @@
 @inject DatahubPortalConfiguration DatahubPortalConfiguration
 @inject IWorkspaceVersionService WorkspaceVersionService
 @inject Microsoft.FeatureManagement.IFeatureManagerSnapshot _featureManager
+@inject ICultureService CultureService;
 
 @if (_userRoles is null)
 {
@@ -49,7 +50,10 @@ else
     {
 
         <MudStack Row AlignItems="AlignItems.Center" Wrap="Wrap.Wrap">
-            <MudText>@Localizer["Filters"]</MudText>
+            @if (HasVisibleFilters)
+            {
+                <MudText>@Localizer["Filters"]</MudText>
+            }
             <MudChipSet T="string" SelectionMode="SelectionMode.MultiSelection" Ripple="false" CheckMark>
                 @foreach (var group in RoleDisplayGroups.Where(group => group.Count > 0))
                 {
@@ -139,6 +143,8 @@ else
 
     bool AnyFilter => AllDisplayGroups.Any(g => g.FilterToggle);
     bool HasWorkspaces => _allWorkspaces.Count > 0;
+    bool HasVisibleFilters => RoleDisplayGroups.Any(group => group.Count > 0) ||
+                              (pb_enabled && SecurityDisplayGroups.Any(group => group.Count > 0));
     int FilteredWorkspacesCount;
     private bool pb_enabled = false;
 
@@ -402,13 +408,22 @@ else
             return label.ToString();
         }
 
-        label.Append(Localizer[" workspaces where you are a "]);
-
+        label.Append(Localizer[" workspaces where you are "]);
+        var isFirst = true;
         anyCondition = false;
         foreach (var group in RoleDisplayGroups)
         {
             if (Show(group))
             {
+                if (isFirst)
+                {
+                    if (group == _adminGroup)
+                    {
+                        label.Append(Localizer["an-filter "]);  
+                    }
+                    else label.Append(Localizer["a-filter "]);
+                }
+                isFirst = false;
                 if (anyCondition)
                 {
                     label.Append(Localizer[", "]);

@@ -249,6 +249,13 @@ else
         {
             _gccfEnabled = true;
         }
+
+        if (!await _externalUserInvitationService.CanInviteExternalUsers(WorkspaceAcronym))
+        {
+            _navigationManager.NavigateTo(PageRoutes.NotFound, forceLoad: true);
+            return;
+        }
+
         await InitializeProjectMembersAsync();
     }
 
