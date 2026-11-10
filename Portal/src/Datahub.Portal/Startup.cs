@@ -410,6 +410,13 @@ public class Startup
             services.AddSingleton<CommonAzureServices>();
             services.AddScoped<DataLakeClientService>();
 
+            services.AddSingleton<UserRoleChangeNotifier>();
+            services.AddSingleton<IUserRoleChangeNotifier>(provider => provider.GetRequiredService<UserRoleChangeNotifier>());
+            services.AddHostedService(provider => provider.GetRequiredService<UserRoleChangeNotifier>());
+            services.AddScoped<LiveRoleAuthenticationStateProvider>();
+            services.AddScoped<AuthenticationStateProvider>(provider => provider.GetRequiredService<LiveRoleAuthenticationStateProvider>());
+            services.AddScoped<IHostEnvironmentAuthenticationStateProvider>(provider => provider.GetRequiredService<LiveRoleAuthenticationStateProvider>());
+
             services.AddScoped<IUserInformationService, UserInformationService>();
             services.AddScoped<IUserSettingsService, UserSettingsService>();
             services.AddScoped<IMSGraphService, MSGraphService>();
