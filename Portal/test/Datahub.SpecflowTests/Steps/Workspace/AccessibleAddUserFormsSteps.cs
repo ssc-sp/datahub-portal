@@ -28,6 +28,7 @@ public class AccessibleAddUserFormsSteps : BunitTestSteps, IDisposable
 {
     private IRenderedComponent<AddNewEntraUsersToProjectForm>? _entraForm;
     private IRenderedComponent<AddNewExternalUsersToProjectForm>? _externalForm;
+    private IMSGraphService? _graphService;
     private List<ProjectUserAddEntraUserCommand>? _completedEntraUsers;
     private bool _cancelled;
 
@@ -41,11 +42,10 @@ public class AccessibleAddUserFormsSteps : BunitTestSteps, IDisposable
             DisplayName = "Test User",
             MailAddress = new MailAddress("test.user@example.gc.ca")
         };
-        var graphService = Substitute.For<IMSGraphService>();
-        graphService.GetUsersListAsync(Arg.Any<string>(), Arg.Any<CancellationToken>())
+        _graphService = Substitute.For<IMSGraphService>();
+        _graphService.GetUsersListAsync(Arg.Any<string>(), Arg.Any<CancellationToken>())
             .Returns(new Dictionary<string, GraphUser> { [graphUser.Id] = graphUser });
-        Services.AddSingleton(graphService);
-        Services.AddSingleton(Substitute.For<IUserEnrollmentService>());
+        Services.AddSingleton(_graphService);
         Services.AddSingleton(Substitute.For<IUserInformationService>());
 
         _entraForm = Render<AddNewEntraUsersToProjectForm>(parameters => parameters
@@ -165,14 +165,47 @@ public class AccessibleAddUserFormsSteps : BunitTestSteps, IDisposable
     [When("an Entra user is selected")]
     public async Task WhenAnEntraUserIsSelected()
     {
-        ArgumentNullException.ThrowIfNull(_entraForm);
-        var emailInput = _entraForm.FindComponent<GcdsInput>();
-        const string email = "test.user@example.gc.ca";
+        await EnterEntraEmailAsync("test.user@example.gc.ca");
+    }
 
-        await emailInput.InvokeAsync(() => emailInput.Instance.ValueChanged.InvokeAsync(email));
-        var addButton = _entraForm.FindComponents<GcdsButton>()
-            .Single(button => button.Markup.Contains("Add user", StringComparison.Ordinal));
-        await addButton.InvokeAsync(() => addButton.Instance.OnClick.InvokeAsync(default));
+    [When("the nonexistent Entra user email {string} is entered")]
+    public async Task WhenTheNonexistentEntraUserEmailIsEntered(string email)
+    {
+        ArgumentNullException.ThrowIfNull(_graphService);
+        _graphService.GetUsersListAsync(email, Arg.Any<CancellationToken>())
+            .Returns(new Dictionary<string, GraphUser>());
+
+        await EnterEntraEmailAsync(email);
+    }
+
+    [When("the invalid GC email {string} is entered")]
+    public async Task WhenTheInvalidGcEmailIsEntered(string email)
+    {
+        await EnterEntraEmailAsync(email);
+    }
+
+    [Then("the invalid GC email error is displayed")]
+    public void ThenTheInvalidGcEmailErrorIsDisplayed()
+    {
+        ArgumentNullException.ThrowIfNull(_entraForm);
+        var alert = _entraForm.Find("[role='alert']");
+        alert.TextContent.Trim().Should().Be("Please enter a valid GC email address");
+    }
+
+    [Then("no Entra user is pending")]
+    public void ThenNoEntraUserIsPending()
+    {
+        ArgumentNullException.ThrowIfNull(_entraForm);
+        _entraForm.FindAll(".pending-user-card").Should().BeEmpty();
+        FindButton(_entraForm, "Add New Users").Instance.Disabled.Should().BeTrue();
+    }
+
+    [Then("Entra ID was not searched")]
+    public void ThenEntraIdWasNotSearched()
+    {
+        ArgumentNullException.ThrowIfNull(_graphService);
+        _graphService.DidNotReceive()
+            .GetUsersListAsync(Arg.Any<string>(), Arg.Any<CancellationToken>());
     }
 
     [Then("the pending Entra user is displayed as an accessible list item")]
@@ -288,6 +321,21 @@ public class AccessibleAddUserFormsSteps : BunitTestSteps, IDisposable
         IRenderedComponent<AddNewExternalUsersToProjectForm> form, string text)
         => form.FindComponents<GcdsButton>()
             .Single(button => button.Markup.Contains(text, StringComparison.Ordinal));
+
+    private static IRenderedComponent<GcdsButton> FindButton(
+        IRenderedComponent<AddNewEntraUsersToProjectForm> form, string text)
+        => form.FindComponents<GcdsButton>()
+            .Single(button => button.Markup.Contains(text, StringComparison.Ordinal));
+
+    private async Task EnterEntraEmailAsync(string email)
+    {
+        ArgumentNullException.ThrowIfNull(_entraForm);
+        var emailInput = _entraForm.FindComponent<GcdsInput>();
+
+        await emailInput.InvokeAsync(() => emailInput.Instance.ValueChanged.InvokeAsync(email));
+        var addButton = FindButton(_entraForm, "Add user");
+        await addButton.InvokeAsync(() => addButton.Instance.OnClick.InvokeAsync(default));
+    }
 
     private IReadOnlyList<IRenderedComponent<GcdsButton>> GetButtonsInCurrentForm()
     {
