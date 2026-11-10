@@ -45,6 +45,20 @@ public class ProjectUserAddExternalUserCommandTests
         Assert.Empty(validationResults);
     }
 
+    [Theory]
+    [InlineData(-1)]
+    [InlineData(0)]
+    public void Validate_Fails_WhenAccountExpiryIsNotInTheFuture(int daysFromToday)
+    {
+        var command = CreateValidCommand();
+        command.AccountExpiry = DateTime.Today.AddDays(daysFromToday);
+
+        var validationResults = Validate(command);
+
+        Assert.Contains(validationResults, result =>
+            result.MemberNames.Contains(nameof(ProjectUserAddExternalUserCommand.AccountExpiry)));
+    }
+
     private static ValidationResult[] Validate(ProjectUserAddExternalUserCommand command)
     {
         var validationResults = new global::System.Collections.Generic.List<ValidationResult>();

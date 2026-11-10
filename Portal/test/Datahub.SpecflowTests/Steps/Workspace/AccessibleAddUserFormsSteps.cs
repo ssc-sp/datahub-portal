@@ -267,7 +267,7 @@ public class AccessibleAddUserFormsSteps : BunitTestSteps, IDisposable
     }
 
     [Then("the external account expiry uses a GCDS date input")]
-    public async Task ThenTheExternalAccountExpiryUsesAGcdsDateInput()
+    public void ThenTheExternalAccountExpiryUsesAGcdsDateInput()
     {
         ArgumentNullException.ThrowIfNull(_externalForm);
         _externalForm.FindComponents<MudDatePicker>().Should().BeEmpty();
@@ -277,11 +277,49 @@ public class AccessibleAddUserFormsSteps : BunitTestSteps, IDisposable
         dateInput.Instance.ValueExpression.Should().NotBeNull();
         dateInput.Instance.ValueExpression!.Body.NodeType.Should()
             .Be(System.Linq.Expressions.ExpressionType.MemberAccess);
+        dateInput.Instance.Min.Should().Be(
+            DateTime.Today.AddDays(1).ToString("yyyy-MM-dd", CultureInfo.InvariantCulture));
+    }
 
-        const string expiryDate = "2030-12-31";
+    [Then("the external account expiry only accepts future dates")]
+    public async Task ThenTheExternalAccountExpiryOnlyAcceptsFutureDates()
+    {
+        ArgumentNullException.ThrowIfNull(_externalForm);
+
+        await SetExternalUserDetailAsync("external-user-first-name", "Jane");
+        await SetExternalUserDetailAsync("external-user-last-name", "Doe");
+        await SetExternalUserDetailAsync("external-user-organization", "SSC");
+
+        var dateInput = _externalForm.FindComponent<GcdsDateInput>();
+        var invalidDates = new[] { DateTime.Today.AddDays(-1), DateTime.Today };
+
+        foreach (var invalidDate in invalidDates)
+        {
+            var value = invalidDate.ToString("yyyy-MM-dd", CultureInfo.InvariantCulture);
+            await dateInput.InvokeAsync(() => dateInput.Instance.ValueChanged.InvokeAsync(value));
+
+            _externalForm.WaitForAssertion(() =>
+            {
+                FindButton(_externalForm, "Next").Instance.Disabled.Should().BeTrue();
+                _externalForm.FindComponent<GcdsDateInput>().Instance.ErrorMessage.Should()
+                    .Be("Account expiry date must be in the future");
+            });
+        }
+
+        var expiryDate = DateTime.Today.AddDays(1).ToString("yyyy-MM-dd", CultureInfo.InvariantCulture);
         await dateInput.InvokeAsync(() => dateInput.Instance.ValueChanged.InvokeAsync(expiryDate));
         _externalForm.WaitForAssertion(() =>
-            _externalForm.FindComponent<GcdsDateInput>().Instance.Value.Should().Be(expiryDate));
+        {
+            _externalForm.FindComponent<GcdsDateInput>().Instance.Value.Should().Be(expiryDate);
+            FindButton(_externalForm, "Next").Instance.Disabled.Should().BeFalse();
+        });
+    }
+
+    private async Task SetExternalUserDetailAsync(string id, string value)
+    {
+        ArgumentNullException.ThrowIfNull(_externalForm);
+        var input = _externalForm.FindComponents<GcdsInput>().Single(component => component.Instance.Id == id);
+        await input.InvokeAsync(() => input.Instance.ValueChanged.InvokeAsync(value));
     }
 
     private static IRenderedComponent<GcdsButton> FindButton(
