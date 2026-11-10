@@ -199,6 +199,10 @@ else if (_gccfEnabled)
                             {
                                 <DHButton Variant="Variant.Filled" OnClick="() => ResendInvitationAsync(rowContext)">@Localizer["Resend invitation"]</DHButton>
                             }
+                            @if (CanDeleteInvitation(rowContext))
+                            {
+                                <DHButton Variant="Variant.Filled" Color="Color.Error" OnClick="() => DeleteInvitationAsync(rowContext)">@Localizer["Delete invitation"]</DHButton>
+                            }
                         </MudStack>
                     </MudTd>
                 </RowTemplate>
@@ -539,6 +543,37 @@ else
         await InvokeAsync(StateHasChanged);
     }
 
+    private async Task DeleteInvitationAsync(ExternalWorkspaceUserRow selectedUser)
+    {
+        var latestInvitation = selectedUser.LatestInvitation;
+        if (latestInvitation is null)
+        {
+            _snackbar.Add(Localizer["No invitation found"], Severity.Warning);
+            return;
+        }
+
+        var confirmed = await _dialogService.ShowMessageBoxAsync(
+            Localizer["Confirm Delete"],
+            Localizer["Are you sure you want to delete this expired invitation? This action cannot be undone."],
+            yesText: Localizer["Delete"],
+            cancelText: Localizer["Cancel"]);
+
+        if (confirmed != true)
+        {
+            return;
+        }
+
+        if (!await _externalUserInvitationService.DeleteExpiredInvitationAsync(latestInvitation.RequestID))
+        {
+            _snackbar.Add(Localizer["Unable to delete invitation"], Severity.Error);
+            return;
+        }
+
+        _snackbar.Add(Localizer["Invitation deleted"], Severity.Success);
+        await InitializeProjectMembersAsync();
+        await InvokeAsync(StateHasChanged);
+    }
+
     private async Task OpenExtendUserDialog(ExternalWorkspaceUserRow selectedUser)
     {
         var dialogOptions = new DialogOptions { MaxWidth = MaxWidth.ExtraLarge };
@@ -606,6 +641,15 @@ else
     {
         return projectUser.ExternalUser.UserDeactivatedAt is null
             && projectUser.LatestInvitation is not null;
+    }
+
+    private bool CanDeleteInvitation(ExternalWorkspaceUserRow projectUser)
+    {
+        return projectUser.ExternalUser.UserDeactivatedAt is null
+            && projectUser.LatestInvitation is not null
+            && projectUser.LatestInvitation.InvitationTokenAccepted is null
+            && projectUser.LatestInvitation.InvitationCodeAccepted is null
+            && projectUser.LatestInvitation.InvitationExpiry < DateTimeOffset.UtcNow;
     }
 
     private bool CombinedFilter(ExternalWorkspaceUserRow projectUser)

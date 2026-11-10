@@ -66,6 +66,16 @@ public interface IExternalUserInvitationService
         CancellationToken cancellationToken = default);
 
     /// <summary>
+    /// Permanently deletes an expired invitation that has not been accepted.
+    /// </summary>
+    /// <param name="requestId">The unique identifier of the invitation request to delete.</param>
+    /// <param name="cancellationToken">A token to monitor for cancellation requests.</param>
+    /// <returns><see langword="true"/> when the invitation was deleted; otherwise <see langword="false"/>.</returns>
+    Task<bool> DeleteExpiredInvitationAsync(
+        int requestId,
+        CancellationToken cancellationToken = default);
+
+    /// <summary>
     /// Resends an existing invitation to the same or a different email address.
     /// </summary>
     /// <param name="externalUserId">The unique identifier of the external user to be invited again.</param>

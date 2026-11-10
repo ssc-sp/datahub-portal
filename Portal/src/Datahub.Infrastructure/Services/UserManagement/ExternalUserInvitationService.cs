@@ -125,6 +125,44 @@ public class ExternalUserInvitationService : IExternalUserInvitationService
         return invitation;
     }
 
+    public async Task<bool> DeleteExpiredInvitationAsync(
+        int requestId,
+        CancellationToken cancellationToken = default)
+    {
+        if (requestId <= 0)
+        {
+            return false;
+        }
+
+        await using var context = await _contextFactory.CreateDbContextAsync(cancellationToken);
+        var now = DateTimeOffset.UtcNow;
+        var invitation = await context.ExternalUserRequests
+            .Include(i => i.Project)
+            .Include(i => i.User)
+            .FirstOrDefaultAsync(i =>
+                i.RequestID == requestId &&
+                i.InvitationExpiry < now &&
+                i.InvitationTokenAccepted == null &&
+                i.InvitationCodeAccepted == null,
+                cancellationToken);
+
+        if (invitation is null)
+        {
+            return false;
+        }
+
+        context.ExternalUserRequests.Remove(invitation);
+        await context.SaveChangesAsync(cancellationToken);
+
+        _logger.LogInformation(
+            "Deleted expired workspace invitation {RequestId} for external user {ExternalUserId} in project {ProjectAcronym}",
+            invitation.RequestID,
+            invitation.User.Id,
+            invitation.Project.Project_Acronym_CD);
+
+        return true;
+    }
+
     public async Task<WorkspaceInvitation> ResendInvitationAsync(
         int externalUserId,
         string projectAcronym,
