@@ -53,6 +53,28 @@ Feature: External User Invitation Service
         When a non-existent invitation is cancelled
         Then the result should be null
 
+    Scenario: Deleting an expired invitation removes only the invitation
+        Given an expired workspace invitation exists for the external user
+        When the expired invitation is deleted
+        Then the invitation should no longer exist
+        And the external user profile should still exist
+
+    Scenario: Deleting a non-existent invitation returns false
+        When a non-existent invitation is deleted
+        Then the invitation deletion should return false
+
+    Scenario: An active invitation cannot be deleted
+        Given a valid workspace invitation exists for the external user
+        When the expired invitation is deleted
+        Then the invitation deletion should return false
+        And the invitation should still exist
+
+    Scenario: An accepted invitation cannot be deleted
+        Given a workspace invitation that was already accepted exists for the external user
+        When the expired invitation is deleted
+        Then the invitation deletion should return false
+        And the invitation should still exist
+
     Scenario: Resending an invitation cancels existing active invitations and creates a new one
         Given a valid workspace invitation exists for the external user
         When the invitation is resent to the external user in project "TEST"
