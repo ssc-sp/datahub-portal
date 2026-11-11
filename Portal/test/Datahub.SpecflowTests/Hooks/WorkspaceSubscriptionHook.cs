@@ -101,7 +101,7 @@ public class WorkspaceSubscriptionHook
             datahubAzureSubscriptionService,
             Substitute.For<IDatahubCatalogSearch>(),
             Substitute.For<IMetadataBrokerService>(),
-            new SubnetPoolService(datahubPortalConfiguration));
+            new SubnetPoolService(datahubPortalConfiguration, dbContextFactory));
 
 
         objectContainer.RegisterInstanceAs<IResourceMessagingService>(resourceMessagingService);

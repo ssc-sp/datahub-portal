@@ -1,7 +1,9 @@
+@using Datahub.Application.Services
 @using Datahub.Application.Services.Subscriptions
 @using Datahub.Core.Model.Subscriptions
 
 @inject INetworkingManagementService _networkingService
+@inject ISubnetPoolService _subnetPoolService
 @inject IDatahubAzureSubscriptionService _subscriptionService
 @inject ISnackbar _snackbar
 @inject ILogger<NetworkingManagementPage> _logger
@@ -113,68 +115,120 @@
                   Dense="true"
                   Hover="true"
                   Outlined="true"
-                  CanCancelEdit="true"
-                  SortLabel="@Localizer["Sort by"]"
-                  CommitEditTooltip="@Localizer["Commit edit"]"
-                  CancelEditTooltip="@Localizer["Cancel edit"]"
-                  IsEditRowSwitchingBlocked="true"
-                  EditTrigger="TableEditTrigger.EditButton"
-                  ApplyButtonPosition="TableApplyButtonPosition.Start"
-                  EditButtonPosition="TableEditButtonPosition.Start"
-                  RowEditPreview="@BackupSubnet"
-                  RowEditCancel="@CancelSubnetEdit"
-                  RowEditCommit="@CommitSubnetEdit">
+                  SortLabel="@Localizer["Sort by"]">
             <HeaderContent>
                 <MudTh>
-                    <MudTableSortLabel SortBy="@(new Func<Subnet, object>(x => x.Id))">ID</MudTableSortLabel>
+                    <MudTableSortLabel InitialDirection="SortDirection.Ascending" SortBy="@(new Func<Subnet, object>(x => x.SubnetGroup))">Subnet Group</MudTableSortLabel>
                 </MudTh>
                 <MudTh>
                     <MudTableSortLabel SortBy="@(new Func<Subnet, object>(x => x.SubnetName))">Name</MudTableSortLabel>
                 </MudTh>
                 <MudTh>
-                    <MudTableSortLabel SortBy="@(new Func<Subnet, object>(x => x.AddressPrefix ?? string.Empty))">Address Prefix</MudTableSortLabel>
+                    <MudTableSortLabel SortBy="@(new Func<Subnet, object>(x => GetUsage(x).Status))">Status</MudTableSortLabel>
                 </MudTh>
                 <MudTh>
-                    <MudTableSortLabel SortBy="@(new Func<Subnet, object>(x => x.SubnetGroup))">Subnet Group</MudTableSortLabel>
+                    <MudTableSortLabel SortBy="@(new Func<Subnet, object>(x => GetUsage(x).WorkspaceAcronym ?? string.Empty))">Workspace</MudTableSortLabel>
                 </MudTh>
                 <MudTh>Actions</MudTh>
             </HeaderContent>
             <RowTemplate>
-                <MudTd DataLabel="ID">@context.Id</MudTd>
+                @{ var usage = GetUsage(context); }
+                <MudTd DataLabel="Subnet Group">@context.SubnetGroup</MudTd>
                 <MudTd DataLabel="Name">
                     <MudText Style="font-family:monospace; font-size:0.85rem">@context.SubnetName</MudText>
                 </MudTd>
-                <MudTd DataLabel="Address Prefix">
-                    <MudChip T="string" Size="Size.Small" Color="Color.Info" Variant="Variant.Outlined">
-                        @(context.AddressPrefix ?? "—")
+                <MudTd DataLabel="Status">
+                    <MudChip T="string" Size="Size.Small" Color="@GetStatusColor(usage.Status)" Variant="Variant.Outlined">
+                        @GetStatusLabel(usage)
                     </MudChip>
                 </MudTd>
-                <MudTd DataLabel="Subnet Group">@context.SubnetGroup</MudTd>
-                <MudTd>
-                    <MudIconButton Icon="@SidebarIcons.Delete" Size="Size.Small" Color="Color.Error"
-                                   OnClick="@(() => DeleteSubnet(context))" />
+                <MudTd DataLabel="Workspace">@(usage.WorkspaceAcronym ?? "—")</MudTd>
+                <MudTd DataLabel="Actions">
+                    @if (usage.Status == SubnetGroupStatus.Available)
+                    {
+                        <MudButton Variant="Variant.Text" Color="Color.Primary" Size="Size.Small"
+                                   StartIcon="@Icons.Material.Filled.Link"
+                                   OnClick="@(() => OpenAttachDialog(context))">
+                            Attach
+                        </MudButton>
+                    }
+                    else
+                    {
+                        <MudButton Variant="Variant.Text" Color="Color.Warning" Size="Size.Small"
+                                   StartIcon="@Icons.Material.Filled.LinkOff"
+                                   OnClick="@(() => OpenReleaseDialog(context))">
+                            Release
+                        </MudButton>
+                    }
                 </MudTd>
             </RowTemplate>
-            <RowEditingTemplate>
-                <MudTd DataLabel="ID">@context.Id</MudTd>
-                <MudTd DataLabel="Name">
-                    <MudTextField @bind-Value="@context.SubnetName" Required />
-                </MudTd>
-                <MudTd DataLabel="Address Prefix">
-                    <MudTextField @bind-Value="@context.AddressPrefix" Placeholder="e.g. 10.0.1.64/28" />
-                </MudTd>
-                <MudTd DataLabel="Subnet Group">
-                    <MudNumericField @bind-Value="@context.SubnetGroup" Min="1" />
-                </MudTd>
-                <MudTd />
-            </RowEditingTemplate>
-            <EditButtonContent Context="button">
-                <MudIconButton Size="@Size.Small" Icon="@SidebarIcons.Edit" Class="pa-0"
-                               OnClick="@button.ButtonAction" Disabled="@button.ButtonDisabled" />
-            </EditButtonContent>
         </MudTable>
     }
 </MudStack>
+
+@* ── Attach subnet group dialog ── *@
+<MudDialog @bind-Visible="_showAttach" Options="@(new DialogOptions { CloseOnEscapeKey = true, MaxWidth = MaxWidth.Small, FullWidth = true })">
+    <TitleContent>
+        <MudText Typo="Typo.h6">Attach subnet group @_groupForAction?.SubnetGroup</MudText>
+    </TitleContent>
+    <DialogContent>
+        <MudStack Spacing="3">
+            <MudText>Record that a workspace uses this subnet group. It will no longer be assigned to new Protected B workspaces.</MudText>
+            <MudTextField Label="Workspace acronym" @bind-Value="_attachAcronym" Immediate="true" />
+            @if (_actionError is not null)
+            {
+                <MudAlert Severity="Severity.Error" Dense="true">@_actionError</MudAlert>
+            }
+        </MudStack>
+    </DialogContent>
+    <DialogActions>
+        <MudButton OnClick="@(() => _showAttach = false)">Cancel</MudButton>
+        <DHButton Variant="Variant.Filled" Color="Color.Primary"
+                  Disabled="@string.IsNullOrWhiteSpace(_attachAcronym)" OnClick="@SubmitAttach">
+            Attach
+        </DHButton>
+    </DialogActions>
+</MudDialog>
+
+@* ── Release subnet group dialog ── *@
+<MudDialog @bind-Visible="_showRelease" Options="@(new DialogOptions { CloseOnEscapeKey = true, MaxWidth = MaxWidth.Small, FullWidth = true })">
+    <TitleContent>
+        <MudText Typo="Typo.h6">Release subnet group @_groupForAction?.SubnetGroup</MudText>
+    </TitleContent>
+    <DialogContent>
+        <MudStack Spacing="3">
+            @if (_groupForAction is not null && GetUsage(_groupForAction) is { } releaseUsage)
+            {
+                @if (releaseUsage.Status == SubnetGroupStatus.InUse)
+                {
+                    <MudAlert Severity="Severity.Warning">
+                        Workspace @releaseUsage.WorkspaceAcronym is not deleted and may still use these subnets.
+                        Once released, the group can be assigned to a new Protected B workspace, whose deployment
+                        will fail if the subnets are still in use.
+                    </MudAlert>
+                }
+                else
+                {
+                    <MudText>
+                        Workspace @releaseUsage.WorkspaceAcronym was deleted recently. Release the group only if its
+                        resources have been removed from the subnets.
+                    </MudText>
+                }
+            }
+            <MudText>The group will be available to new Protected B workspaces straight away.</MudText>
+            @if (_actionError is not null)
+            {
+                <MudAlert Severity="Severity.Error" Dense="true">@_actionError</MudAlert>
+            }
+        </MudStack>
+    </DialogContent>
+    <DialogActions>
+        <MudButton OnClick="@(() => _showRelease = false)">Cancel</MudButton>
+        <DHButton Variant="Variant.Filled" Color="Color.Warning" OnClick="@SubmitRelease">
+            Release
+        </DHButton>
+    </DialogActions>
+</MudDialog>
 
 @* ── Add VNet dialog ── *@
 <MudDialog @bind-Visible="_showAddVNet" Options="@(new DialogOptions { CloseOnEscapeKey = true, MaxWidth = MaxWidth.Small, FullWidth = true })">

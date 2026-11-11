@@ -1,3 +1,4 @@
+using Datahub.Application.Services;
 using Datahub.Application.Services.Subscriptions;
 using Datahub.Core.Model.Subscriptions;
 using Microsoft.AspNetCore.Components;
@@ -10,11 +11,18 @@ public partial class NetworkingManagementPage : ComponentBase
     // ── State ──────────────────────────────────────────────────────────────
     private List<VNet> _vnets = new();
     private List<Subnet> _subnets = new();
+    private IReadOnlyDictionary<int, SubnetGroupUsage> _subnetUsage = new Dictionary<int, SubnetGroupUsage>();
     private List<DatahubAzureSubscription> _subscriptions = new();
 
     private VNet? _selectedVNet;
     private VNet _vnetBeforeEdit = new() { VNetId = string.Empty, VNetName = string.Empty };
-    private Subnet _subnetBeforeEdit = new() { SubnetName = string.Empty };
+
+    // Attach / release
+    private bool _showAttach;
+    private bool _showRelease;
+    private Subnet? _groupForAction;
+    private string _attachAcronym = string.Empty;
+    private string? _actionError;
 
     // Add dialogs
     private bool _showAddVNet;
@@ -55,8 +63,32 @@ public partial class NetworkingManagementPage : ComponentBase
     private async Task SelectVNet(VNet vnet)
     {
         _selectedVNet = vnet;
-        _subnets = await _networkingService.ListSubnetsAsync(vnet.Id);
+        await LoadSubnetsAsync(vnet.Id);
     }
+
+    private async Task LoadSubnetsAsync(int vnetId)
+    {
+        _subnets = await _networkingService.ListSubnetsAsync(vnetId);
+        _subnetUsage = await _subnetPoolService.GetSubnetGroupUsageAsync(vnetId);
+    }
+
+    // ── Subnet group usage ─────────────────────────────────────────────────
+    private SubnetGroupUsage GetUsage(Subnet subnet) =>
+        _subnetUsage.TryGetValue(subnet.Id, out var usage) ? usage : new SubnetGroupUsage(SubnetGroupStatus.Available);
+
+    private static string GetStatusLabel(SubnetGroupUsage usage) => usage.Status switch
+    {
+        SubnetGroupStatus.InUse => "In use",
+        SubnetGroupStatus.CoolingDown => $"Cooling down until {usage.AvailableAtUtc:yyyy-MM-dd HH:mm} UTC",
+        _ => "Available"
+    };
+
+    private static Color GetStatusColor(SubnetGroupStatus status) => status switch
+    {
+        SubnetGroupStatus.InUse => Color.Warning,
+        SubnetGroupStatus.CoolingDown => Color.Info,
+        _ => Color.Success
+    };
 
     // ── VNet helpers ───────────────────────────────────────────────────────
     private string GetSubscriptionLabel(int subscriptionId)
@@ -178,7 +210,7 @@ public partial class NetworkingManagementPage : ComponentBase
             await _networkingService.AddSubnetAsync(_newSubnet);
             _snackbar.Add("Subnet added successfully", Severity.Success);
             _showAddSubnet = false;
-            _subnets = await _networkingService.ListSubnetsAsync(_selectedVNet!.Id);
+            await LoadSubnetsAsync(_selectedVNet!.Id);
             await RefreshVNets(); // refresh subnet count
         }
         catch (Exception ex)
@@ -234,7 +266,7 @@ public partial class NetworkingManagementPage : ComponentBase
 
             _snackbar.Add($"Created {createdCount} subnet(s) for group range {_newSubnetRange.StartSubnetGroup} to {_newSubnetRange.EndSubnetGroup}.", Severity.Success);
             _showAddSubnetRange = false;
-            _subnets = await _networkingService.ListSubnetsAsync(_selectedVNet!.Id);
+            await LoadSubnetsAsync(_selectedVNet!.Id);
             await RefreshVNets();
         }
         catch (Exception ex)
@@ -244,51 +276,58 @@ public partial class NetworkingManagementPage : ComponentBase
         }
     }
 
-    private void BackupSubnet(object obj)
+    // ── Attach / release subnet groups ─────────────────────────────────────
+    private void OpenAttachDialog(Subnet subnet)
     {
-        if (obj is not Subnet s) return;
-        _subnetBeforeEdit = new Subnet { Id = s.Id, SubnetName = s.SubnetName, AddressPrefix = s.AddressPrefix, SubnetGroup = s.SubnetGroup, VNetId = s.VNetId };
+        _groupForAction = subnet;
+        _attachAcronym = string.Empty;
+        _actionError = null;
+        _showAttach = true;
     }
 
-    private void CancelSubnetEdit(object obj)
+    private void OpenReleaseDialog(Subnet subnet)
     {
-        if (obj is not Subnet s) return;
-        s.SubnetName = _subnetBeforeEdit.SubnetName;
-        s.AddressPrefix = _subnetBeforeEdit.AddressPrefix;
-        s.SubnetGroup = _subnetBeforeEdit.SubnetGroup;
+        _groupForAction = subnet;
+        _actionError = null;
+        _showRelease = true;
     }
 
-    private void CommitSubnetEdit(object obj)
+    private async Task SubmitAttach()
     {
-        if (obj is not Subnet s) return;
-        Task.Run(async () =>
-        {
-            try
-            {
-                await _networkingService.UpdateSubnetAsync(s);
-                _snackbar.Add("Subnet updated", Severity.Success);
-            }
-            catch (Exception ex)
-            {
-                _logger.LogError(ex, "Failed to update subnet {Id}", s.Id);
-                _snackbar.Add("Failed to update subnet", Severity.Error);
-            }
-        });
-    }
-
-    private async Task DeleteSubnet(Subnet subnet)
-    {
+        if (_groupForAction is null) return;
         try
         {
-            await _networkingService.DeleteSubnetAsync(subnet.Id);
-            _snackbar.Add("Subnet deleted", Severity.Success);
-            _subnets = await _networkingService.ListSubnetsAsync(_selectedVNet!.Id);
-            await RefreshVNets();
+            await _subnetPoolService.AttachSubnetGroupAsync(_groupForAction.Id, _attachAcronym);
+            _snackbar.Add($"Subnet group {_groupForAction.SubnetGroup} attached to {_attachAcronym.Trim().ToUpperInvariant()}", Severity.Success);
+            _showAttach = false;
+            await LoadSubnetsAsync(_selectedVNet!.Id);
+        }
+        catch (InvalidOperationException ex)
+        {
+            _actionError = ex.Message;
         }
         catch (Exception ex)
         {
-            _logger.LogError(ex, "Failed to delete subnet {Id}", subnet.Id);
-            _snackbar.Add("Failed to delete subnet", Severity.Error);
+            _logger.LogError(ex, "Failed to attach subnet group {Id} to {Acronym}", _groupForAction.Id, _attachAcronym);
+            _actionError = "Failed to attach the subnet group.";
+        }
+    }
+
+    private async Task SubmitRelease()
+    {
+        if (_groupForAction is null) return;
+        try
+        {
+            await _subnetPoolService.ReleaseSubnetGroupAsync(_groupForAction.Id);
+            _logger.LogInformation("Subnet group {Group} released manually", _groupForAction.SubnetGroup);
+            _snackbar.Add($"Subnet group {_groupForAction.SubnetGroup} released", Severity.Success);
+            _showRelease = false;
+            await LoadSubnetsAsync(_selectedVNet!.Id);
+        }
+        catch (Exception ex)
+        {
+            _logger.LogError(ex, "Failed to release subnet group {Id}", _groupForAction.Id);
+            _actionError = "Failed to release the subnet group.";
         }
     }
 }

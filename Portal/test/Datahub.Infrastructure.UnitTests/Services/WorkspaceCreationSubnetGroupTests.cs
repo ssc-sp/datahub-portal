@@ -61,7 +61,7 @@ public class WorkspaceCreationSubnetGroupTests
             subscriptionService,
             Substitute.For<IDatahubCatalogSearch>(),
             Substitute.For<IMetadataBrokerService>(),
-            new SubnetPoolService(configuration));
+            new SubnetPoolService(configuration, factory));
     }
 
     private sealed class InMemoryContextFactory(DbContextOptions<SqlServerDatahubContext> options)
