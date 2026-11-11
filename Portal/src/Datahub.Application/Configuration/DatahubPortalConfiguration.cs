@@ -138,6 +138,11 @@ public class Hosting
     public string Profile { get; set; } = "ssc";
     public string EnvironmentName { get; set; } = "dev";
     public int WorkspaceCountPerAzureSubscription { get; set; } = 500;
+
+    /// <summary>
+    /// Minutes after a Protected B workspace is deleted before its subnet group can be assigned to another workspace.
+    /// </summary>
+    public int ProtectedBSubnetGroupCooldownMinutes { get; set; } = 90;
 }
 
 public class KeyVault

@@ -111,7 +111,8 @@ namespace Datahub.SpecflowTests.Steps.Workspace
                         auditingService,
                         azureSubService,
                         catalogSearch,
-                        metadataService);
+                        metadataService,
+                        new SubnetPoolService(datahubPortalConfiguration));
 
             mockedWorkspaceCreationService.When(c => c.GenerateWorkspaceAcronymAsync(Arg.Any<string>())).DoNotCallBase();
 

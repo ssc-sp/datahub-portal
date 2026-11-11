@@ -243,6 +243,7 @@
   "An application error has occurred on the DataHub server. The error has been recorded with Correlation ID {0}. To avoid network issues, if you are currently on the VPN, please try to disconnect the VPN and retry your actions.": "An application error has occurred on the DataHub server. The error has been recorded with Correlation ID {0}. To avoid network issues, if you are currently on the VPN, please try to disconnect the VPN and retry your actions.",
   "An error occured when deleting this workspace. Please contact support.": "An error occured when deleting this workspace. Please contact support.",
   "An error occurred while creating the workspace": "An error occurred while creating the workspace",
+  "No network capacity is available for new Protected B workspaces. Please contact support.": "No network capacity is available for new Protected B workspaces. Please contact support.",
   "An error occurred while scanning the file {0}. Please try again.": "An error occurred while scanning the file {0}. Please try again.",
   "An error occurred while scanning the file.": "An error occurred while scanning the file.",
   "An external user with this email address already exists. Existing profile details have been loaded.": "An external user with this email address already exists. Existing profile details have been loaded.",

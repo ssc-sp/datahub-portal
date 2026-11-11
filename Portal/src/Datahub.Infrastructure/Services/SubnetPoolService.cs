@@ -1,94 +1,42 @@
+using Datahub.Application.Configuration;
+using Datahub.Application.Exceptions;
 using Datahub.Application.Services;
 using Datahub.Core.Model.Context;
+using Datahub.Core.Model.Projects;
 using Datahub.Core.Model.Subscriptions;
 using Microsoft.EntityFrameworkCore;
 
 namespace Datahub.Infrastructure.Services;
 
 /// <summary>
-/// Manages assignment of subnet groups from the VNet pool to Protected B workspaces.
-/// Each call to <see cref="ClaimOrGetAppServiceSubnetIdAsync"/> is idempotent: if the workspace
-/// already has a subnet group assigned it returns the existing App Service subnet ID.
+/// Assigns subnet groups to Protected B workspaces from the <c>Subnets</c> table.
 /// </summary>
-public class SubnetPoolService(IDbContextFactory<DatahubProjectDBContext> dbContextFactory) : ISubnetPoolService
+public class SubnetPoolService(DatahubPortalConfiguration portalConfiguration) : ISubnetPoolService
 {
-    // TODO: PLACEHOLDER — update this suffix to match the actual naming convention used in the
-    //       Protected B subnet pool for subnets delegated to Microsoft.Web/serverFarms.
-    //       e.g. "snet-app", "-app-snet", "webapp-subnet" depending on the IaC naming scheme.
-    private const string AppServiceSubnetNameSuffix = "-app-snet";
-
     /// <inheritdoc />
-    public async Task<string?> ClaimOrGetAppServiceSubnetIdAsync(int projectId, string azureSubscriptionId)
+    public async Task<Subnet> ClaimSubnetGroupAsync(DatahubProjectDBContext db, Datahub_Project project,
+        CancellationToken cancellationToken = default)
     {
-        await using var ctx = await dbContextFactory.CreateDbContextAsync();
+        // A deleted workspace keeps its group until the cooldown has passed, so the delete pipeline has time
+        // to remove its resources from the subnets.
+        var cooldown = TimeSpan.FromMinutes(portalConfiguration.Hosting.ProtectedBSubnetGroupCooldownMinutes);
+        var releasedBefore = DateTime.UtcNow - cooldown;
 
-        // Check if this workspace already has an App Service subnet assigned.
-        var existingSubnet = await ctx.WorkspaceSubnets
-            .Include(ws => ws.Subnet)
-                .ThenInclude(s => s.VNet)
-                    .ThenInclude(v => v.Subscription)
-            .Where(ws => ws.ProjectId == projectId
-                      && ws.Subnet.VNet.Subscription.SubscriptionId == azureSubscriptionId
-                      && ws.Subnet.SubnetName.EndsWith(AppServiceSubnetNameSuffix))
-            .Select(ws => ws.Subnet)
-            .FirstOrDefaultAsync();
+        // Not atomic: two Protected B workspaces requested at the same moment could get the same group.
+        // Accepted because Protected B workspaces are rarely created.
+        var subnet = await db.Subnets
+            .Where(s => !s.WorkspaceSubnets.Any(ws =>
+                ws.Project.Deleted_DT == null || ws.Project.Deleted_DT > releasedBefore))
+            .OrderBy(s => s.SubnetGroup)
+            .FirstOrDefaultAsync(cancellationToken);
 
-        if (existingSubnet is not null)
+        if (subnet is null)
         {
-            return BuildSubnetArmId(existingSubnet);
+            throw new NoSubnetGroupAvailableException(
+                $"No subnet group is available for Protected B workspace '{project.Project_Acronym_CD}'.");
         }
 
-        // Find the set of subnet group numbers already assigned to any workspace in this subscription.
-        var assignedSubnetGroups = await ctx.WorkspaceSubnets
-            .Include(ws => ws.Subnet)
-                .ThenInclude(s => s.VNet)
-                    .ThenInclude(v => v.Subscription)
-            .Where(ws => ws.Subnet.VNet.Subscription.SubscriptionId == azureSubscriptionId)
-            .Select(ws => ws.Subnet.SubnetGroup)
-            .Distinct()
-            .ToListAsync();
-
-        // Find the next available App Service subnet whose group is not yet claimed.
-        var availableSubnet = await ctx.Subnets
-            .Include(s => s.VNet)
-                .ThenInclude(v => v.Subscription)
-            .Where(s => s.VNet.Subscription.SubscriptionId == azureSubscriptionId
-                     && s.SubnetName.EndsWith(AppServiceSubnetNameSuffix)
-                     && !assignedSubnetGroups.Contains(s.SubnetGroup))
-            .FirstOrDefaultAsync();
-
-        if (availableSubnet is null)
-        {
-            // TODO: PLACEHOLDER — emit an alert/metric for subnet pool exhaustion so that
-            //       the infrastructure team can extend the pool before provisioning fails.
-            return null;
-        }
-
-        // Assign all subnets in the group to this workspace.
-        // NOTE: This is not atomic under concurrent load. A distributed lock or serializable
-        //       transaction should be used if simultaneous PB workspace provisioning is expected.
-        var groupSubnets = await ctx.Subnets
-            .Where(s => s.VNetId == availableSubnet.VNetId
-                     && s.SubnetGroup == availableSubnet.SubnetGroup)
-            .ToListAsync();
-
-        foreach (var subnet in groupSubnets)
-        {
-            ctx.WorkspaceSubnets.Add(new WorkspaceSubnet
-            {
-                ProjectId = projectId,
-                SubnetId = subnet.Id
-            });
-        }
-
-        await ctx.SaveChangesAsync();
-
-        return BuildSubnetArmId(availableSubnet);
+        db.WorkspaceSubnets.Add(new WorkspaceSubnet { Project = project, Subnet = subnet });
+        return subnet;
     }
-
-    /// <summary>
-    /// Constructs the full Azure ARM resource ID for a subnet from its entity.
-    /// </summary>
-    private static string BuildSubnetArmId(Subnet subnet) =>
-        $"{subnet.VNet.VNetId}/subnets/{subnet.SubnetName}";
 }

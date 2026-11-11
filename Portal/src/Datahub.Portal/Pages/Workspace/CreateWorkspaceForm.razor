@@ -1,4 +1,5 @@
 @using System.Globalization
+@using Datahub.Application.Exceptions
 @using Datahub.Application.Services
 @using Datahub.Core.Model.Onboarding
 @using Datahub.Core.Model.Projects
@@ -226,6 +227,7 @@
             await _projectCreationService.SaveWorkspaceCreationDetailsAsync(_projectAcronym, SerializedFeatures);
             _navigationManager.NavigateTo(PageRoutes.WorkspaceDefault.Replace("{WorkspaceAcronymParam}", _projectAcronym), forceLoad: true);
         }
+        catch (NoSubnetGroupAvailableException) { _errorMessage = Localizer["No network capacity is available for new Protected B workspaces. Please contact support."]; }
         catch (Exception) { _errorMessage = Localizer["An error occurred while creating the workspace"]; }
         finally { _isCreating = false; }
     }

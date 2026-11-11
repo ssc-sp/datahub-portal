@@ -1,228 +1,162 @@
+using Datahub.Application.Configuration;
+using Datahub.Application.Exceptions;
 using Datahub.Core.Model.Context;
+using Datahub.Core.Model.Projects;
 using Datahub.Core.Model.Subscriptions;
 using Datahub.Infrastructure.Services;
 using Microsoft.EntityFrameworkCore;
-using Moq;
 
 namespace Datahub.Infrastructure.UnitTests.Services;
 
 [TestFixture]
 public class SubnetPoolServiceTests
 {
-    // The suffix must match the private constant in SubnetPoolService.
-    private const string AppSubnetSuffix = "-app-snet";
-    private const string TestSubscriptionId = "sub-test-001";
-    private const string TestVNetArmId =
-        "/subscriptions/sub-test-001/resourceGroups/rg-test/providers/Microsoft.Network/virtualNetworks/vnet-test";
-    private const int TestProjectId = 42;
+    private const int CooldownMinutes = 90;
 
-    private Mock<IDbContextFactory<DatahubProjectDBContext>> _mockFactory = null!;
     private DbContextOptions<SqlServerDatahubContext> _options = null!;
+    private SubnetPoolService _sut = null!;
 
     [SetUp]
     public void Setup()
     {
-        // Use a unique in-memory database name per test so each test starts clean.
+        // A unique in-memory database per test so each test starts clean.
         _options = new DbContextOptionsBuilder<SqlServerDatahubContext>()
             .UseInMemoryDatabase(Guid.NewGuid().ToString())
             .Options;
 
-        using var ctx = new SqlServerDatahubContext(_options);
-        ctx.Database.EnsureCreated();
-
-        _mockFactory = new Mock<IDbContextFactory<DatahubProjectDBContext>>();
-        _mockFactory
-            .Setup(f => f.CreateDbContextAsync(CancellationToken.None))
-            .ReturnsAsync(() => new SqlServerDatahubContext(_options));
+        var configuration = new DatahubPortalConfiguration();
+        configuration.Hosting.ProtectedBSubnetGroupCooldownMinutes = CooldownMinutes;
+        _sut = new SubnetPoolService(configuration);
     }
 
-    // -------------------------------------------------------------------------
-    // Helpers
-    // -------------------------------------------------------------------------
+    private SqlServerDatahubContext NewContext() => new(_options);
 
-    private static DatahubAzureSubscription CreateSubscription(string subscriptionId) =>
-        new()
-        {
-            TenantId = "tenant-001",
-            SubscriptionId = subscriptionId,
-            SubscriptionName = $"Test Subscription ({subscriptionId})"
-        };
-
-    private static VNet CreateVNet(DatahubAzureSubscription subscription) =>
-        new()
-        {
-            VNetId = TestVNetArmId,
-            VNetName = "vnet-test",
-            Subscription = subscription
-        };
-
-    /// <summary>
-    /// Seeds one subnet group (8 subnets) into the in-memory DB and returns them.
-    /// The last subnet in the group has the AppServiceSubnetSuffix.
-    /// </summary>
-    private async Task<List<Subnet>> SeedSubnetGroupAsync(
-        int subnetGroup,
-        DatahubAzureSubscription? subscription = null)
+    private static Datahub_Project NewProject(string acronym, DateTime? deletedUtc = null) => new()
     {
-        await using var ctx = new SqlServerDatahubContext(_options);
+        Project_Acronym_CD = acronym,
+        Project_Name = acronym,
+        Deleted_DT = deletedUtc
+    };
 
-        var sub = subscription ?? CreateSubscription(TestSubscriptionId);
-        var vnet = CreateVNet(sub);
-        ctx.VNets.Add(vnet);
-
-        var subnets = Enumerable.Range(1, 8)
-            .Select(i => new Subnet
+    /// <summary>Seeds one subnet record per group number.</summary>
+    private async Task SeedGroupsAsync(params int[] groups)
+    {
+        await using var ctx = NewContext();
+        var vnet = new VNet
+        {
+            VNetId = "/subscriptions/sub/resourceGroups/rg/providers/Microsoft.Network/virtualNetworks/vnet",
+            VNetName = "vnet",
+            Subscription = new DatahubAzureSubscription
             {
-                SubnetName = i == 8
-                    ? $"subnet-group{subnetGroup}-{i}{AppSubnetSuffix}"  // App Service subnet
-                    : $"subnet-group{subnetGroup}-{i}-snet",
-                SubnetGroup = subnetGroup,
-                VNet = vnet
-            })
-            .ToList();
-
-        ctx.Subnets.AddRange(subnets);
+                TenantId = "tenant", SubscriptionId = "sub", SubscriptionName = "Test subscription"
+            }
+        };
+        ctx.Subnets.AddRange(groups.Select(g => new Subnet { SubnetName = $"group-{g}", SubnetGroup = g, VNet = vnet }));
         await ctx.SaveChangesAsync();
-
-        return subnets;
     }
 
-    // -------------------------------------------------------------------------
-    // Tests
-    // -------------------------------------------------------------------------
+    /// <summary>Assigns a group to a saved workspace.</summary>
+    private async Task AssignAsync(int group, Datahub_Project project)
+    {
+        await using var ctx = NewContext();
+        var subnet = await ctx.Subnets.SingleAsync(s => s.SubnetGroup == group);
+        ctx.WorkspaceSubnets.Add(new WorkspaceSubnet { Project = project, Subnet = subnet });
+        await ctx.SaveChangesAsync();
+    }
+
+    private async Task<int> ClaimForNewWorkspaceAsync(string acronym = "NEW")
+    {
+        await using var ctx = NewContext();
+        var project = NewProject(acronym);
+        ctx.Projects.Add(project);
+        var subnet = await _sut.ClaimSubnetGroupAsync(ctx, project);
+        await ctx.SaveChangesAsync();
+        return subnet.SubnetGroup;
+    }
 
     [Test]
-    public async Task ClaimOrGet_ReturnsExistingSubnet_WhenWorkspaceAlreadyAssigned()
+    public async Task Claim_ReturnsLowestGroup_WhenNoneAssigned()
     {
-        // Arrange
-        var subnets = await SeedSubnetGroupAsync(subnetGroup: 1);
-        var appSubnet = subnets.First(s => s.SubnetName.EndsWith(AppSubnetSuffix));
+        await SeedGroupsAsync(3, 1, 2);
 
-        await using (var ctx = new SqlServerDatahubContext(_options))
+        Assert.That(await ClaimForNewWorkspaceAsync(), Is.EqualTo(1));
+    }
+
+    [Test]
+    public async Task Claim_SkipsGroupHeldByLiveWorkspace()
+    {
+        await SeedGroupsAsync(1, 2);
+        await AssignAsync(1, NewProject("LIVE"));
+
+        Assert.That(await ClaimForNewWorkspaceAsync(), Is.EqualTo(2));
+    }
+
+    [Test]
+    public async Task Claim_SkipsGroupOfWorkspaceDeletedWithinCooldown()
+    {
+        await SeedGroupsAsync(1, 2);
+        await AssignAsync(1, NewProject("RECENT", DateTime.UtcNow.AddMinutes(-(CooldownMinutes - 10))));
+
+        Assert.That(await ClaimForNewWorkspaceAsync(), Is.EqualTo(2));
+    }
+
+    [Test]
+    public async Task Claim_ReusesGroupOfWorkspaceDeletedBeforeCooldown()
+    {
+        await SeedGroupsAsync(1, 2);
+        await AssignAsync(1, NewProject("OLD", DateTime.UtcNow.AddMinutes(-(CooldownMinutes + 10))));
+
+        Assert.That(await ClaimForNewWorkspaceAsync(), Is.EqualTo(1));
+    }
+
+    [Test]
+    public async Task Claim_SkipsGroupHeldByLiveWorkspace_EvenWithOlderDeletedHolder()
+    {
+        await SeedGroupsAsync(1, 2);
+        await AssignAsync(1, NewProject("OLD", DateTime.UtcNow.AddDays(-30)));
+        await AssignAsync(1, NewProject("LIVE"));
+
+        Assert.That(await ClaimForNewWorkspaceAsync(), Is.EqualTo(2));
+    }
+
+    [Test]
+    public async Task Claim_UsesConfiguredCooldown()
+    {
+        var configuration = new DatahubPortalConfiguration();
+        configuration.Hosting.ProtectedBSubnetGroupCooldownMinutes = 5;
+        _sut = new SubnetPoolService(configuration);
+
+        await SeedGroupsAsync(1, 2);
+        await AssignAsync(1, NewProject("OLD", DateTime.UtcNow.AddMinutes(-10)));
+
+        Assert.That(await ClaimForNewWorkspaceAsync(), Is.EqualTo(1));
+    }
+
+    [Test]
+    public async Task Claim_Throws_WhenNoGroupAvailable()
+    {
+        await SeedGroupsAsync(1);
+        await AssignAsync(1, NewProject("LIVE"));
+
+        await Assert.ThatAsync(() => ClaimForNewWorkspaceAsync(), Throws.TypeOf<NoSubnetGroupAvailableException>());
+    }
+
+    [Test]
+    public async Task Claim_AddsAssignmentWithoutSaving()
+    {
+        await SeedGroupsAsync(1);
+
+        await using (var ctx = NewContext())
         {
-            ctx.WorkspaceSubnets.AddRange(subnets.Select(s => new WorkspaceSubnet
-            {
-                ProjectId = TestProjectId,
-                SubnetId = s.Id
-            }));
-            await ctx.SaveChangesAsync();
+            var project = NewProject("NEW");
+            ctx.Projects.Add(project);
+            await _sut.ClaimSubnetGroupAsync(ctx, project);
+
+            Assert.That(ctx.ChangeTracker.Entries<WorkspaceSubnet>().Single().State, Is.EqualTo(EntityState.Added));
+            // Not saved: the caller saves the assignment together with the workspace.
         }
 
-        var sut = new SubnetPoolService(_mockFactory.Object);
-
-        // Act
-        var result = await sut.ClaimOrGetAppServiceSubnetIdAsync(TestProjectId, TestSubscriptionId);
-
-        // Assert
-        Assert.That(result, Is.Not.Null);
-        Assert.That(result, Does.Contain(appSubnet.SubnetName));
-        Assert.That(result, Does.Contain(TestVNetArmId));
-    }
-
-    [Test]
-    public async Task ClaimOrGet_ClaimsEntireSubnetGroup_WhenNoAssignmentExists()
-    {
-        // Arrange
-        var subnets = await SeedSubnetGroupAsync(subnetGroup: 1);
-
-        var sut = new SubnetPoolService(_mockFactory.Object);
-
-        // Act
-        var result = await sut.ClaimOrGetAppServiceSubnetIdAsync(TestProjectId, TestSubscriptionId);
-
-        // Assert — returns a non-null ARM ID containing the app-service subnet name
-        Assert.That(result, Is.Not.Null);
-        Assert.That(result, Does.Contain(AppSubnetSuffix));
-
-        // Assert — all 8 subnets in the group are now assigned to the workspace
-        await using var ctx = new SqlServerDatahubContext(_options);
-        var assigned = await ctx.WorkspaceSubnets
-            .Where(ws => ws.ProjectId == TestProjectId)
-            .ToListAsync();
-
-        Assert.That(assigned, Has.Count.EqualTo(subnets.Count),
-            "All subnets in the group should be assigned to the workspace");
-    }
-
-    [Test]
-    public async Task ClaimOrGet_ReturnsNull_WhenNoSubnetsAvailable()
-    {
-        // Arrange — seed one group but assign it entirely to a different workspace
-        var subnets = await SeedSubnetGroupAsync(subnetGroup: 1);
-        const int otherProjectId = 99;
-
-        await using (var ctx = new SqlServerDatahubContext(_options))
-        {
-            ctx.WorkspaceSubnets.AddRange(subnets.Select(s => new WorkspaceSubnet
-            {
-                ProjectId = otherProjectId,
-                SubnetId = s.Id
-            }));
-            await ctx.SaveChangesAsync();
-        }
-
-        var sut = new SubnetPoolService(_mockFactory.Object);
-
-        // Act
-        var result = await sut.ClaimOrGetAppServiceSubnetIdAsync(TestProjectId, TestSubscriptionId);
-
-        // Assert
-        Assert.That(result, Is.Null,
-            "Should return null when all subnet groups are already claimed");
-    }
-
-    [Test]
-    public async Task ClaimOrGet_IgnoresSubnetsInDifferentSubscription()
-    {
-        // Arrange — seed subnets under a DIFFERENT subscription
-        await SeedSubnetGroupAsync(subnetGroup: 1,
-            subscription: CreateSubscription("sub-other-999"));
-
-        var sut = new SubnetPoolService(_mockFactory.Object);
-
-        // Act
-        var result = await sut.ClaimOrGetAppServiceSubnetIdAsync(TestProjectId, TestSubscriptionId);
-
-        // Assert
-        Assert.That(result, Is.Null,
-            "Should not claim subnets from a different Azure subscription");
-    }
-
-    [Test]
-    public async Task ClaimOrGet_ClaimsNextFreeGroup_WhenFirstGroupAlreadyTaken()
-    {
-        // Arrange — seed group 1 (claimed) and group 2 (free)
-        var group1 = await SeedSubnetGroupAsync(subnetGroup: 1);
-        var group2 = await SeedSubnetGroupAsync(subnetGroup: 2);
-        const int otherProjectId = 77;
-
-        await using (var ctx = new SqlServerDatahubContext(_options))
-        {
-            ctx.WorkspaceSubnets.AddRange(group1.Select(s => new WorkspaceSubnet
-            {
-                ProjectId = otherProjectId,
-                SubnetId = s.Id
-            }));
-            await ctx.SaveChangesAsync();
-        }
-
-        var sut = new SubnetPoolService(_mockFactory.Object);
-
-        // Act
-        var result = await sut.ClaimOrGetAppServiceSubnetIdAsync(TestProjectId, TestSubscriptionId);
-
-        // Assert — got a result from the free group 2
-        Assert.That(result, Is.Not.Null);
-
-        // Only group 2 subnets should be assigned to our workspace
-        await using var ctx2 = new SqlServerDatahubContext(_options);
-        var assigned = await ctx2.WorkspaceSubnets
-            .Include(ws => ws.Subnet)
-            .Where(ws => ws.ProjectId == TestProjectId)
-            .ToListAsync();
-
-        Assert.That(assigned, Has.Count.EqualTo(group2.Count));
-        Assert.That(assigned.All(ws => ws.Subnet.SubnetGroup == 2), Is.True,
-            "Should only assign subnets from group 2, not group 1");
+        await using var check = NewContext();
+        Assert.That(await check.WorkspaceSubnets.CountAsync(), Is.Zero);
     }
 }

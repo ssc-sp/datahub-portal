@@ -93,10 +93,9 @@ public class WorkspaceToolboxSteps(
 
         var workspaceVersionService = Substitute.For<IWorkspaceVersionService>();
         var endpointProvider = Substitute.For<ISendEndpointProvider>();
-        var mockSubnetPoolService = Substitute.For<ISubnetPoolService>();
         var sbConfiguration = Substitute.For<IServiceBusConfiguration>();
 
-        var resourceMessagingService = new ResourceMessagingService(dbContextFactory, endpointProvider, sbConfiguration, workspaceVersionService, mockSubnetPoolService);
+        var resourceMessagingService = new ResourceMessagingService(dbContextFactory, endpointProvider, sbConfiguration, workspaceVersionService);
         var requestManagementService = new RequestManagementService(
             requestLogger,
             dbContextFactory,

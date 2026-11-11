@@ -277,6 +277,7 @@
   "An error has happened on the DataHub server. The team has been notified and the error has been recorded. The correlation ID for this error is <>. To avoid network issues, if you are currently on the VPN, please try to disconnect the VPN and retry your actions.": "Une erreur s’est produite sur le serveur DataHub. L’équipe a été avertie et l’erreur a été enregistrée. L’identificateur de corrélation de cette erreur est <>. Pour éviter les problèmes de réseau, si vous êtes actuellement sur le VPN, essayez de déconnecter le VPN et réessayez vos actions.",
   "An error occured when deleting this workspace. Please contact support.": "Une erreur s'est produite lors de la suppression de cet espace de travail. Veuillez contacter le support.",
   "An error occurred while creating the workspace": "Une erreur s'est produite lors de la création de l'espace de travail",
+  "No network capacity is available for new Protected B workspaces. Please contact support.": "Aucune capacité réseau n'est disponible pour de nouveaux espaces de travail Protégé B. Veuillez communiquer avec le soutien.",
   "An error occurred while scanning the file {0}. Please try again.": "Une erreur est survenue lors de l'analyse du fichier {0}. Veuillez réessayer.",
   "An error occurred while scanning the file.": "Une erreur est survenue lors de l'analyse du fichier.",
   "An external user with this email address already exists. Existing profile details have been loaded.": "Un utilisateur externe avec cette adresse e-mail existe déjà. Les détails du profil existants ont été chargés.",
