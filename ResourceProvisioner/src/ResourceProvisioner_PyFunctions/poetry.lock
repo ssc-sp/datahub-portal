@@ -330,20 +330,20 @@ msrestazure = ">=0.4.32,<2.0.0"
 
 [[package]]
 name = "azure-identity"
-version = "1.25.3"
+version = "1.27.0"
 description = "Microsoft Azure Identity Library for Python"
 optional = false
-python-versions = ">=3.9"
+python-versions = ">=3.10"
 groups = ["main"]
 files = [
-    {file = "azure_identity-1.25.3-py3-none-any.whl", hash = "sha256:f4d0b956a8146f30333e071374171f3cfa7bdb8073adb8c3814b65567aa7447c"},
-    {file = "azure_identity-1.25.3.tar.gz", hash = "sha256:ab23c0d63015f50b630ef6c6cf395e7262f439ce06e5d07a64e874c724f8d9e6"},
+    {file = "azure_identity-1.27.0-py3-none-any.whl", hash = "sha256:92fd2a93c0d2f777dac6c04e5fd7d5734f6643582b983544ef66b4575844e46d"},
+    {file = "azure_identity-1.27.0.tar.gz", hash = "sha256:6a4c50e25e8e9a47b324a95ad024897e56cb3c6241e0094e93b126a2bf71edc5"},
 ]
 
 [package.dependencies]
 azure-core = ">=1.31.0"
 cryptography = ">=2.5"
-msal = ">=1.35.1"
+msal = ">=1.39.0"
 msal-extensions = ">=1.2.0"
 typing-extensions = ">=4.0.0"
 
@@ -366,14 +366,14 @@ azure-keyvault-secrets = ">=4.4,<5.0"
 
 [[package]]
 name = "azure-keyvault-administration"
-version = "4.7.1"
+version = "4.7.2"
 description = "Microsoft Corporation Key Vault Administration Client Library for Python"
 optional = false
 python-versions = ">=3.9"
 groups = ["main"]
 files = [
-    {file = "azure_keyvault_administration-4.7.1-py3-none-any.whl", hash = "sha256:88af07a84da5d211d8ef1b326e933df347743651f4192f2668595d70ddd7305b"},
-    {file = "azure_keyvault_administration-4.7.1.tar.gz", hash = "sha256:cb3ef4d95605847a7ed3badd8f67fdd8ea6a880c8b6712cf46de269d3396e85e"},
+    {file = "azure_keyvault_administration-4.7.2-py3-none-any.whl", hash = "sha256:00156ea5fe45565b5f5f8537ca05040264eaf1f07ebdbad19b86cba3beff1de0"},
+    {file = "azure_keyvault_administration-4.7.2.tar.gz", hash = "sha256:db40044448ed901c4b04755537cd2167d40837376bcd2277139fb6881d40747c"},
 ]
 
 [package.dependencies]
@@ -383,31 +383,31 @@ typing-extensions = ">=4.6.0"
 
 [[package]]
 name = "azure-keyvault-certificates"
-version = "4.11.2"
+version = "4.12.0"
 description = "Microsoft Corporation Key Vault Certificates Client Library for Python"
 optional = false
-python-versions = ">=3.9"
+python-versions = ">=3.10"
 groups = ["main"]
 files = [
-    {file = "azure_keyvault_certificates-4.11.2-py3-none-any.whl", hash = "sha256:cc719633bf70c0bb9540762ce76c605d123c24907dfb14f450bf62cc5322acda"},
-    {file = "azure_keyvault_certificates-4.11.2.tar.gz", hash = "sha256:1fbc1df1ae1b9b5b49a5b5915f826ec0b1662ecfee909cc757ad35208398bfbd"},
+    {file = "azure_keyvault_certificates-4.12.0-py3-none-any.whl", hash = "sha256:7d078154a6dac129df8724dcfd11251ff7baf98a114a5908d83dd45cb294d4d2"},
+    {file = "azure_keyvault_certificates-4.12.0.tar.gz", hash = "sha256:ec5589c28889dce360d3ff9e9ec419db0fac4e127be1580f8a4a8e87384da4ea"},
 ]
 
 [package.dependencies]
-azure-core = ">=1.31.0"
+azure-core = ">=1.37.0"
 isodate = ">=0.6.1"
 typing-extensions = ">=4.6.0"
 
 [[package]]
 name = "azure-keyvault-keys"
-version = "4.11.2"
+version = "4.11.3"
 description = "Microsoft Corporation Azure Key Vault Keys Client Library for Python"
 optional = false
 python-versions = ">=3.9"
 groups = ["main"]
 files = [
-    {file = "azure_keyvault_keys-4.11.2-py3-none-any.whl", hash = "sha256:aa5eecd5a5f868d619542c5528bc8edbc9bc71d7ce46721c366a9d3c7cac6759"},
-    {file = "azure_keyvault_keys-4.11.2.tar.gz", hash = "sha256:8459c86542d103f8b67acb845fae5168029b6f7eb0fd7678ed8628c7b928addf"},
+    {file = "azure_keyvault_keys-4.11.3-py3-none-any.whl", hash = "sha256:c492fa29cc2f437d1ad2464e7ddf5f40196c8ec8e25fad94dae5d474e0432d0a"},
+    {file = "azure_keyvault_keys-4.11.3.tar.gz", hash = "sha256:abe258a46937ab69b148d1832150192f6a300578451d69304a0c3be24b9881aa"},
 ]
 
 [package.dependencies]
@@ -418,18 +418,18 @@ typing-extensions = ">=4.6.0"
 
 [[package]]
 name = "azure-keyvault-secrets"
-version = "4.11.2"
+version = "4.12.0"
 description = "Microsoft Corporation Key Vault Secrets Client Library for Python"
 optional = false
-python-versions = ">=3.9"
+python-versions = ">=3.10"
 groups = ["main"]
 files = [
-    {file = "azure_keyvault_secrets-4.11.2-py3-none-any.whl", hash = "sha256:7abdd4a830bd8f4998bea0edbe69b8a772d672c17eabfdf3f77d8e4ef29442e9"},
-    {file = "azure_keyvault_secrets-4.11.2.tar.gz", hash = "sha256:c0d86db01a8ae34d1db92ec6b9ef92d9a2aef7fbb1a67c0956513d46b85d7adb"},
+    {file = "azure_keyvault_secrets-4.12.0-py3-none-any.whl", hash = "sha256:ec5ff84ee0a045094e62d38e9b962769003e60fe7396d8dcf1ac4c78e7d010c6"},
+    {file = "azure_keyvault_secrets-4.12.0.tar.gz", hash = "sha256:435ea0abb5280baaad9553da7a19e73e1b581048783b852210352bfcb0316aff"},
 ]
 
 [package.dependencies]
-azure-core = ">=1.31.0"
+azure-core = ">=1.37.0"
 isodate = ">=0.6.1"
 typing-extensions = ">=4.6.0"
 
@@ -467,14 +467,14 @@ azure-core = ">=1.32.0"
 
 [[package]]
 name = "azure-mgmt-keyvault"
-version = "14.0.1"
+version = "14.1.0"
 description = "Microsoft Azure Keyvault Management Client Library for Python"
 optional = false
-python-versions = ">=3.9"
+python-versions = ">=3.10"
 groups = ["main"]
 files = [
-    {file = "azure_mgmt_keyvault-14.0.1-py3-none-any.whl", hash = "sha256:7710873c5b667e19d86109caf2898dddb902e5ed21013e01d7d85ebb496928d7"},
-    {file = "azure_mgmt_keyvault-14.0.1.tar.gz", hash = "sha256:d141a8084ae4c7c5bd1cafeca49a8f3fbebc58dc5bc5290f322ea73d8b307ef7"},
+    {file = "azure_mgmt_keyvault-14.1.0-py3-none-any.whl", hash = "sha256:d4e2e459adbf2752f03fb14894d30595d4e26efb3edfb22c91486c73ea01f9a6"},
+    {file = "azure_mgmt_keyvault-14.1.0.tar.gz", hash = "sha256:d27d412e6d7b5b76bfc7a8267b8e3d30852c7c6dc560609ec7d93d4816bd29fc"},
 ]
 
 [package.dependencies]
@@ -484,14 +484,14 @@ typing-extensions = ">=4.6.0"
 
 [[package]]
 name = "azure-mgmt-storage"
-version = "25.2.0"
+version = "25.3.0"
 description = "Microsoft Azure Storage Management Client Library for Python"
 optional = false
 python-versions = ">=3.10"
 groups = ["main"]
 files = [
-    {file = "azure_mgmt_storage-25.2.0-py3-none-any.whl", hash = "sha256:271cb98bcb2638f104de3447158fd994306925daf2a0f3c8396bfbcc9802e416"},
-    {file = "azure_mgmt_storage-25.2.0.tar.gz", hash = "sha256:49462eaf148d73332c4329fe646690354e441226fbe996e720e6683f021e986f"},
+    {file = "azure_mgmt_storage-25.3.0-py3-none-any.whl", hash = "sha256:cb26707847202a4eb34d6d4ba621d9f4d0b322b2af1565da6109d2a1ec161b8e"},
+    {file = "azure_mgmt_storage-25.3.0.tar.gz", hash = "sha256:bc4fe1ea26f8c58bf9ca6b365095cfd326d65cefa135dd5f29e09353cb6313ec"},
 ]
 
 [package.dependencies]
@@ -501,14 +501,14 @@ typing-extensions = ">=4.6.0"
 
 [[package]]
 name = "azure-servicebus"
-version = "7.14.3"
+version = "7.15.0"
 description = "Microsoft Azure Service Bus Client Library for Python"
 optional = false
 python-versions = ">=3.9"
 groups = ["main"]
 files = [
-    {file = "azure_servicebus-7.14.3-py3-none-any.whl", hash = "sha256:386f8d32dae8881661ec8d791c38978eca2bbf7ea9f489d6cff8ad9cc6990234"},
-    {file = "azure_servicebus-7.14.3.tar.gz", hash = "sha256:70a63384557aec0bee727740e7b25ded29e9e701b77611764577fd7402389402"},
+    {file = "azure_servicebus-7.15.0-py3-none-any.whl", hash = "sha256:7d60ad0956d7d9a7b75a0dad0b9eea0d182564e48911c11af9cd47f65a1d6584"},
+    {file = "azure_servicebus-7.15.0.tar.gz", hash = "sha256:62c73f3d9efbaf0089a375adc5ef992ffe6d7d0b1218b8462265aa30ad352c3e"},
 ]
 
 [package.dependencies]
