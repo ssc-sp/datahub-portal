@@ -59,7 +59,18 @@ jobs:
           command: 'test'
           projects: '$(testProject)'
           testRunTitle: '$(testRunTitle)'
-          arguments: '--configuration $(BuildConfiguration) --coverlet --coverlet-output-format cobertura'
+          arguments: >
+            --configuration $(BuildConfiguration)
+            --results-directory "$(Agent.TempDirectory)/coverage/$(System.JobName)"
+            --logger "trx;LogFileName=$(System.JobName).trx"
+            -- --coverage --coverage-output-format cobertura --coverage-output "$(Agent.TempDirectory)/coverage/$(System.JobName)/coverage.cobertura.xml"
+
+      - task: PublishPipelineArtifact@1
+        displayName: 'Publish coverage results for $(testRunTitle)'
+        condition: succeededOrFailed()
+        inputs:
+          targetPath: '$(Agent.TempDirectory)/coverage/$(System.JobName)'
+          artifact: 'coverage-$(System.JobName)'
 
   - job: Portal_Testing_Coverage
     displayName: 'Agent job - Portal Testing Coverage'
@@ -87,7 +98,7 @@ jobs:
 
       - script: |
           dotnet tool install -g dotnet-reportgenerator-globaltool
-          reportgenerator -reports:$(Agent.WorkFolder)/**/coverage.cobertura.xml -targetdir:$(Build.SourcesDirectory)/Portal/test/CodeCoverage -reporttypes:'HtmlInline_AzurePipelines;Cobertura'
+          reportgenerator -reports:$(Pipeline.Workspace)/coverage/**/coverage.cobertura.xml -targetdir:$(Build.SourcesDirectory)/Portal/test/CodeCoverage -reporttypes:'HtmlInline_AzurePipelines;Cobertura'
           echo "##vso[task.setvariable variable=disable.coverage.autogenerate;]true"
         displayName: 'Create code coverage report'
 
