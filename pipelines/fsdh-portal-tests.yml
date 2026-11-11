@@ -52,21 +52,18 @@ jobs:
           projects: '$(testProject)'
           arguments: '--disable-parallel'
 
-      - pwsh: |
-          $project = '$(testProject)'
-          $coverageRoot = Join-Path '$(Agent.TempDirectory)' 'coverage'
-          $jobDir = Join-Path $coverageRoot '$(System.JobName)'
-          $coverageFile = Join-Path $jobDir 'coverage.cobertura.xml'
-
-          New-Item -ItemType Directory -Force -Path $jobDir | Out-Null
-
-          & dotnet test $project --configuration $(BuildConfiguration) --logger "trx;LogFileName=$(System.JobName).trx" -- --coverage --coverage-output-format cobertura --coverage-output $coverageFile
-
-          if ($LASTEXITCODE -ne 0) {
-            exit $LASTEXITCODE
-          }
+      - task: DotNetCoreCLI@2
         displayName: '$(testRunTitle)'
         condition: succeededOrFailed()
+        inputs:
+          command: 'test'
+          projects: '$(testProject)'
+          testRunTitle: '$(testRunTitle)'
+          arguments: >
+            --configuration $(BuildConfiguration)
+            --results-directory "$(Agent.TempDirectory)/coverage/$(System.JobName)"
+            --logger "trx;LogFileName=$(System.JobName).trx"
+            --coverage --coverage-output-format cobertura --coverage-output "$(Agent.TempDirectory)/coverage/$(System.JobName)/coverage.cobertura.xml"
 
       - task: PublishPipelineArtifact@1
         displayName: 'Publish coverage results for $(testRunTitle)'
