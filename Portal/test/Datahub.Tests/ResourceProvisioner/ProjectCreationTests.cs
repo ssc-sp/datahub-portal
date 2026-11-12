@@ -134,6 +134,9 @@ public class ProjectCreationTests
         services.AddSingleton<IMetadataBrokerService>(metService.Object);
         services.AddSingleton<IConfiguration>(configuration);
 
+        // Protected B workspaces claim a subnet group from the database before they are saved.
+        services.AddScoped<ISubnetPoolService, SubnetPoolService>();
+
         var userService = new Mock<IUserInformationService>();
         userService.Setup(x => x.GetCurrentPortalUserAsync()).ReturnsAsync(new PortalUser { Email = "test@test.com" });
         services.AddSingleton<IUserInformationService>(userService.Object);
