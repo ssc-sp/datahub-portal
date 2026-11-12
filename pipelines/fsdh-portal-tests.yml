@@ -67,7 +67,7 @@ jobs:
         displayName: 'Publish coverage results for $(testRunTitle)'
         condition: succeededOrFailed()
         inputs:
-          targetPath: '$(Agent.TempDirectory)/coverage*.json'
+          targetPath: '$(Agent.TempDirectory)'
           artifact: 'coverage-$(System.JobName)'
 
   - job: Portal_Testing_Coverage
