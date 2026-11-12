@@ -23,7 +23,6 @@ public class ExternalUserInvitationServiceSteps(
     private const string CompletionResultKey = "completionResult";
     private const string ThrownExceptionKey = "thrownException";
     private const string CancelResultKey = "cancelResult";
-    private const string DeleteResultKey = "deleteResult";
     private const string ExternalSubjectKey = "externalSubject";
 
     private static readonly string TestProjectAcronym = "TEST";
@@ -213,25 +212,6 @@ public class ExternalUserInvitationServiceSteps(
 
     #endregion
 
-    #region When – DeleteExpiredInvitationAsync
-
-    [When(@"the expired invitation is deleted")]
-    public async Task WhenTheExpiredInvitationIsDeleted()
-    {
-        var invitation = (WorkspaceInvitation)scenarioContext[InvitationKey];
-        var result = await service.DeleteExpiredInvitationAsync(invitation.RequestID);
-        scenarioContext[DeleteResultKey] = result;
-    }
-
-    [When(@"a non-existent invitation is deleted")]
-    public async Task WhenANonExistentInvitationIsDeleted()
-    {
-        var result = await service.DeleteExpiredInvitationAsync(99999);
-        scenarioContext[DeleteResultKey] = result;
-    }
-
-    #endregion
-
     #region When – ResendInvitationAsync
 
     [When(@"the invitation is resent to the external user in project ""(.*)""")]
@@ -351,49 +331,6 @@ public class ExternalUserInvitationServiceSteps(
     public void ThenTheResultShouldBeNull()
     {
         scenarioContext[CancelResultKey].Should().BeNull();
-    }
-
-    #endregion
-
-    #region Then – delete invitation
-
-    [Then(@"the invitation should no longer exist")]
-    public async Task ThenTheInvitationShouldNoLongerExist()
-    {
-        var invitation = (WorkspaceInvitation)scenarioContext[InvitationKey];
-        await using var ctx = await dbContextFactory.CreateDbContextAsync();
-        var exists = await ctx.ExternalUserRequests
-            .AsNoTracking()
-            .AnyAsync(i => i.RequestID == invitation.RequestID);
-        exists.Should().BeFalse();
-        ((bool)scenarioContext[DeleteResultKey]).Should().BeTrue();
-    }
-
-    [Then(@"the invitation should still exist")]
-    public async Task ThenTheInvitationShouldStillExist()
-    {
-        var invitation = (WorkspaceInvitation)scenarioContext[InvitationKey];
-        await using var ctx = await dbContextFactory.CreateDbContextAsync();
-        var exists = await ctx.ExternalUserRequests
-            .AsNoTracking()
-            .AnyAsync(i => i.RequestID == invitation.RequestID);
-        exists.Should().BeTrue();
-    }
-
-    [Then(@"the external user profile should still exist")]
-    public async Task ThenTheExternalUserProfileShouldStillExist()
-    {
-        await using var ctx = await dbContextFactory.CreateDbContextAsync();
-        var exists = await ctx.ExternalUsers
-            .AsNoTracking()
-            .AnyAsync(u => u.Id == TestExternalUserId);
-        exists.Should().BeTrue();
-    }
-
-    [Then(@"the invitation deletion should return false")]
-    public void ThenTheInvitationDeletionShouldReturnFalse()
-    {
-        ((bool)scenarioContext[DeleteResultKey]).Should().BeFalse();
     }
 
     #endregion
