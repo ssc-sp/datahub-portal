@@ -52,6 +52,10 @@ jobs:
           projects: '$(testProject)'
           arguments: '--disable-parallel'
 
+      - script: |
+          mkdir -p "$(Agent.TempDirectory)/coverage/$(System.JobName)"
+        displayName: 'Create coverage output folder for $(testRunTitle)'
+
       - task: DotNetCoreCLI@2
         displayName: '$(testRunTitle)'
         condition: succeededOrFailed()
