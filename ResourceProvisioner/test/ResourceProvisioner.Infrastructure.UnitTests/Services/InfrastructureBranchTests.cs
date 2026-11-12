@@ -23,7 +23,7 @@ public class InfrastructureBranchTests
     [SetUp]
     public void SetUp()
     {
-        _path = Path.Combine(Path.GetTempPath(), $"infra-branch-{Guid.NewGuid():N}");
+        _path = Path.Join(Path.GetTempPath(), $"infra-branch-{Guid.NewGuid():N}");
         Repository.Init(_path);
         _repo = new Repository(_path);
 
@@ -151,7 +151,7 @@ public class InfrastructureBranchTests
 
     private Commit CommitFile(string relativePath, string content)
     {
-        var fullPath = Path.Combine(_path, relativePath);
+        var fullPath = Path.Join(_path, relativePath);
         Directory.CreateDirectory(Path.GetDirectoryName(fullPath)!);
         File.WriteAllText(fullPath, content);
         Commands.Stage(_repo, relativePath);
@@ -172,5 +172,5 @@ public class InfrastructureBranchTests
     private void SetRemoteBranch(Commit commit) =>
         _repo.Refs.Add($"refs/remotes/origin/{Workspace}", commit.Id, allowOverwrite: true);
 
-    private string ReadFile(string relativePath) => File.ReadAllText(Path.Combine(_path, relativePath));
+    private string ReadFile(string relativePath) => File.ReadAllText(Path.Join(_path, relativePath));
 }
