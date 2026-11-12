@@ -25,7 +25,7 @@ public class ProjectUserAddExternalUserCommand : IValidatableObject
     public string Organization { get; set; } = string.Empty;
 
     [Required(ErrorMessage = "Expiry date is required.")]
-    public DateTime? AccountExpiry { get; set; } = DateTime.Today;
+    public DateTime? AccountExpiry { get; set; } = DateTime.Today.AddDays(1);
 
     [Required(ErrorMessage = "Collaboration objectives are required.")]
     public string CollaborationObjectives { get; set; } = string.Empty;
@@ -47,6 +47,11 @@ public class ProjectUserAddExternalUserCommand : IValidatableObject
         if (!HasMinimumTrimmedLength(Organization, 2))
         {
             yield return new ValidationResult("Organization must be at least 2 characters.", [nameof(Organization)]);
+        }
+
+        if (AccountExpiry is not null && AccountExpiry.Value.Date <= DateTime.Today)
+        {
+            yield return new ValidationResult("Account expiry date must be in the future.", [nameof(AccountExpiry)]);
         }
     }
 

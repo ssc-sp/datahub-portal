@@ -58,3 +58,4 @@ The forms used to add workspace users should be part of the page and usable with
         And the external add-user form advances to user details
         Then the external role is selected with a GCDS select
         And the external account expiry uses a GCDS date input
+        And the external account expiry only accepts future dates
