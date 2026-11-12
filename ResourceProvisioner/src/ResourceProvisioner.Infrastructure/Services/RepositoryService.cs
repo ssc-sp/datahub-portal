@@ -68,10 +68,13 @@ public partial class RepositoryService(
     }
 
     private FetchOptions CreateFetchOptions(string? issuerValidationName,
-        CredentialsHandler? credentialsProvider = null)
+        CredentialsHandler? credentialsProvider = null, bool shallow = true)
     {
         var options = new FetchOptions();
-        options.Depth = 1;
+        if (shallow)
+        {
+            options.Depth = 1;
+        }
 
         if (credentialsProvider is not null)
         {
@@ -89,23 +92,6 @@ public partial class RepositoryService(
 
     private CloneOptions CreateCloneOptions(string? issuerValidationName,
         CredentialsHandler? credentialsProvider = null) => new CloneOptions(CreateFetchOptions(issuerValidationName, credentialsProvider));
-
-
-    private PullOptions CreatePullOptions(string? issuerValidationName,
-        CredentialsHandler? credentialsProvider = null) => new PullOptions
-        {
-            FetchOptions = CreateFetchOptions(issuerValidationName, credentialsProvider),
-            MergeOptions = CreateMergeOptions()
-        };
-
-    private MergeOptions CreateMergeOptions() => new()
-    {
-        FastForwardStrategy = FastForwardStrategy.NoFastForward,
-        IgnoreWhitespaceChange = true,
-        // Prefer the incoming branch's version when both sides changed the same file.
-        // During a pull, that is the newest file being merged in.
-        MergeFileFavor = MergeFileFavor.Theirs
-    };
 
     private PushOptions CreatePushOptions(string? issuerValidationName,
         CredentialsHandler? credentialsProvider = null)
@@ -291,91 +277,46 @@ public partial class RepositoryService(
         var tokenManager = new AzAccessTokenManager(credentialService, credentialService);
         var accessToken = await tokenManager.AccessDevopsTokenAsync();
 
-        var cloneOptions = CreateCloneOptions(issuerValidationName, (_, _, _) => new UsernamePasswordCredentials()
+        // Only the main branch, with its full history. Workspace branches left on the server by earlier runs are never
+        // downloaded, so their older copies of files can't be merged back into main.
+        var fetchOptions = CreateFetchOptions(issuerValidationName, (_, _, _) => new UsernamePasswordCredentials()
         {
             Username = resourceProvisionerConfiguration.Value.InfrastructureRepository.AzureDevOpsConfiguration
                         .ClientId,
             Password = accessToken.Token
-        });
+        }, shallow: false);
 
-        logger.LogInformation("Cloning repository {RepositoryUrl} to {LocalPath}", repositoryUrl,
-            Path.GetFullPath(repositoryPath));
-        Repository.Clone(repositoryUrl, repositoryPath, cloneOptions);
+        var mainBranchName = resourceProvisionerConfiguration.Value.InfrastructureRepository.MainBranch;
+        logger.LogInformation("Cloning branch {MainBranch} of {RepositoryUrl} to {LocalPath}", mainBranchName,
+            repositoryUrl, Path.GetFullPath(repositoryPath));
+        InfrastructureBranch.CloneMainOnly(repositoryUrl, repositoryPath, mainBranchName, fetchOptions);
 
         logger.LogInformation("Repository {RepositoryUrl} cloned to {LocalPath}", repositoryUrl,
             Path.GetFullPath(repositoryPath));
     }
 
-    public async Task CheckoutInfrastructureBranch(string workspaceName)
+    public Task CheckoutInfrastructureBranch(string workspaceName)
     {
-        var issuerValidationName = await GetIssuerSslValidationNameAsync();
-
         var repositoryPath = DirectoryUtils.GetInfrastructureRepositoryPath(resourceProvisionerConfiguration.Value);
         logger.LogInformation("Checking out branch {WorkspaceName} in {Path}", workspaceName, repositoryPath);
         using var repo = new Repository(repositoryPath);
-        var branch = repo.Branches[workspaceName];
-        bool isNewBranch = false;
-        if (branch == null)
-        {
-            logger.LogInformation("Branch {WorkspaceName} does not exist in {Path}, creating it now", workspaceName,
-                repositoryPath);
-            branch = repo.CreateBranch(workspaceName);
-            isNewBranch = true;
-        }
+        InfrastructureBranch.CreateFromMain(repo, workspaceName,
+            resourceProvisionerConfiguration.Value.InfrastructureRepository.MainBranch);
 
-        Commands.Checkout(repo, branch);
-        if (!isNewBranch)
-        {
-            var mainBranchName = resourceProvisionerConfiguration.Value.InfrastructureRepository.MainBranch;
-            var mainBranch = repo.Branches[mainBranchName];
-            if (mainBranch is null)
-            {
-                logger.LogWarning("Main branch {MainBranchName} does not exist in {Path}; skipping rebranch", mainBranchName, repositoryPath);
-            }
-            else
-            {
-                logger.LogInformation("Resetting {WorkspaceName} to {MainBranchName}", workspaceName, mainBranchName);
-                repo.Reset(ResetMode.Hard, mainBranch.Tip);
-            }
-        }
-
-        logger.LogInformation("Branch {WorkspaceName} checked out in {Path}", workspaceName, repositoryPath);
-
-        logger.LogInformation("Checking upstream for any updates in branch");
-
-        var credentialService = new InfraTokenCredentialService(resourceProvisionerConfiguration.Value.InfrastructureRepository.AzureDevOpsConfiguration);
-        var tokenManager = new AzAccessTokenManager(credentialService, credentialService);
-        var accessToken = await tokenManager.AccessDevopsTokenAsync();
-
-        var pullOptions = CreatePullOptions(issuerValidationName, (_, _, _) => new UsernamePasswordCredentials()
-        {
-            Username = resourceProvisionerConfiguration.Value.InfrastructureRepository.AzureDevOpsConfiguration
-                        .ClientId,
-            Password = accessToken.Token
-        });
-
-        var signature = new Signature(new Identity("Auto-merge", "Auto-merge"), DateTimeOffset.Now);
-        try
-        {
-            var remote = repo.Network.Remotes["origin"];
-            repo.Branches.Update(branch, b => b.Remote = remote.Name, b => b.UpstreamBranch = branch.CanonicalName);
-            Commands.Pull(repo, signature, pullOptions);
-        }
-        catch (MergeFetchHeadNotFoundException)
-        {
-            logger.LogInformation("No upstream updates found");
-        }
+        return Task.CompletedTask;
     }
 
-    public virtual Task CommitTerraformTemplate(TerraformTemplate template, string username)
+    public virtual Task CommitTerraformTemplate(TerraformTemplate template, string username, string workspaceAcronym)
     {
         var repositoryPath = DirectoryUtils.GetInfrastructureRepositoryPath(resourceProvisionerConfiguration.Value);
 
         logger.LogInformation("Committing changes in {LocalPath}", repositoryPath);
         using var repository = new Repository(repositoryPath);
 
-        logger.LogInformation("Adding all files in {LocalPath}", repositoryPath);
-        Commands.Stage(repository, "*");
+        // Only the workspace's own folder: a resource run never changes anything else in the repository.
+        var projectPathPrefix = resourceProvisionerConfiguration.Value.InfrastructureRepository.ProjectPathPrefix;
+        logger.LogInformation("Adding the files in {WorkspaceFolder}", InfrastructureBranch.WorkspaceFolder(projectPathPrefix, workspaceAcronym));
+        InfrastructureBranch.StageWorkspaceFolder(repository, workspaceAcronym, projectPathPrefix);
 
         var author = new Signature(username, username, DateTimeOffset.Now);
         logger.LogInformation(
@@ -412,17 +353,11 @@ public partial class RepositoryService(
         });
 
         using var repo = new Repository(repositoryPath);
-        var branch = repo.Branches[workspaceAcronym];
-        var remote = repo.Network.Remotes["origin"];
-        repo.Branches.Update(branch, b => b.Remote = remote.Name, b => b.UpstreamBranch = branch.CanonicalName);
+        logger.LogInformation("Pushing changes in {LocalPath} to {Branch} branch", repositoryPath, workspaceAcronym);
 
-        logger.LogInformation("Pushing changes in {LocalPath} to {Branch} branch", repositoryPath,
-            branch.CanonicalName);
+        InfrastructureBranch.Push(repo, workspaceAcronym, options);
 
-        repo.Network.Push(repo.Branches[workspaceAcronym], options);
-
-        logger.LogInformation("Changes pushed in {LocalPath} to {Branch} branch", repositoryPath,
-            branch.CanonicalName);
+        logger.LogInformation("Changes pushed in {LocalPath} to {Branch} branch", repositoryPath, workspaceAcronym);
     }
 
     public const string HttpClientName = "InfrastructureHttpClient";
@@ -646,7 +581,7 @@ public async Task<PullRequestValueObject> CreateInfrastructurePullRequest(string
                 await ExtractVariables(resourceTemplate, command);
             }
 
-            await CommitTerraformTemplate(resourceTemplate, username);
+            await CommitTerraformTemplate(resourceTemplate, username, command.Workspace.Acronym!);
 
             return new RepositoryUpdateEvent()
             {
