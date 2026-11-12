@@ -50,7 +50,10 @@ else
     {
 
         <MudStack Row AlignItems="AlignItems.Center" Wrap="Wrap.Wrap">
-            <MudText>@Localizer["Filters"]</MudText>
+            @if (HasVisibleFilters)
+            {
+                <MudText>@Localizer["Filters"]</MudText>
+            }
             <MudChipSet T="string" SelectionMode="SelectionMode.MultiSelection" Ripple="false" CheckMark>
                 @foreach (var group in RoleDisplayGroups.Where(group => group.Count > 0))
                 {
@@ -140,6 +143,8 @@ else
 
     bool AnyFilter => AllDisplayGroups.Any(g => g.FilterToggle);
     bool HasWorkspaces => _allWorkspaces.Count > 0;
+    bool HasVisibleFilters => RoleDisplayGroups.Any(group => group.Count > 0) ||
+                              (pb_enabled && SecurityDisplayGroups.Any(group => group.Count > 0));
     int FilteredWorkspacesCount;
     private bool pb_enabled = false;
 

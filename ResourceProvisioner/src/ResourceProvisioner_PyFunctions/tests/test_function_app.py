@@ -137,6 +137,29 @@ class FunctionAppMappingTests(unittest.TestCase):
 
         self.assertEqual(calls, ["keyvault", "storage"])
 
+    def test_enhanced_workspace_template_invokes_keyvault_and_storage_sync(self) -> None:
+        mappings = self.function_app.get_sync_func_mappings()
+
+        for key in ("new-project-template-enhanced", "terraform:new-project-template-enhanced"):
+            self.assertIn(key, mappings)
+            _, handler = mappings[key]
+
+            calls = []
+            self.function_app.sync_keyvault_workspace_users_function = lambda workspace_definition: calls.append("keyvault")
+            self.function_app.sync_storage_workspace_users_function = lambda workspace_definition: calls.append("storage")
+
+            handler({"Workspace": {"Acronym": "demo"}})
+
+            self.assertEqual(calls, ["keyvault", "storage"])
+
+    def test_enhanced_databricks_template_maps_to_databricks_sync(self) -> None:
+        mappings = self.function_app.get_sync_func_mappings()
+
+        for key in ("azure-databricks-enhanced", "terraform:azure-databricks-enhanced"):
+            self.assertIn(key, mappings)
+            _, handler = mappings[key]
+            self.assertIs(handler, self.function_app.sync_databricks_workspace_users_function)
+
     def test_resolve_databricks_host_url_supports_primary_key(self) -> None:
         workspace_definition = {
             "AppData": {

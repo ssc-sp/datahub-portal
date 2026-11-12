@@ -28,6 +28,7 @@ public class AccessibleAddUserFormsSteps : BunitTestSteps, IDisposable
 {
     private IRenderedComponent<AddNewEntraUsersToProjectForm>? _entraForm;
     private IRenderedComponent<AddNewExternalUsersToProjectForm>? _externalForm;
+    private IMSGraphService? _graphService;
     private List<ProjectUserAddEntraUserCommand>? _completedEntraUsers;
     private bool _cancelled;
 
@@ -41,11 +42,10 @@ public class AccessibleAddUserFormsSteps : BunitTestSteps, IDisposable
             DisplayName = "Test User",
             MailAddress = new MailAddress("test.user@example.gc.ca")
         };
-        var graphService = Substitute.For<IMSGraphService>();
-        graphService.GetUsersListAsync(Arg.Any<string>(), Arg.Any<CancellationToken>())
+        _graphService = Substitute.For<IMSGraphService>();
+        _graphService.GetUsersListAsync(Arg.Any<string>(), Arg.Any<CancellationToken>())
             .Returns(new Dictionary<string, GraphUser> { [graphUser.Id] = graphUser });
-        Services.AddSingleton(graphService);
-        Services.AddSingleton(Substitute.For<IUserEnrollmentService>());
+        Services.AddSingleton(_graphService);
         Services.AddSingleton(Substitute.For<IUserInformationService>());
 
         _entraForm = Render<AddNewEntraUsersToProjectForm>(parameters => parameters
@@ -165,14 +165,48 @@ public class AccessibleAddUserFormsSteps : BunitTestSteps, IDisposable
     [When("an Entra user is selected")]
     public async Task WhenAnEntraUserIsSelected()
     {
-        ArgumentNullException.ThrowIfNull(_entraForm);
-        var emailInput = _entraForm.FindComponent<GcdsInput>();
-        const string email = "test.user@example.gc.ca";
+        await EnterEntraEmailAsync("test.user@example.gc.ca");
+    }
 
-        await emailInput.InvokeAsync(() => emailInput.Instance.ValueChanged.InvokeAsync(email));
-        var addButton = _entraForm.FindComponents<GcdsButton>()
-            .Single(button => button.Markup.Contains("Add user", StringComparison.Ordinal));
-        await addButton.InvokeAsync(() => addButton.Instance.OnClick.InvokeAsync(default));
+    [When("the nonexistent Entra user email {string} is entered")]
+    public async Task WhenTheNonexistentEntraUserEmailIsEntered(string email)
+    {
+        ArgumentNullException.ThrowIfNull(_graphService);
+        _graphService.GetUsersListAsync(email, Arg.Any<CancellationToken>())
+            .Returns(new Dictionary<string, GraphUser>());
+
+        await EnterEntraEmailAsync(email);
+    }
+
+    [When("the invalid GC email {string} is entered")]
+    public async Task WhenTheInvalidGcEmailIsEntered(string email)
+    {
+        await EnterEntraEmailAsync(email);
+    }
+
+    [Then("the invalid GC email error is displayed")]
+    public void ThenTheInvalidGcEmailErrorIsDisplayed()
+    {
+        ArgumentNullException.ThrowIfNull(_entraForm);
+        var errorMessage = _entraForm.FindComponent<GcdsErrorMessage>();
+        errorMessage.Instance.MessageId.Should().Be("entra-user-email-error");
+        errorMessage.Markup.Should().Contain("Please enter a valid GC email address");
+    }
+
+    [Then("no Entra user is pending")]
+    public void ThenNoEntraUserIsPending()
+    {
+        ArgumentNullException.ThrowIfNull(_entraForm);
+        _entraForm.FindAll(".pending-user-card").Should().BeEmpty();
+        FindButton(_entraForm, "Add New Users").Instance.Disabled.Should().BeTrue();
+    }
+
+    [Then("Entra ID was not searched")]
+    public void ThenEntraIdWasNotSearched()
+    {
+        ArgumentNullException.ThrowIfNull(_graphService);
+        _graphService.DidNotReceive()
+            .GetUsersListAsync(Arg.Any<string>(), Arg.Any<CancellationToken>());
     }
 
     [Then("the pending Entra user is displayed as an accessible list item")]
@@ -267,7 +301,7 @@ public class AccessibleAddUserFormsSteps : BunitTestSteps, IDisposable
     }
 
     [Then("the external account expiry uses a GCDS date input")]
-    public async Task ThenTheExternalAccountExpiryUsesAGcdsDateInput()
+    public void ThenTheExternalAccountExpiryUsesAGcdsDateInput()
     {
         ArgumentNullException.ThrowIfNull(_externalForm);
         _externalForm.FindComponents<MudDatePicker>().Should().BeEmpty();
@@ -277,17 +311,70 @@ public class AccessibleAddUserFormsSteps : BunitTestSteps, IDisposable
         dateInput.Instance.ValueExpression.Should().NotBeNull();
         dateInput.Instance.ValueExpression!.Body.NodeType.Should()
             .Be(System.Linq.Expressions.ExpressionType.MemberAccess);
+        dateInput.Instance.Min.Should().Be(
+            DateTime.Today.AddDays(1).ToString("yyyy-MM-dd", CultureInfo.InvariantCulture));
+    }
 
-        const string expiryDate = "2030-12-31";
+    [Then("the external account expiry only accepts future dates")]
+    public async Task ThenTheExternalAccountExpiryOnlyAcceptsFutureDates()
+    {
+        ArgumentNullException.ThrowIfNull(_externalForm);
+
+        await SetExternalUserDetailAsync("external-user-first-name", "Jane");
+        await SetExternalUserDetailAsync("external-user-last-name", "Doe");
+        await SetExternalUserDetailAsync("external-user-organization", "SSC");
+
+        var dateInput = _externalForm.FindComponent<GcdsDateInput>();
+        var invalidDates = new[] { DateTime.Today.AddDays(-1), DateTime.Today };
+
+        foreach (var invalidDate in invalidDates)
+        {
+            var value = invalidDate.ToString("yyyy-MM-dd", CultureInfo.InvariantCulture);
+            await dateInput.InvokeAsync(() => dateInput.Instance.ValueChanged.InvokeAsync(value));
+
+            _externalForm.WaitForAssertion(() =>
+            {
+                FindButton(_externalForm, "Next").Instance.Disabled.Should().BeTrue();
+                _externalForm.FindComponent<GcdsDateInput>().Instance.ErrorMessage.Should()
+                    .Be("Account expiry date must be in the future");
+            });
+        }
+
+        var expiryDate = DateTime.Today.AddDays(1).ToString("yyyy-MM-dd", CultureInfo.InvariantCulture);
         await dateInput.InvokeAsync(() => dateInput.Instance.ValueChanged.InvokeAsync(expiryDate));
         _externalForm.WaitForAssertion(() =>
-            _externalForm.FindComponent<GcdsDateInput>().Instance.Value.Should().Be(expiryDate));
+        {
+            _externalForm.FindComponent<GcdsDateInput>().Instance.Value.Should().Be(expiryDate);
+            FindButton(_externalForm, "Next").Instance.Disabled.Should().BeFalse();
+        });
+    }
+
+    private async Task SetExternalUserDetailAsync(string id, string value)
+    {
+        ArgumentNullException.ThrowIfNull(_externalForm);
+        var input = _externalForm.FindComponents<GcdsInput>().Single(component => component.Instance.Id == id);
+        await input.InvokeAsync(() => input.Instance.ValueChanged.InvokeAsync(value));
     }
 
     private static IRenderedComponent<GcdsButton> FindButton(
         IRenderedComponent<AddNewExternalUsersToProjectForm> form, string text)
         => form.FindComponents<GcdsButton>()
             .Single(button => button.Markup.Contains(text, StringComparison.Ordinal));
+
+    private static IRenderedComponent<GcdsButton> FindButton(
+        IRenderedComponent<AddNewEntraUsersToProjectForm> form, string text)
+        => form.FindComponents<GcdsButton>()
+            .Single(button => button.Markup.Contains(text, StringComparison.Ordinal));
+
+    private async Task EnterEntraEmailAsync(string email)
+    {
+        ArgumentNullException.ThrowIfNull(_entraForm);
+        var emailInput = _entraForm.FindComponent<GcdsInput>();
+
+        await emailInput.InvokeAsync(() => emailInput.Instance.ValueChanged.InvokeAsync(email));
+        var addButton = FindButton(_entraForm, "Add user");
+        await addButton.InvokeAsync(() => addButton.Instance.OnClick.InvokeAsync(default));
+    }
 
     private IReadOnlyList<IRenderedComponent<GcdsButton>> GetButtonsInCurrentForm()
     {

@@ -128,6 +128,7 @@
         <WorkspaceVersionCard ProjectAcronym="@WorkspaceAcronym"
                             WorkspaceVersion="@_project.Version"
                             LastUpdated="@_project.Last_Updated_DT"
+                            IsProtectedB="@_isProtectedB"
                             LatestVersion="@_latestWorkspaceVersion"/>
         <MudDivider Class="my-4" />
         <WorkspaceUserCardList ProjectAcronym="@WorkspaceAcronym"/>
@@ -146,6 +147,7 @@
     private string _toolboxLink => $"/{PageRoutes.WorkspacePrefix}/{WorkspaceAcronym}/{WorkspaceSidebar.SectionViews.Toolbox}";
     private string _latestWorkspaceVersion = null!;
     private string? _workspaceCBR = null;
+    private bool _isProtectedB = false;
 
     private Dictionary<string, Type> _cardComponents = new()
     {
@@ -175,9 +177,8 @@
             .OrderBy(r => r.ResourceType)
             .ToList();
 
-        var newTemplateResource = _project.Resources.Where(
-                r => r.ResourceType == TerraformTemplate.GetTerraformServiceType(TerraformTemplate.NewProjectTemplate))
-            .FirstOrDefault();
+        _isProtectedB = _project.Resources.Any(
+                r => r.ResourceType == TerraformTemplate.GetTerraformServiceType(TerraformTemplate.NewProjectTemplateEnhanced));
 
         _isDeleted = _project.IsDeleted;
         _projectRepositories = await _databricksApiService.ListDisplayedWorkspaceRepositoriesAsync(WorkspaceAcronym);
