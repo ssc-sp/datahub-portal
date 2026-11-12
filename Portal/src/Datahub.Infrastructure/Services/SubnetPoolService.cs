@@ -95,6 +95,62 @@ public class SubnetPoolService(
         await db.SaveChangesAsync();
     }
 
+    /// <summary>The largest number of groups a range can hold, to catch typos.</summary>
+    public const int MaxRangeSize = 500;
+
+    /// <inheritdoc />
+    public async Task<(int Added, int Removed)> UpdateSubnetGroupRangeAsync(int vnetId, int firstGroup, int lastGroup)
+    {
+        if (firstGroup < 1 || lastGroup < firstGroup)
+        {
+            throw new InvalidOperationException("Enter a range starting at 1 or higher, with the last group at or after the first.");
+        }
+        if (lastGroup - firstGroup + 1 > MaxRangeSize)
+        {
+            throw new InvalidOperationException($"A range can hold at most {MaxRangeSize} groups.");
+        }
+
+        await using var db = await dbContextFactory.CreateDbContextAsync();
+        var subnets = await db.Subnets
+            .Include(s => s.WorkspaceSubnets).ThenInclude(ws => ws.Project)
+            .Where(s => s.VNetId == vnetId)
+            .ToListAsync();
+
+        var outside = subnets.Where(s => s.SubnetGroup < firstGroup || s.SubnetGroup > lastGroup).ToList();
+        var held = outside.Where(s => GetUsage(s).Status != SubnetGroupStatus.Available)
+            .Select(s => s.SubnetGroup).Order().ToList();
+        if (held.Count > 0)
+        {
+            throw new InvalidOperationException(
+                $"Release subnet group(s) {string.Join(", ", held)} before removing them from the range.");
+        }
+
+        // Groups outside the range are available, so their assignments are only history of deleted workspaces.
+        db.WorkspaceSubnets.RemoveRange(outside.SelectMany(s => s.WorkspaceSubnets));
+        db.Subnets.RemoveRange(outside);
+
+        var existing = subnets.Select(s => s.SubnetGroup).ToHashSet();
+        var added = Enumerable.Range(firstGroup, lastGroup - firstGroup + 1)
+            .Where(group => !existing.Contains(group))
+            .Select(group => new Subnet { SubnetGroup = group, SubnetName = GetGroupName(group), VNetId = vnetId })
+            .ToList();
+        db.Subnets.AddRange(added);
+
+        // Keep the names of the remaining groups in line with the configured prefix.
+        foreach (var subnet in subnets.Except(outside))
+        {
+            subnet.SubnetName = GetGroupName(subnet.SubnetGroup);
+        }
+
+        await db.SaveChangesAsync();
+        return (added.Count, outside.Count);
+    }
+
+    /// <summary>
+    /// The name of a subnet group, standing for its subnets, e.g. <c>fsdh-dbr_*-1-snet</c> for <c>fsdh-dbr_PEP-1-snet</c>.
+    /// </summary>
+    private string GetGroupName(int group) => $"{portalConfiguration.Hosting.SubnetNamePrefix}_*-{group}-snet";
+
     /// <summary>
     /// Works out a group's usage from the workspaces assigned to it. A deleted workspace keeps its group until
     /// the cooldown has passed, so the delete pipeline has time to remove its resources from the subnets.

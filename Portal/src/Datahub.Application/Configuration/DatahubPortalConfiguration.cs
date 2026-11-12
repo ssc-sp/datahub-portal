@@ -143,6 +143,12 @@ public class Hosting
     /// Minutes after a Protected B workspace is deleted before its subnet group can be assigned to another workspace.
     /// </summary>
     public int ProtectedBSubnetGroupCooldownMinutes { get; set; } = 90;
+
+    /// <summary>
+    /// Prefix of the workspace subnet names in the VNet (the Resource Provisioner's <c>subnet_name_prefix</c>), used to
+    /// name subnet groups, e.g. <c>fsdh-dbr_*-1-snet</c>.
+    /// </summary>
+    public string SubnetNamePrefix { get; set; } = "fsdh-dbr";
 }
 
 public class KeyVault

@@ -276,6 +276,91 @@ public class SubnetPoolServiceTests
         Assert.That(usage[subnetId].Status, Is.EqualTo(SubnetGroupStatus.Available));
     }
 
+    private async Task<int> VNetIdAsync()
+    {
+        await using var ctx = NewContext();
+        return (await ctx.VNets.SingleAsync()).Id;
+    }
+
+    private async Task<List<(int Group, string Name)>> GroupsAsync()
+    {
+        await using var ctx = NewContext();
+        return (await ctx.Subnets.OrderBy(s => s.SubnetGroup).ToListAsync())
+            .Select(s => (s.SubnetGroup, s.SubnetName)).ToList();
+    }
+
+    [Test]
+    public async Task Range_AddsMissingGroups_WithGeneratedNames()
+    {
+        await SeedGroupsAsync(1, 2);
+
+        var result = await _sut.UpdateSubnetGroupRangeAsync(await VNetIdAsync(), 1, 4);
+
+        Assert.Multiple(async () =>
+        {
+            Assert.That(result, Is.EqualTo((2, 0)));
+            Assert.That(await GroupsAsync(), Is.EqualTo(new[]
+            {
+                (1, "fsdh-dbr_*-1-snet"), (2, "fsdh-dbr_*-2-snet"), (3, "fsdh-dbr_*-3-snet"), (4, "fsdh-dbr_*-4-snet")
+            }));
+        });
+    }
+
+    [Test]
+    public async Task Range_ShiftsRange()
+    {
+        await SeedGroupsAsync(1, 2, 3, 4, 5, 6);
+
+        var result = await _sut.UpdateSubnetGroupRangeAsync(await VNetIdAsync(), 3, 8);
+
+        Assert.Multiple(async () =>
+        {
+            Assert.That(result, Is.EqualTo((2, 2)));
+            Assert.That((await GroupsAsync()).Select(g => g.Group), Is.EqualTo(new[] { 3, 4, 5, 6, 7, 8 }));
+        });
+    }
+
+    [Test]
+    public async Task Range_RemovesAvailableGroupsOutside_WithTheirHistory()
+    {
+        await SeedGroupsAsync(1, 2, 3, 4);
+        await AssignAsync(4, NewProject("OLD", DateTime.UtcNow.AddDays(-30)));
+
+        var result = await _sut.UpdateSubnetGroupRangeAsync(await VNetIdAsync(), 1, 2);
+
+        await using var ctx = NewContext();
+        Assert.Multiple(async () =>
+        {
+            Assert.That(result, Is.EqualTo((0, 2)));
+            Assert.That((await GroupsAsync()).Select(g => g.Group), Is.EqualTo(new[] { 1, 2 }));
+            Assert.That(await ctx.WorkspaceSubnets.CountAsync(), Is.Zero);
+        });
+    }
+
+    [Test]
+    public async Task Range_Refuses_WhenAGroupOutsideIsInUseOrCoolingDown()
+    {
+        await SeedGroupsAsync(1, 2, 3, 4, 5);
+        await AssignAsync(4, NewProject("LIVE"));
+        await AssignAsync(5, NewProject("RECENT", DateTime.UtcNow.AddMinutes(-10)));
+        var vnetId = await VNetIdAsync();
+
+        await Assert.ThatAsync(() => _sut.UpdateSubnetGroupRangeAsync(vnetId, 1, 3),
+            Throws.InvalidOperationException.With.Message.Contains("Release subnet group(s) 4, 5"));
+        Assert.That(await GroupsAsync(), Has.Count.EqualTo(5), "Nothing should change");
+    }
+
+    [TestCase(0, 3)]
+    [TestCase(5, 2)]
+    [TestCase(1, SubnetPoolService.MaxRangeSize + 1)]
+    public async Task Range_RejectsInvalidRange(int first, int last)
+    {
+        await SeedGroupsAsync(1);
+        var vnetId = await VNetIdAsync();
+
+        await Assert.ThatAsync(() => _sut.UpdateSubnetGroupRangeAsync(vnetId, first, last), Throws.InvalidOperationException);
+    }
+
     [Test]
     public async Task Claim_AddsAssignmentWithoutSaving()
     {

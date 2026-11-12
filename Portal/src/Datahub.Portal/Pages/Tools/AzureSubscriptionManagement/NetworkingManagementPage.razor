@@ -17,10 +17,14 @@
     @* ── VNet section ── *@
     <MudStack Row AlignItems="AlignItems.Center" Justify="Justify.SpaceBetween">
         <MudText Typo="Typo.h3">Virtual Networks</MudText>
-        <DHButton Variant="Variant.Filled" Color="Color.Primary" StartIcon="@SidebarIcons.Plus"
-                  OnClick="@OpenAddVNetDialog">
-            Add VNet
-        </DHButton>
+        @* Only needed to set up an environment's VNet; a portal uses a single VNet. *@
+        @if (_vnets.Count == 0)
+        {
+            <DHButton Variant="Variant.Filled" Color="Color.Primary" StartIcon="@SidebarIcons.Plus"
+                      OnClick="@OpenAddVNetDialog">
+                Add VNet
+            </DHButton>
+        }
     </MudStack>
 
     <MudTable Items="_vnets"
@@ -97,18 +101,26 @@
                 Subnets — <em>@_selectedVNet.VNetName</em>
             </MudText>
             <MudStack Row>
-                <DHButton Variant="Variant.Filled" Color="Color.Primary" StartIcon="@SidebarIcons.Plus"
-                          OnClick="@OpenAddSubnetDialog">
-                    Add Subnet
-                </DHButton>
                 <DHButton Variant="Variant.Outlined" Color="Color.Primary" StartIcon="@SidebarIcons.Plus"
-                          OnClick="@OpenAddSubnetRangeDialog">
-                    Add Subnet Range
+                          OnClick="@OpenUpdateRangeDialog">
+                    Update range
                 </DHButton>
                 <MudIconButton Icon="@Icons.Material.Filled.Close" aria-label="Close subnets panel"
                                OnClick="@(() => _selectedVNet = null)" />
             </MudStack>
         </MudStack>
+
+        <MudText>
+            @if (_subnets.Count == 0)
+            {
+                @:No subnet groups yet. Use <strong>Update range</strong> to add the groups that exist in the VNet.
+            }
+            else
+            {
+                <strong>Groups @RangeStart–@RangeEnd</strong>
+                @: · @CountWithStatus(SubnetGroupStatus.InUse) in use · @CountWithStatus(SubnetGroupStatus.Available) available · @CountWithStatus(SubnetGroupStatus.CoolingDown) cooling down
+            }
+        </MudText>
 
         <MudTable Items="_subnets"
                   T="Subnet"
@@ -262,61 +274,35 @@
     </DialogActions>
 </MudDialog>
 
-@* ── Add Subnet dialog ── *@
-<MudDialog @bind-Visible="_showAddSubnet" Options="@(new DialogOptions { CloseOnEscapeKey = true, MaxWidth = MaxWidth.Small, FullWidth = true })">
+@* ── Update range dialog ── *@
+<MudDialog @bind-Visible="_showUpdateRange" Options="@(new DialogOptions { CloseOnEscapeKey = true, MaxWidth = MaxWidth.Small, FullWidth = true })">
     <TitleContent>
-        <MudText Typo="Typo.h6">Add Subnet to @_selectedVNet?.VNetName</MudText>
+        <MudText Typo="Typo.h6">Update the subnet group range</MudText>
     </TitleContent>
     <DialogContent>
-        <MudForm @ref="_subnetForm" @bind-IsValid="_subnetFormValid">
-            <MudStack Spacing="3">
-                <MudTextField Label="Subnet Name" Required RequiredError="Subnet name is required"
-                              @bind-Value="_newSubnet.SubnetName"
-                              Placeholder="e.g. GcDcCNR-SSC_FSDHWorkspace_PEP-1-snet" />
-                <MudTextField Label="Address Prefix" @bind-Value="_newSubnet.AddressPrefix"
-                              Placeholder="e.g. 10.0.1.64/28" />
-                <MudNumericField T="int" Label="Subnet Group" Required RequiredError="Subnet group is required"
-                                 @bind-Value="_newSubnet.SubnetGroup" Min="1"
-                                 HelperText="Subnet assigned to one workspace" />
+        <MudStack Spacing="3">
+            <MudAlert Severity="Severity.Warning" Dense="true">
+                Only include groups whose subnets exist in the VNet. Otherwise new Protected B workspaces get groups
+                that don't exist and fail to deploy.
+            </MudAlert>
+            <MudText>
+                @(_subnets.Count == 0 ? "There are no groups yet." : $"The range is currently groups {RangeStart}–{RangeEnd}.")
+                Groups outside the new range are removed; groups in use or cooling down must be released first.
+            </MudText>
+            <MudStack Row>
+                <MudNumericField T="int" Label="First group" @bind-Value="_rangeFirst" Min="1" />
+                <MudNumericField T="int" Label="Last group" @bind-Value="_rangeLast" Min="1" />
             </MudStack>
-        </MudForm>
+            @if (_rangeError is not null)
+            {
+                <MudAlert Severity="Severity.Error" Dense="true">@_rangeError</MudAlert>
+            }
+        </MudStack>
     </DialogContent>
     <DialogActions>
-        <MudButton OnClick="@(() => _showAddSubnet = false)">Cancel</MudButton>
-        <DHButton Variant="Variant.Filled" Color="Color.Primary"
-                  Disabled="@(!_subnetFormValid)" OnClick="@SubmitAddSubnet">
-            Add Subnet
-        </DHButton>
-    </DialogActions>
-</MudDialog>
-
-@* ── Add Subnet Range dialog ── *@
-<MudDialog @bind-Visible="_showAddSubnetRange" Options="@(new DialogOptions { CloseOnEscapeKey = true, MaxWidth = MaxWidth.Small, FullWidth = true })">
-    <TitleContent>
-        <MudText Typo="Typo.h6">Add Subnet Range to @_selectedVNet?.VNetName</MudText>
-    </TitleContent>
-    <DialogContent>
-        <MudForm @ref="_subnetRangeForm" @bind-IsValid="_subnetRangeFormValid">
-            <MudStack Spacing="3">
-                <MudTextField Label="Range Name" Required RequiredError="Range name is required"
-                              @bind-Value="_newSubnetRange.Name"
-                              Placeholder="e.g. GcDcCNR-SSC_FSDHWorkspace_PEP" />
-                <MudTextField Label="Address ID / Prefix" Required RequiredError="Address ID is required"
-                              @bind-Value="_newSubnetRange.AddressId"
-                              Placeholder="e.g. 10.0.1.64/28" />
-                <MudNumericField T="int" Label="Start Subnet Group" Required RequiredError="Start subnet group is required"
-                                 @bind-Value="_newSubnetRange.StartSubnetGroup" Min="1" />
-                <MudNumericField T="int" Label="End Subnet Group" Required RequiredError="End subnet group is required"
-                                 @bind-Value="_newSubnetRange.EndSubnetGroup" Min="1" />
-            </MudStack>
-        </MudForm>
-    </DialogContent>
-    <DialogActions>
-        <MudButton OnClick="@(() => _showAddSubnetRange = false)">Cancel</MudButton>
-        <DHButton Variant="Variant.Filled" Color="Color.Primary"
-                  Disabled="@(!_subnetRangeFormValid || _newSubnetRange.StartSubnetGroup > _newSubnetRange.EndSubnetGroup)"
-                  OnClick="@SubmitAddSubnetRange">
-            Add Subnet Range
+        <MudButton OnClick="@(() => _showUpdateRange = false)">Cancel</MudButton>
+        <DHButton Variant="Variant.Filled" Color="Color.Primary" OnClick="@SubmitUpdateRange">
+            Update range
         </DHButton>
     </DialogActions>
 </MudDialog>

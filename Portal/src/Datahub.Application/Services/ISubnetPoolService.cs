@@ -46,6 +46,19 @@ public interface ISubnetPoolService
     /// </summary>
     /// <param name="subnetId">The <see cref="Subnet.Id"/> of the group.</param>
     Task ReleaseSubnetGroupAsync(int subnetId);
+
+    /// <summary>
+    /// Sets the range of subnet groups of a VNet: adds the missing groups in the range and removes the groups outside
+    /// it. Group names are generated from the configured subnet name prefix.
+    /// </summary>
+    /// <param name="vnetId">The <see cref="VNet.Id"/> of the VNet.</param>
+    /// <param name="firstGroup">The first group number of the range.</param>
+    /// <param name="lastGroup">The last group number of the range.</param>
+    /// <returns>The number of groups added and removed.</returns>
+    /// <exception cref="InvalidOperationException">
+    /// The range is invalid, or a group outside it is in use or cooling down. Nothing is changed.
+    /// </exception>
+    Task<(int Added, int Removed)> UpdateSubnetGroupRangeAsync(int vnetId, int firstGroup, int lastGroup);
 }
 
 /// <summary>
