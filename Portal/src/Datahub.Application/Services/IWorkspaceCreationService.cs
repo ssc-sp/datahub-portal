@@ -15,7 +15,16 @@ public interface IWorkspaceCreationService
     //token needs to be acquired by component so that exception handling can be done there
     //(handling exception causes force refresh through navigation manager)
     public Task CreateWorkspaceCloudHostingEndPointAsync(string projectName, string acronym, string organization, PortalUser portalUser, decimal budget, string cbrId);
-    public Task<bool> CreateWorkspaceAsync(string projectName, string acronym, string organization, int? gcHostingDetailsId = null, decimal? budget = null, ClassificationType classification = ClassificationType.Unclassified); 
+    /// <summary>
+    /// Creates a workspace and requests its provisioning.
+    /// </summary>
+    /// <returns>True if the workspace was created; false if creation failed.</returns>
+    /// <exception cref="Exceptions.NoSubnetGroupAvailableException">
+    /// The workspace is Protected B and no subnet group is available. Nothing is saved.
+    /// </exception>
+    public Task<bool> CreateWorkspaceAsync(string projectName, string acronym, string organization, int? gcHostingDetailsId = null, decimal? budget = null, ClassificationType classification = ClassificationType.Unclassified);
+
+    /// <inheritdoc cref="CreateWorkspaceAsync(string, string, string, int?, decimal?, ClassificationType)"/>
     public Task<bool> CreateWorkspaceAsync(string projectName, string organization, int? gcHostingDetailsId = null, ClassificationType classification = ClassificationType.Unclassified);
     
     public Task SaveWorkspaceCreationDetailsAsync(string projectAcronym, string? interestedFeatures = null);
