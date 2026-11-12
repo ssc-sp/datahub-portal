@@ -11,7 +11,7 @@ public interface IRepositoryService
     public Task FetchModuleRepository(string version);
     public Task FetchInfrastructureRepository();
     public Task CheckoutInfrastructureBranch(string workspaceName);
-    public Task CommitTerraformTemplate(TerraformTemplate template, string username);
+    public Task CommitTerraformTemplate(TerraformTemplate template, string username, string workspaceAcronym);
     public Task PushInfrastructureRepository(string workspaceAcronym);
     public Task<PullRequestValueObject> CreateInfrastructurePullRequest(string workspaceAcrynom);
     public Task FetchRepositoriesAndCheckoutProjectBranch(TerraformWorkspace workspace);

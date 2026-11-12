@@ -152,7 +152,7 @@ public class RepositoryServiceTests : TemplateTestCollection
         var repository = InitializeTestInfrastructureRepository(workspaceAcronym);
         CreateFakeFileInTestProject(workspaceAcronym);
 
-        await _repositoryService.CommitTerraformTemplate(TestTemplate, RequestingUser);
+        await _repositoryService.CommitTerraformTemplate(TestTemplate, RequestingUser, workspaceAcronym);
 
         Assert.Multiple(() =>
         {

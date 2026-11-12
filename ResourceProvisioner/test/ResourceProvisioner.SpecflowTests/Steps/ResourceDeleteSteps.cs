@@ -41,7 +41,7 @@ public class ResourceDeleteSteps(ScenarioContext scenarioContext)
 
         repositoryService
             .Configure()
-            .CommitTerraformTemplate(Arg.Any<TerraformTemplate>(), Arg.Any<string>())
+            .CommitTerraformTemplate(Arg.Any<TerraformTemplate>(), Arg.Any<string>(), Arg.Any<string>())
             .Returns(Task.CompletedTask);
 
         scenarioContext.Add("repositoryService", repositoryService);
