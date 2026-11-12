@@ -67,7 +67,6 @@ jobs:
             --configuration $(BuildConfiguration)
             --logger "trx;LogFileName=$(System.JobName).trx"
             --coverage --coverage-output-format cobertura --coverage-output "$(Agent.TempDirectory)/coverage/$(System.JobName)/coverage.cobertura.xml"
-            #            --results-directory "$(Agent.TempDirectory)/coverage/$(System.JobName)"
       - task: PublishPipelineArtifact@1
         displayName: 'Publish coverage results for $(testRunTitle)'
         condition: succeededOrFailed()
