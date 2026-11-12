@@ -65,11 +65,11 @@ public partial class NetworkingManagementPage : ComponentBase
     private SubnetGroupUsage GetUsage(Subnet subnet) =>
         _subnetUsage.TryGetValue(subnet.Id, out var usage) ? usage : new SubnetGroupUsage(SubnetGroupStatus.Available);
 
-    private static string GetStatusLabel(SubnetGroupUsage usage) => usage.Status switch
+    private string GetStatusLabel(SubnetGroupUsage usage) => usage.Status switch
     {
-        SubnetGroupStatus.InUse => "In use",
-        SubnetGroupStatus.CoolingDown => $"Cooling down until {usage.AvailableAtUtc:yyyy-MM-dd HH:mm} UTC",
-        _ => "Available"
+        SubnetGroupStatus.InUse => Localizer["In use"],
+        SubnetGroupStatus.CoolingDown => Localizer["Cooling down until {0} UTC", $"{usage.AvailableAtUtc:yyyy-MM-dd HH:mm}"],
+        _ => Localizer["Available"]
     };
 
     private static Color GetStatusColor(SubnetGroupStatus status) => status switch
@@ -100,14 +100,14 @@ public partial class NetworkingManagementPage : ComponentBase
         try
         {
             await _networkingService.AddVNetAsync(_newVNet);
-            _snackbar.Add("VNet added successfully", Severity.Success);
+            _snackbar.Add(Localizer["VNet added successfully"], Severity.Success);
             _showAddVNet = false;
             await RefreshVNets();
         }
         catch (Exception ex)
         {
             _logger.LogError(ex, "Failed to add VNet {VNetName}", _newVNet.VNetName);
-            _snackbar.Add("Failed to add VNet", Severity.Error);
+            _snackbar.Add(Localizer["Failed to add VNet"], Severity.Error);
         }
     }
 
@@ -132,12 +132,12 @@ public partial class NetworkingManagementPage : ComponentBase
             try
             {
                 await _networkingService.UpdateVNetAsync(v);
-                _snackbar.Add("VNet updated", Severity.Success);
+                _snackbar.Add(Localizer["VNet updated"], Severity.Success);
             }
             catch (Exception ex)
             {
                 _logger.LogError(ex, "Failed to update VNet {Id}", v.Id);
-                _snackbar.Add("Failed to update VNet", Severity.Error);
+                _snackbar.Add(Localizer["Failed to update VNet"], Severity.Error);
             }
         });
     }
@@ -147,14 +147,14 @@ public partial class NetworkingManagementPage : ComponentBase
         try
         {
             await _networkingService.DeleteVNetAsync(vnet.Id);
-            _snackbar.Add("VNet deleted", Severity.Success);
+            _snackbar.Add(Localizer["VNet deleted"], Severity.Success);
             if (_selectedVNet?.Id == vnet.Id) _selectedVNet = null;
             await RefreshVNets();
         }
         catch (Exception ex)
         {
             _logger.LogError(ex, "Failed to delete VNet {Id}", vnet.Id);
-            _snackbar.Add("Failed to delete VNet", Severity.Error);
+            _snackbar.Add(Localizer["Failed to delete VNet"], Severity.Error);
         }
     }
 
@@ -178,19 +178,20 @@ public partial class NetworkingManagementPage : ComponentBase
             var (added, removed) = await _subnetPoolService.UpdateSubnetGroupRangeAsync(_selectedVNet!.Id, _rangeFirst, _rangeLast);
             _logger.LogInformation("Subnet group range of VNet {VNetId} set to {First}-{Last} ({Added} added, {Removed} removed)",
                 _selectedVNet!.Id, _rangeFirst, _rangeLast, added, removed);
-            _snackbar.Add($"Range set to groups {_rangeFirst}–{_rangeLast}: {added} added, {removed} removed", Severity.Success);
+            _snackbar.Add(Localizer["Range set to groups {0}–{1}: {2} added, {3} removed", _rangeFirst, _rangeLast, added, removed], Severity.Success);
             _showUpdateRange = false;
             await LoadSubnetsAsync(_selectedVNet!.Id);
             await RefreshVNets();
         }
         catch (InvalidOperationException ex)
         {
-            _rangeError = ex.Message;
+            // The service's messages are fixed English text, so they can be looked up in the localizer.
+            _rangeError = Localizer[ex.Message];
         }
         catch (Exception ex)
         {
             _logger.LogError(ex, "Failed to update the subnet group range to {First}-{Last}", _rangeFirst, _rangeLast);
-            _rangeError = "Failed to update the range.";
+            _rangeError = Localizer["Failed to update the range."];
         }
     }
 
@@ -216,18 +217,18 @@ public partial class NetworkingManagementPage : ComponentBase
         try
         {
             await _subnetPoolService.AttachSubnetGroupAsync(_groupForAction.Id, _attachAcronym);
-            _snackbar.Add($"Subnet group {_groupForAction.SubnetGroup} attached to {_attachAcronym.Trim().ToUpperInvariant()}", Severity.Success);
+            _snackbar.Add(Localizer["Subnet group {0} attached to {1}", _groupForAction.SubnetGroup, _attachAcronym.Trim().ToUpperInvariant()], Severity.Success);
             _showAttach = false;
             await LoadSubnetsAsync(_selectedVNet!.Id);
         }
         catch (InvalidOperationException ex)
         {
-            _actionError = ex.Message;
+            _actionError = Localizer[ex.Message];
         }
         catch (Exception ex)
         {
             _logger.LogError(ex, "Failed to attach subnet group {Id} to {Acronym}", _groupForAction.Id, _attachAcronym);
-            _actionError = "Failed to attach the subnet group.";
+            _actionError = Localizer["Failed to attach the subnet group."];
         }
     }
 
@@ -238,14 +239,14 @@ public partial class NetworkingManagementPage : ComponentBase
         {
             await _subnetPoolService.ReleaseSubnetGroupAsync(_groupForAction.Id);
             _logger.LogInformation("Subnet group {Group} released manually", _groupForAction.SubnetGroup);
-            _snackbar.Add($"Subnet group {_groupForAction.SubnetGroup} released", Severity.Success);
+            _snackbar.Add(Localizer["Subnet group {0} released", _groupForAction.SubnetGroup], Severity.Success);
             _showRelease = false;
             await LoadSubnetsAsync(_selectedVNet!.Id);
         }
         catch (Exception ex)
         {
             _logger.LogError(ex, "Failed to release subnet group {Id}", _groupForAction.Id);
-            _actionError = "Failed to release the subnet group.";
+            _actionError = Localizer["Failed to release the subnet group."];
         }
     }
 }

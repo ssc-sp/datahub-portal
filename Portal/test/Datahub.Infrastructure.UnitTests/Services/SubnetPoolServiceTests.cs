@@ -259,7 +259,7 @@ public class SubnetPoolServiceTests
         await AssignAsync(1, NewProject("PBW1"));
 
         await Assert.ThatAsync(async () => await _sut.AttachSubnetGroupAsync(await SubnetIdOfGroupAsync(2), "PBW1"),
-            Throws.InvalidOperationException.With.Message.Contains("already has subnet group 1"));
+            Throws.InvalidOperationException.With.Message.Contains("already has a subnet group"));
     }
 
     [Test]
@@ -346,7 +346,7 @@ public class SubnetPoolServiceTests
         var vnetId = await VNetIdAsync();
 
         await Assert.ThatAsync(() => _sut.UpdateSubnetGroupRangeAsync(vnetId, 1, 3),
-            Throws.InvalidOperationException.With.Message.Contains("Release subnet group(s) 4, 5"));
+            Throws.InvalidOperationException.With.Message.Contains("Release the groups that are in use or cooling down"));
         Assert.That(await GroupsAsync(), Has.Count.EqualTo(5), "Nothing should change");
     }
 

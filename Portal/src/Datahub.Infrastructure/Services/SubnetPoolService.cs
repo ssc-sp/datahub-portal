@@ -61,16 +61,16 @@ public class SubnetPoolService(
 
         if (GetUsage(subnet).Status != SubnetGroupStatus.Available)
         {
-            throw new InvalidOperationException($"Subnet group {subnet.SubnetGroup} is not available.");
+            throw new InvalidOperationException("This subnet group is not available.");
         }
 
         var acronym = workspaceAcronym.Trim().ToUpperInvariant();
         var project = await db.Projects.SingleOrDefaultAsync(p => p.Project_Acronym_CD == acronym)
-            ?? throw new InvalidOperationException($"Workspace '{acronym}' was not found.");
+            ?? throw new InvalidOperationException("The workspace was not found.");
 
         if (project.Deleted_DT is not null)
         {
-            throw new InvalidOperationException($"Workspace '{acronym}' is deleted.");
+            throw new InvalidOperationException("The workspace is deleted.");
         }
 
         var heldGroup = await db.WorkspaceSubnets
@@ -79,7 +79,7 @@ public class SubnetPoolService(
             .FirstOrDefaultAsync();
         if (heldGroup is not null)
         {
-            throw new InvalidOperationException($"Workspace '{acronym}' already has subnet group {heldGroup}.");
+            throw new InvalidOperationException("The workspace already has a subnet group.");
         }
 
         db.WorkspaceSubnets.Add(new WorkspaceSubnet { ProjectId = project.Project_ID, SubnetId = subnet.Id });
@@ -122,7 +122,7 @@ public class SubnetPoolService(
         if (held.Count > 0)
         {
             throw new InvalidOperationException(
-                $"Release subnet group(s) {string.Join(", ", held)} before removing them from the range.");
+                "Release the groups that are in use or cooling down before removing them from the range.");
         }
 
         // Groups outside the range are available, so their assignments are only history of deleted workspaces.
