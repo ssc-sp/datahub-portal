@@ -29,6 +29,7 @@
     [Parameter] public string WorkspaceVersion { get; set; }
     [Parameter] public DateTime? LastUpdated { get; set; }
     [Parameter] public string LatestVersion { get; set; }
+    [Parameter] public bool IsProtectedB { get; set; }
 
     private string _workspaceVersion => WorkspaceVersion ?? "Unknown";
     private string _workspaceVersionUIText;
@@ -39,6 +40,11 @@
     protected override async Task OnInitializedAsync()
     {                    
         _workspaceVersionUIText = $"{(_workspaceVersion ?? "N/A")}";
+
+        if (IsProtectedB)
+        {
+            _workspaceVersionUIText += " PB";
+        }
 
         // Check if versions match
         _isUpToDate = !string.IsNullOrEmpty(LatestVersion) && LatestVersion == WorkspaceVersion;
