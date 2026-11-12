@@ -37,7 +37,7 @@ public class WorkspaceTemplateResourceRunTests
             CallBase = true
         };
         _repositoryService
-            .Setup(x => x.CommitTerraformTemplate(It.IsAny<TerraformTemplate>(), It.IsAny<string>()))
+            .Setup(x => x.CommitTerraformTemplate(It.IsAny<TerraformTemplate>(), It.IsAny<string>(), It.IsAny<string>()))
             .Returns(Task.CompletedTask);
     }
 
