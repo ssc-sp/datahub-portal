@@ -63,11 +63,22 @@ jobs:
             --configuration $(BuildConfiguration)
             --coverlet
 
+      - task: CopyFiles@2
+        displayName: 'Copy coverage JSON and XML files for $(testRunTitle)'
+        condition: succeededOrFailed()
+        inputs:
+          SourceFolder: '$(Agent.TempDirectory)'
+          Contents: |
+            **/coverage.*.json
+            **/coverage.*.xml
+          TargetFolder: '$(Agent.TempDirectory)/coverage-artifacts'
+          CleanTargetFolder: true
+
       - task: PublishPipelineArtifact@1
         displayName: 'Publish coverage results for $(testRunTitle)'
         condition: succeededOrFailed()
         inputs:
-          targetPath: '$(Agent.TempDirectory)'
+          targetPath: '$(Agent.TempDirectory)/coverage-artifacts'
           artifact: 'coverage-$(System.JobName)'
 
   - job: Portal_Testing_Coverage
@@ -97,4 +108,4 @@ jobs:
       - task: PublishCodeCoverageResults@2
         displayName: 'Publish code coverage report'
         inputs:
-          summaryFileLocation: '$(Pipeline.Workspace)/coverage'
+          summaryFileLocation: '$(Pipeline.Workspace)/coverage/**/coverage.*.xml'
