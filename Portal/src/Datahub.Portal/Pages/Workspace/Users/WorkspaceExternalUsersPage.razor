@@ -109,7 +109,15 @@ else if (_gccfEnabled)
                     <MudTd>
                         <MudStack Row AlignItems="AlignItems.Center">
                             <MudText>
-                                @if (rowContext.ExternalUser.UserDeactivatedAt is not null)
+                                @if (IsPendingReactivation(rowContext))
+                                {
+                                    <MudChip T="string" Color="Color.Warning">@Localizer["Pending Reactivation"]</MudChip>
+                                }
+                                else if (IsReactivationInviteExpired(rowContext))
+                                {
+                                    <MudChip T="string" Color="Color.Error">@Localizer["Expired Reactivation Invite"]</MudChip>
+                                }
+                                else if (rowContext.ExternalUser.UserDeactivatedAt is not null)
                                 {
                                     <MudChip T="string" Color="Color.Error">@Localizer["Deactivated"]</MudChip>
                                 }
@@ -195,7 +203,7 @@ else if (_gccfEnabled)
                             {
                                 <DHButton Variant="Variant.Filled" OnClick="() => CancelInvitationAsync(rowContext)">@Localizer["Cancel invitation"]</DHButton>
                             }
-                            @if (CanResendInvitation(rowContext) || IsInviteExpired(rowContext))
+                            @if (CanResendInvitation(rowContext))
                             {
                                 <DHButton Variant="Variant.Filled" OnClick="() => ResendInvitationAsync(rowContext)">@Localizer["Resend invitation"]</DHButton>
                             }
@@ -278,6 +286,7 @@ else
             .ThenInclude(i => i.Requested_Role)
             .Where(u => u.Project.Project_Acronym_CD == WorkspaceAcronym)
             .Where(u => u.PortalUser != null && u.PortalUser.ExternalUser != null)
+            .Where(u => u.RoleId != (int)Project_Role.RoleNames.Removed)
             .ToListAsync();
 
         var pendingInvitations = await context.ExternalUserRequests
@@ -288,6 +297,10 @@ else
             .ThenInclude(u => u.PortalUser)
             .Where(i => i.Project.Project_Acronym_CD == WorkspaceAcronym)
             .Where(i => i.InvitationTokenAccepted == null || i.InvitationCodeAccepted == null)
+            .Where(i => !context.UserRolesLinks.Any(link =>
+                link.Project_ID == i.Project.Project_ID
+                && link.PortalUserId == i.User.PortalUserId
+                && link.RoleId == (int)Project_Role.RoleNames.Removed))
             .ToListAsync();
 
         var rowsByPortalUserId = new Dictionary<int, ExternalWorkspaceUserRow>();
@@ -596,16 +609,18 @@ else
 
     private bool CanCancelInvitation(ExternalWorkspaceUserRow projectUser)
     {
-        return projectUser.ExternalUser.UserDeactivatedAt is null
-            && projectUser.LatestInvitation is not null
+        return projectUser.LatestInvitation is not null
+            && (projectUser.ExternalUser.UserDeactivatedAt is null
+                || projectUser.LatestInvitation.ReactivationAccountExpiry is not null)
             && projectUser.LatestInvitation.InvitationTokenAccepted is null
             && projectUser.LatestInvitation.InvitationExpiry >= DateTimeOffset.UtcNow;
     }
 
     private bool CanResendInvitation(ExternalWorkspaceUserRow projectUser)
     {
-        return projectUser.ExternalUser.UserDeactivatedAt is null
-            && projectUser.LatestInvitation is not null;
+        return projectUser.LatestInvitation is not null
+            && (projectUser.ExternalUser.UserDeactivatedAt is null
+                || projectUser.LatestInvitation.ReactivationAccountExpiry > DateTimeOffset.UtcNow);
     }
 
     private bool CombinedFilter(ExternalWorkspaceUserRow projectUser)
@@ -624,5 +639,20 @@ else
         return projectUser.LatestInvitation is not null
             && projectUser.LatestInvitation.InvitationCodeAccepted is null
             && projectUser.LatestInvitation.InvitationExpiry < DateTimeOffset.UtcNow;
+    }
+
+    private bool IsPendingReactivation(ExternalWorkspaceUserRow projectUser)
+    {
+        return projectUser.ExternalUser.UserDeactivatedAt is not null
+            && projectUser.LatestInvitation?.ReactivationAccountExpiry is not null
+            && projectUser.LatestInvitation.InvitationTokenAccepted is null
+            && projectUser.LatestInvitation.InvitationExpiry >= DateTimeOffset.UtcNow;
+    }
+
+    private bool IsReactivationInviteExpired(ExternalWorkspaceUserRow projectUser)
+    {
+        return projectUser.ExternalUser.UserDeactivatedAt is not null
+            && projectUser.LatestInvitation?.ReactivationAccountExpiry is not null
+            && IsInviteExpired(projectUser);
     }
 }

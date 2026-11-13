@@ -31,9 +31,9 @@
                        @bind-Value:after="ValidateEmailAsync" />
             @if (!String.IsNullOrEmpty(_emailValidationMessage))
             {
-                <GcdsNotice NoticeRole="info" NoticeTitle="@Localizer["User already exists"]" NoticeTitleTag="h3">
+                <GcdsNotice NoticeRole="info" NoticeTitle="@(IsReactivation ? Localizer["Deactivated user found"] : Localizer["User already exists"])" NoticeTitleTag="h3">
                     <GcdsText>
-                        @Localizer["An external user with this email address already exists. Existing profile details have been loaded."]
+                        @_emailValidationMessage
                     </GcdsText>
                 </GcdsNotice>
             }
@@ -84,7 +84,7 @@
                                Min="@MinimumAccountExpiryValue"
                                ErrorMessage="@AccountExpiryErrorMessage"
                                Required
-                               Disabled="@(_existingExternalPortalUser is not null)"
+                               Disabled="@(_existingExternalPortalUser is not null && !IsReactivation)"
                                @bind-Value="AccountExpiryValue" />
         }
         else if (_page == 3)
@@ -132,7 +132,7 @@
                 else
                 {
                     <GcdsButton Type="GcdsButtonType.Button" OnClick="AddExternalUser" Disabled="@_isSubmitting">
-                        @Localizer["Send user invite"]
+                        @(IsReactivation ? Localizer["Send reactivation invite"] : Localizer["Send user invite"])
                     </GcdsButton>
                 }
             </MudItem>
@@ -170,6 +170,8 @@
     private List<Project_Role>? _externalRoles;
     private bool _focusStepHeading;
     private bool _isSubmitting;
+
+    private bool IsReactivation => _existingExternalPortalUser?.ExternalUser?.UserDeactivatedAt is not null;
 
     private bool CanContinue => _page switch
     {
@@ -304,7 +306,9 @@
         _command.FirstName = portalUser.ExternalUser!.FirstName;
         _command.LastName = portalUser.ExternalUser.LastName;
         _command.Organization = portalUser.ExternalUser.Organization;
-        _command.AccountExpiry = portalUser.ExternalUser.UserExpiryDate.UtcDateTime;
+        _command.AccountExpiry = portalUser.ExternalUser.UserExpiryDate.Date > DateTime.Today
+            ? portalUser.ExternalUser.UserExpiryDate.UtcDateTime
+            : DateTime.Today.AddDays(1);
     }
 
     private async Task ValidateEmailAsync()
@@ -323,7 +327,9 @@
         {
             LoadExistingExternalUserDetails(existingPortalUser);
             _emailValidationSeverity = Severity.Info;
-            _emailValidationMessage = Localizer["An external user with this email address already exists. Existing profile details have been loaded."];
+            _emailValidationMessage = IsReactivation
+                ? Localizer["This account is deactivated. Choose a new account expiry and send a reactivation invitation. Access will be restored after the invitation is accepted and only for this workspace."]
+                : Localizer["An external user with this email address already exists. Existing profile details have been loaded."];
             return;
         }
 
@@ -378,14 +384,30 @@
             }
 
             _command.ExternalUser = portalUser.ExternalUser;
-            await _externalUserInvitationService.CreateInvitationAsync(
-                portalUser.ExternalUser.Id,
-                ProjectAcronym,
-                _command.Email,
-                "Initial Invitation",
-                _command.Role.Id,
-                Inviter,
-                GetGcInvitationLink);
+            var accountExpiry = new DateTimeOffset(DateTime.SpecifyKind(_command.AccountExpiry.Value, DateTimeKind.Utc));
+            if (portalUser.ExternalUser.UserDeactivatedAt is not null)
+            {
+                await _externalUserInvitationService.CreateReactivationInvitationAsync(
+                    portalUser.ExternalUser.Id,
+                    ProjectAcronym,
+                    _command.Email,
+                    "Reactivation Invitation",
+                    _command.Role.Id,
+                    accountExpiry,
+                    Inviter,
+                    GetGcInvitationLink);
+            }
+            else
+            {
+                await _externalUserInvitationService.CreateInvitationAsync(
+                    portalUser.ExternalUser.Id,
+                    ProjectAcronym,
+                    _command.Email,
+                    "Initial Invitation",
+                    _command.Role.Id,
+                    Inviter,
+                    GetGcInvitationLink);
+            }
 
             await OnCompleted.InvokeAsync();
         }
