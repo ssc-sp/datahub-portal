@@ -19,6 +19,29 @@ The forms used to add workspace users should be part of the page and usable with
         And the Entra add-user form is submitted
         Then the Entra user is submitted as a Collaborator
 
+    Scenario Outline: A nonexistent Entra user cannot be added
+        Given the Entra add-user form is rendered
+        When the nonexistent Entra user email "<email>" is entered
+        Then the invalid GC email error is displayed
+        And no Entra user is pending
+
+        Examples:
+            | email            |
+            | user@hi.gc.ca    |
+            | a@ssc-spc.gc.ca  |
+
+    Scenario Outline: An invalid GC email is rejected before searching Entra ID
+        Given the Entra add-user form is rendered
+        When the invalid GC email "<email>" is entered
+        Then the invalid GC email error is displayed
+        And no Entra user is pending
+        And Entra ID was not searched
+
+        Examples:
+            | email            |
+            | not-an-email     |
+            | user@example.com |
+
     Scenario: The external user form is an accessible inline wizard
         Given the external add-user form is rendered
         Then the add-user form is not a dialog
@@ -35,3 +58,4 @@ The forms used to add workspace users should be part of the page and usable with
         And the external add-user form advances to user details
         Then the external role is selected with a GCDS select
         And the external account expiry uses a GCDS date input
+        And the external account expiry only accepts future dates

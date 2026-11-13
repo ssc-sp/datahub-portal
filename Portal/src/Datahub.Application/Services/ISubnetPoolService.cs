@@ -1,24 +1,85 @@
+using Datahub.Application.Exceptions;
+using Datahub.Core.Model.Context;
+using Datahub.Core.Model.Projects;
+using Datahub.Core.Model.Subscriptions;
+
 namespace Datahub.Application.Services;
 
 /// <summary>
-/// Manages the pool of Azure subnets available for Protected B workspace provisioning.
-/// Each Protected B workspace is assigned a dedicated subnet group (8 subnets) from the pool.
-/// The App Service subnet from the group is used for VNet integration on the Azure Linux Web App.
+/// Assigns subnet groups to Protected B workspaces. Each Protected B workspace gets its own subnet group
+/// (the set of subnets sharing a group number) from the <c>Subnets</c> table, recorded in <c>WorkspaceSubnets</c>.
 /// </summary>
 public interface ISubnetPoolService
 {
     /// <summary>
-    /// Returns the full Azure resource ID of the App Service subnet assigned to the workspace,
-    /// claiming the next available subnet group from the pool if none is currently assigned.
+    /// Assigns the lowest available subnet group to a workspace. The assignment is added to <paramref name="db"/>
+    /// but not saved, so the caller saves it together with the workspace.
     /// </summary>
-    /// <param name="projectId">The <c>Datahub_Project.Project_ID</c> of the workspace.</param>
-    /// <param name="azureSubscriptionId">
-    /// The Azure subscription ID string identifying which VNet pool to draw from.
-    /// </param>
-    /// <returns>
-    /// Full ARM subnet resource ID (e.g.
-    /// <c>/subscriptions/{subId}/resourceGroups/{rg}/providers/Microsoft.Network/virtualNetworks/{vnet}/subnets/{name}</c>),
-    /// or <c>null</c> if no subnet is available in the pool.
-    /// </returns>
-    Task<string?> ClaimOrGetAppServiceSubnetIdAsync(int projectId, string azureSubscriptionId);
+    /// <param name="db">The context the workspace is being saved with.</param>
+    /// <param name="project">The workspace to assign the group to.</param>
+    /// <param name="cancellationToken">A token to cancel the operation.</param>
+    /// <returns>The group's subnet record.</returns>
+    /// <exception cref="NoSubnetGroupAvailableException">No subnet group is available.</exception>
+    Task<Subnet> ClaimSubnetGroupAsync(DatahubProjectDBContext db, Datahub_Project project,
+        CancellationToken cancellationToken = default);
+
+    /// <summary>
+    /// Gets the usage of each subnet group in a VNet.
+    /// </summary>
+    /// <param name="vnetId">The <see cref="VNet.Id"/> of the VNet.</param>
+    /// <returns>The usage of each subnet group, keyed by <see cref="Subnet.Id"/>.</returns>
+    Task<IReadOnlyDictionary<int, SubnetGroupUsage>> GetSubnetGroupUsageAsync(int vnetId);
+
+    /// <summary>
+    /// Manually assigns an available subnet group to a workspace, for example to record a workspace that was
+    /// deployed on that group.
+    /// </summary>
+    /// <param name="subnetId">The <see cref="Subnet.Id"/> of the group.</param>
+    /// <param name="workspaceAcronym">The acronym of the workspace.</param>
+    /// <exception cref="InvalidOperationException">
+    /// The group isn't available, or the workspace doesn't exist, is deleted, or already holds a group.
+    /// </exception>
+    Task AttachSubnetGroupAsync(int subnetId, string workspaceAcronym);
+
+    /// <summary>
+    /// Manually releases a subnet group so it becomes available straight away, removing its workspace assignments.
+    /// </summary>
+    /// <param name="subnetId">The <see cref="Subnet.Id"/> of the group.</param>
+    Task ReleaseSubnetGroupAsync(int subnetId);
+
+    /// <summary>
+    /// Sets the range of subnet groups of a VNet: adds the missing groups in the range and removes the groups outside
+    /// it. Group names are generated from the configured subnet name prefix.
+    /// </summary>
+    /// <param name="vnetId">The <see cref="VNet.Id"/> of the VNet.</param>
+    /// <param name="firstGroup">The first group number of the range.</param>
+    /// <param name="lastGroup">The last group number of the range.</param>
+    /// <returns>The number of groups added and removed.</returns>
+    /// <exception cref="InvalidOperationException">
+    /// The range is invalid, or a group outside it is in use or cooling down. Nothing is changed.
+    /// </exception>
+    Task<(int Added, int Removed)> UpdateSubnetGroupRangeAsync(int vnetId, int firstGroup, int lastGroup);
 }
+
+/// <summary>
+/// Whether a subnet group can be assigned to a new Protected B workspace.
+/// </summary>
+public enum SubnetGroupStatus
+{
+    /// <summary>No workspace holds the group.</summary>
+    Available,
+
+    /// <summary>A live workspace holds the group.</summary>
+    InUse,
+
+    /// <summary>The group's workspace was deleted less than the cooldown ago.</summary>
+    CoolingDown
+}
+
+/// <summary>
+/// The usage of a subnet group.
+/// </summary>
+/// <param name="Status">Whether the group can be assigned.</param>
+/// <param name="WorkspaceAcronym">The workspace holding the group, or the last one when cooling down; null when available.</param>
+/// <param name="AvailableAtUtc">When a cooling-down group becomes available; otherwise null.</param>
+public record SubnetGroupUsage(SubnetGroupStatus Status, string? WorkspaceAcronym = null, DateTime? AvailableAtUtc = null);

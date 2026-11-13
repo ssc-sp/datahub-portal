@@ -93,11 +93,11 @@
 
     protected override async Task OnInitializedAsync()
     {
-        var newProjectTemplateType = TerraformTemplate.GetTerraformServiceType(TerraformTemplate.NewProjectTemplate);
+        var workspaceTemplateTypes = TerraformTemplate.WorkspaceTemplateServiceTypes;
         await using var ctx = await _dbContextFactory.CreateDbContextAsync();
         var newTemplateResource = await ctx.Project_Resources2.Where(
                     r => r.Project.Project_Acronym_CD == WorkspaceAcronym &&
-                    r.ResourceType == newProjectTemplateType)
+                    workspaceTemplateTypes.Contains(r.ResourceType))
                     .FirstOrDefaultAsync();
 
         if (newTemplateResource != null)

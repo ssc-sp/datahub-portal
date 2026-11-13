@@ -153,7 +153,6 @@ public static class ConfigureServices
         services.AddScoped<IProjectUserManagementService, ProjectUserManagementService>();
         services.AddScoped<IMSGraphService, MSGraphService>();
 
-        services.AddScoped<ISubnetPoolService, SubnetPoolService>();
         services.AddScoped<IKeyVaultCoreService, KeyVaultCoreService>();
 
         services.AddSingleton<IWorkspaceBudgetManagementService, WorkspaceBudgetManagementService>();

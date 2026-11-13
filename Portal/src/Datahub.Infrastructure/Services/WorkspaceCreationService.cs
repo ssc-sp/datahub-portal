@@ -1,5 +1,6 @@
 #nullable enable
 using Datahub.Application.Configuration;
+using Datahub.Application.Exceptions;
 using Datahub.Application.Services;
 using Datahub.Application.Services.Metadata;
 using Datahub.Application.Services.Security;
@@ -34,7 +35,8 @@ public class WorkspaceCreationService(
     IDatahubAuditingService auditingService,
     IDatahubAzureSubscriptionService datahubAzureSubscriptionService,
     IDatahubCatalogSearch datahubCatalogSearch,
-    IMetadataBrokerService metadataBrokerService)
+    IMetadataBrokerService metadataBrokerService,
+    ISubnetPoolService subnetPoolService)
     : IWorkspaceCreationService
 {
     public async Task<bool> AcronymExists(string acronym)
@@ -156,6 +158,12 @@ public class WorkspaceCreationService(
 
             return true;
         }
+        catch (NoSubnetGroupAvailableException ex)
+        {
+            // Rethrown so the caller can tell the user why the workspace can't be created.
+            logger.LogWarning(ex, "No subnet group available for Protected B workspace {Acronym}", acronym);
+            throw;
+        }
         catch (Exception ex)
         {
             logger.LogError(ex, $"Error creating project {projectName} - {acronym} - {organization}");
@@ -217,34 +225,6 @@ public class WorkspaceCreationService(
         await context.TrackSaveChangesAsync(auditingService);
     }
 
-    private async Task AllocateProtectedBWorkspaceSubnetAsync(DatahubProjectDBContext db, Datahub_Project project)
-    {
-        var allocatedSubnetIds = await db.WorkspaceSubnets
-            .AsNoTracking()
-            .Select(ws => ws.SubnetId)
-            .Distinct()
-            .ToListAsync();
-
-        var freeSubnet = await db.Subnets
-            .Where(s => !allocatedSubnetIds.Contains(s.Id))
-            .OrderBy(s => s.Id)
-            .FirstOrDefaultAsync();
-
-        if (freeSubnet is null)
-        {
-            throw new InvalidOperationException($"No unallocated subnet is available for Protected B workspace '{project.Project_Acronym_CD}'.");
-        }
-
-        var workspaceSubnet = new WorkspaceSubnet
-        {
-            Project = project,
-            Subnet = freeSubnet
-        };
-
-        project.WorkspaceSubnets.Add(workspaceSubnet);
-        await db.WorkspaceSubnets.AddAsync(workspaceSubnet);
-    }
-
     private async Task AddProjectToDb(PortalUser portalUser, string projectName, string acronym, string organization, decimal? budget = null, int? gcHostingId = null, ClassificationType classification = ClassificationType.Unclassified)
     {
         await using var db = await datahubProjectDbFactory.CreateDbContextAsync();
@@ -293,13 +273,13 @@ public class WorkspaceCreationService(
         };
         await db.Project_Whitelists.AddAsync(projectWhiteList);
 
-        await db.TrackSaveChangesAsync(auditingService);
-
+        // Claimed before saving, so that nothing is saved when no subnet group is available.
         if (classification == ClassificationType.ProtectedB)
         {
-            await AllocateProtectedBWorkspaceSubnetAsync(db, project);
-            await db.TrackSaveChangesAsync(auditingService);
+            await subnetPoolService.ClaimSubnetGroupAsync(db, project);
         }
+
+        await db.TrackSaveChangesAsync(auditingService);
 
         serviceAuthManager.InvalidateAuthCache();
 

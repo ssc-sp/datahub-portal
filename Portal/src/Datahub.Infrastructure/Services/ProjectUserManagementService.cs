@@ -116,13 +116,6 @@ public class ProjectUserManagementService : IProjectUserManagementService
         }
     }
 
-    private async Task AddPortalUserRoleChangeAsync(PortalUserRoleChange roleChangeRecord)
-    {
-        await using var context = await _contextFactory.CreateDbContextAsync();
-        context.PortalUserRoleChanges.Add(roleChangeRecord);
-        await context.SaveChangesAsync();
-    }
-
     private async Task PropagateUserUpdatesToExternalPermissions(IEnumerable<ProjectUserUpdateCommand> projectUserUpdateCommands,
         IEnumerable<ProjectUserAddEntraUserCommand> projectUserAddUserCommands, string requesterUserId)
     {
@@ -169,19 +162,6 @@ public class ProjectUserManagementService : IProjectUserManagementService
             if (userToUpdate == null)
             {
                 throw new InvalidOperationException("Cannot update a user that is not already a member of the project");
-            }
-
-            // Detect role change
-            if (userToUpdate.RoleId != projectUserUpdateCommand.NewRoleId)
-            {
-                var roleChangeRecord = new PortalUserRoleChange
-                {
-                    PortalUserId = userToUpdate.PortalUserId ?? throw new InvalidOperationException("User is not associated with a PortalUser"),
-                    RoleId = (Project_Role.RoleNames)projectUserUpdateCommand.NewRoleId,
-                    ChangeDate = DateTime.UtcNow
-                };
-
-                await AddPortalUserRoleChangeAsync(roleChangeRecord);
             }
 
             // If a user was previously removed from the project, reset the Approved_DT to update the added date

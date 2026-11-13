@@ -64,10 +64,9 @@ public class WorkspaceSubscriptionHook
         objectContainer.RegisterInstanceAs<IDbContextFactory<DatahubProjectDBContext>>(dbContextFactory);
         var mockISendEndpointProvider = Substitute.For<ISendEndpointProvider>();
         var workspaceVersionService = Substitute.For<IWorkspaceVersionService>();
-        var mockSubnetPoolService = Substitute.For<ISubnetPoolService>();
         var sbConfiguration = Substitute.For<IServiceBusConfiguration>();
 
-        var resourceMessagingService = new ResourceMessagingService(dbContextFactory, mockISendEndpointProvider, sbConfiguration, workspaceVersionService, mockSubnetPoolService);
+        var resourceMessagingService = new ResourceMessagingService(dbContextFactory, mockISendEndpointProvider, sbConfiguration, workspaceVersionService);
         var resourceMessagingSubstitute = Substitute.For<IResourceMessagingService>();
 
         resourceMessagingSubstitute.CreateWorkspaceDefinition(Arg.Any<string>(), Arg.Any<string>())
@@ -101,7 +100,8 @@ public class WorkspaceSubscriptionHook
             Substitute.For<IDatahubAuditingService>(),
             datahubAzureSubscriptionService,
             Substitute.For<IDatahubCatalogSearch>(),
-            Substitute.For<IMetadataBrokerService>());
+            Substitute.For<IMetadataBrokerService>(),
+            new SubnetPoolService(datahubPortalConfiguration, dbContextFactory));
 
 
         objectContainer.RegisterInstanceAs<IResourceMessagingService>(resourceMessagingService);

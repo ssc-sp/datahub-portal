@@ -17,8 +17,7 @@ public class ResourceMessagingService(
     IDbContextFactory<DatahubProjectDBContext> dbContextFactory,
     ISendEndpointProvider sendEndpointProvider,
     IServiceBusConfiguration messageBusConfiguration,
-    IWorkspaceVersionService workspaceVersionService,
-    ISubnetPoolService subnetPoolService)
+    IWorkspaceVersionService workspaceVersionService)
     : IResourceMessagingService
 {
     public async Task SendToTerraformQueue(WorkspaceDefinition workspaceDefinition)
@@ -80,18 +79,6 @@ public class ResourceMessagingService(
             PostgresConfiguration = TerraformVariableExtraction.ExtractPostgresConfiguration(project),
             DatabricksConfiguration = TerraformVariableExtraction.ExtractDatabricksConfiguration(project)
         };
-
-        // For Protected B workspaces that include an App Service, assign (or retrieve the
-        // already-assigned) subnet from the VNet pool and inject it into the app configuration.
-        if (tfWorkspace.IsProtectedB
-            && templates.Any(t => t.Name == TerraformTemplate.AzureAppService)
-            && appData.AppServiceConfiguration is not null)
-        {
-            appData.AppServiceConfiguration.SubnetId =
-                await subnetPoolService.ClaimOrGetAppServiceSubnetIdAsync(
-                    project.Project_ID,
-                    tfWorkspace.SubscriptionId);
-        }
 
         return new WorkspaceDefinition
         {

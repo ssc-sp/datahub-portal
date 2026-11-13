@@ -27,7 +27,7 @@ namespace Datahub.Shared.Entities.WorkspaceToolConfiguration
 
         /// <summary>
         /// Gets or sets the full Azure resource ID of the subnet used for VNet integration.
-        /// Populated by <c>ISubnetPoolService</c> for Protected B workspaces only.
+        /// Not set by the portal: Protected B App Services use the App Service subnet of the workspace's subnet group.
         /// Example: /subscriptions/{subId}/resourceGroups/{rg}/providers/Microsoft.Network/virtualNetworks/{vnet}/subnets/{name}
         /// </summary>
         public string? SubnetId { get; set; }
