@@ -65,7 +65,8 @@ namespace Datahub.Infrastructure.Services
                 }                
                 
                 var currentUser = await userInformationService.GetCurrentPortalUserAsync();
-                questionnaire.DeletedDate = DateTime.Now;
+                // UTC, like the delete completion time and the subnet group cooldown that read Deleted_DT.
+                questionnaire.DeletedDate = DateTime.UtcNow;
                 questionnaire.Project.Deleted_DT = questionnaire.DeletedDate;
                 questionnaire.DeletedBy = currentUser ?? throw new Exception("Current user not found");
 

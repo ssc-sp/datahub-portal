@@ -59,12 +59,11 @@ namespace Datahub.Functions.UnitTests
             var sendProvider = Substitute.For<ISendEndpointProvider>();
             var webAppService = TestHelper.CreateMockWebAppManagementService();
             var workspaceVersionService = Substitute.For<IWorkspaceVersionService>();
-            var mockSubnetPoolService = Substitute.For<ISubnetPoolService>();
             var sbConfiguration = Substitute.For<IServiceBusConfiguration>();
             var httpContextAccessor = Substitute.For<IHttpContextAccessor>();
             var tokenCredentialService = Substitute.For<ISystemTokenCredentialService>();
             var tokenManager = Substitute.For<AzAccessTokenManager>(tokenCredentialService, tokenCredentialService);
-            var resourceMessagingService = new ResourceMessagingService(dbContextFactory, sendProvider, sbConfiguration, workspaceVersionService, mockSubnetPoolService);
+            var resourceMessagingService = new ResourceMessagingService(dbContextFactory, sendProvider, sbConfiguration, workspaceVersionService);
             
             var healthCheckHelper = new HealthCheckHelper(dbContextFactory, projectStorageConfigurationService, webAppService,
                 Testing._configuration, _httpClientFactory, _hclogger, tokenManager, sendProvider, resourceMessagingService, datahubConfig, tokenCredentialService, httpContextAccessor, null);
