@@ -1,4 +1,5 @@
 using Datahub.Application.Services.Notification;
+using Datahub.Application.Services.Security;
 using Datahub.Core.Model.Context;
 using Datahub.Infrastructure.Services.UserManagement;
 using Microsoft.EntityFrameworkCore;
@@ -35,7 +36,9 @@ public class ExternalUserInvitationHook
         objectContainer.RegisterInstanceAs(gcNotifyService);
 
         var logger = Substitute.For<ILogger<ExternalUserInvitationService>>();
-        var service = new ExternalUserInvitationService(dbContextFactory, gcNotifyService, logger);
+        var serviceAuthManager = Substitute.For<IServiceAuthManager>();
+        objectContainer.RegisterInstanceAs(serviceAuthManager);
+        var service = new ExternalUserInvitationService(dbContextFactory, gcNotifyService, serviceAuthManager, logger);
         objectContainer.RegisterInstanceAs<ExternalUserInvitationService>(service);
     }
 }
