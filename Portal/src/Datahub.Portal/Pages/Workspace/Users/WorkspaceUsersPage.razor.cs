@@ -127,8 +127,7 @@ namespace Datahub.Portal.Pages.Workspace.Users
             _validationErrorMessage = null;
             var allWorkspaceLeads = _usersToUpdate.Select(_usersToUpdate => _usersToUpdate.ProjectUser).Where(x => x.RoleId == (int)Project_Role.RoleNames.WorkspaceLead).Count();
             var existingWorkspaceLeads = _projectUsers.Except(_usersToUpdate.Select(p => p.ProjectUser)).Where(x => x.RoleId == (int)Project_Role.RoleNames.WorkspaceLead).Count();
-            var newLeads = _usersToAdd.Count(x => x.RoleId == (int)Project_Role.RoleNames.WorkspaceLead);
-            if (allWorkspaceLeads + newLeads + existingWorkspaceLeads > 1)
+            if (allWorkspaceLeads + existingWorkspaceLeads > 1)
             {
                 _validationErrorMessage = Localizer["You cannot have more than one workspace lead."];
             }
@@ -141,18 +140,6 @@ namespace Datahub.Portal.Pages.Workspace.Users
 
             ManageUserUpdateCommand(projectUser);
             ValidateWorkspaceRules();
-            InvokeAsync(StateHasChanged);
-        }
-
-        private void UpdateProjectMemberRoleCommand(ProjectUserAddEntraUserCommand projectUser, int newRoleId)
-        {
-            projectUser.RoleId = newRoleId;
-            if (projectUser.RoleId == (int)Project_Role.RoleNames.Removed)
-            {
-                _usersToAdd.Remove(projectUser);
-            }
-            ValidateWorkspaceRules();
-
             InvokeAsync(StateHasChanged);
         }
 
@@ -182,6 +169,7 @@ namespace Datahub.Portal.Pages.Workspace.Users
 
         private void ShowInviteForm()
         {
+            _inviteStatusMessage = null;
             _showInviteForm = true;
         }
 
@@ -192,13 +180,12 @@ namespace Datahub.Portal.Pages.Workspace.Users
             await InvokeAsync(StateHasChanged);
         }
 
-        private async Task HandleInviteFormCompletedAsync(List<ProjectUserAddEntraUserCommand> userAddUserCommands)
+        private async Task HandleInviteFormCompletedAsync()
         {
-            _usersToAdd.AddRange(userAddUserCommands
-                .Where(command => !_usersToAdd.Any(existing => existing.Email.Equals(command.Email, StringComparison.InvariantCultureIgnoreCase))));
-            ValidateWorkspaceRules();
             _showInviteForm = false;
-            _focusInvitationsHeading = true;
+            _inviteStatusMessage = Localizer["User added successfully"];
+            await InitializedProjectMembers();
+            _focusInviteUserButton = true;
             await InvokeAsync(StateHasChanged);
         }
 
@@ -211,23 +198,17 @@ namespace Datahub.Portal.Pages.Workspace.Users
                 _focusInviteUserButton = false;
                 await _inviteUserButton.FocusAsync();
             }
-            else if (_focusInvitationsHeading)
-            {
-                _focusInvitationsHeading = false;
-                await _invitationsHeading.FocusAsync();
-            }
         }
 
         private async Task SaveChanges()
         {
             var currentUser = await _userInformationService.GetCurrentPortalUserAsync();
-            if (_usersToUpdate.Any() || _usersToAdd.Any())
+            if (_usersToUpdate.Any())
             {
                 _updateInProgress = true;
                 StateHasChanged();
-                await _projectUserManagementService.ProcessProjectUserCommandsAsync(_usersToUpdate, _usersToAdd, currentUser.Id.ToString());
+                await _projectUserManagementService.ProcessProjectUserCommandsAsync(_usersToUpdate, [], currentUser.Id.ToString());
                 _usersToUpdate.Clear();
-                _usersToAdd.Clear();
             }
             else
             {
