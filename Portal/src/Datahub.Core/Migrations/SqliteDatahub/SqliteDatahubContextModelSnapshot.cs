@@ -1946,6 +1946,9 @@ namespace Datahub.Core.Migrations.SqliteDatahub
                     b.Property<long?>("InvitationTokenAccepted")
                         .HasColumnType("INTEGER");
 
+                    b.Property<long?>("ReactivationAccountExpiry")
+                        .HasColumnType("INTEGER");
+
                     b.Property<int>("InvitedById")
                         .HasColumnType("INTEGER");
 

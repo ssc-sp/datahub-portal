@@ -59,3 +59,11 @@ The forms used to add workspace users should be part of the page and usable with
         Then the external role is selected with a GCDS select
         And the external account expiry uses a GCDS date input
         And the external account expiry only accepts future dates
+
+    Scenario: A deactivated external user can be prepared for reactivation
+        Given the external add-user form is rendered
+        And a deactivated external user with email "deactivated.user@example.com" exists
+        When the external email "deactivated.user@example.com" is entered
+        Then the form identifies a deactivated user
+        When the external add-user form advances to user details
+        Then the reactivation account expiry is editable and in the future

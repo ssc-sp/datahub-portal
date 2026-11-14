@@ -61,6 +61,12 @@ namespace Datahub.Core.Model.Users
         public DateTimeOffset? InvitationCodeAccepted { get; set; }
 
         /// <summary>
+        /// Gets or sets the account expiry to apply when this invitation reactivates a deactivated user.
+        /// A null value indicates that this is not a reactivation invitation.
+        /// </summary>
+        public DateTimeOffset? ReactivationAccountExpiry { get; set; }
+
+        /// <summary>
         /// Gets or sets the OIDC subject identifier of the invited user for auditing purposes
         /// </summary>
         public string? ExternalSubjectInvited { get; set; }

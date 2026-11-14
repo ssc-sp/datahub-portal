@@ -31,6 +31,7 @@ public class AccessibleAddUserFormsSteps : BunitTestSteps, IDisposable
     private IMSGraphService? _graphService;
     private List<ProjectUserAddEntraUserCommand>? _completedEntraUsers;
     private bool _cancelled;
+    private IDbContextFactory<DatahubProjectDBContext>? _externalDbContextFactory;
 
     [Given("the Entra add-user form is rendered")]
     public void GivenTheEntraAddUserFormIsRendered()
@@ -67,7 +68,8 @@ public class AccessibleAddUserFormsSteps : BunitTestSteps, IDisposable
             context.Project_Roles.AddRange(Project_Role.GetAll().Where(role => role.IsExternalRole));
             context.SaveChanges();
         }
-        Services.AddSingleton<IDbContextFactory<DatahubProjectDBContext>>(new SpecFlowDbContextFactory(options));
+        _externalDbContextFactory = new SpecFlowDbContextFactory(options);
+        Services.AddSingleton<IDbContextFactory<DatahubProjectDBContext>>(_externalDbContextFactory);
         Services.AddSingleton(Substitute.For<IUserInformationService>());
         Services.AddSingleton(Substitute.For<IExternalUserInvitationService>());
         Services.AddSingleton(Substitute.For<ISnackbar>());
@@ -269,6 +271,48 @@ public class AccessibleAddUserFormsSteps : BunitTestSteps, IDisposable
             FindButton(_externalForm, "Next").Instance.Disabled.Should().BeFalse());
     }
 
+    [Given("a deactivated external user with email {string} exists")]
+    public async Task GivenADeactivatedExternalUserExists(string email)
+    {
+        ArgumentNullException.ThrowIfNull(_externalDbContextFactory);
+        await using var context = await _externalDbContextFactory.CreateDbContextAsync();
+        var portalUser = new PortalUser
+        {
+            Email = email,
+            DisplayName = "Deactivated User"
+        };
+        portalUser.ExternalUser = new ExternalUser
+        {
+            FirstName = "Deactivated",
+            LastName = "User",
+            Organization = "SSC",
+            UserExpiryDate = DateTimeOffset.UtcNow.AddDays(-1),
+            UserDeactivatedAt = DateTimeOffset.UtcNow.AddDays(-2),
+            PortalUser = portalUser
+        };
+        context.PortalUsers.Add(portalUser);
+        await context.SaveChangesAsync();
+    }
+
+    [When("the external email {string} is entered")]
+    public async Task WhenTheExternalEmailIsEntered(string email)
+    {
+        ArgumentNullException.ThrowIfNull(_externalForm);
+        var emailField = _externalForm.FindComponent<GcdsInput>();
+        await emailField.InvokeAsync(() => emailField.Instance.ValueChanged.InvokeAsync(email));
+    }
+
+    [Then("the form identifies a deactivated user")]
+    public void ThenTheFormIdentifiesADeactivatedUser()
+    {
+        ArgumentNullException.ThrowIfNull(_externalForm);
+        _externalForm.WaitForAssertion(() =>
+        {
+            _externalForm.Markup.Should().Contain("Deactivated user found");
+            _externalForm.Markup.Should().Contain("Access will be restored after the invitation is accepted");
+        });
+    }
+
     [When("the external add-user form advances to user details")]
     public async Task WhenTheExternalAddUserFormAdvancesToUserDetails()
     {
@@ -313,6 +357,16 @@ public class AccessibleAddUserFormsSteps : BunitTestSteps, IDisposable
             .Be(System.Linq.Expressions.ExpressionType.MemberAccess);
         dateInput.Instance.Min.Should().Be(
             DateTime.Today.AddDays(1).ToString("yyyy-MM-dd", CultureInfo.InvariantCulture));
+    }
+
+    [Then("the reactivation account expiry is editable and in the future")]
+    public void ThenTheReactivationAccountExpiryIsEditableAndInTheFuture()
+    {
+        ArgumentNullException.ThrowIfNull(_externalForm);
+        var dateInput = _externalForm.FindComponent<GcdsDateInput>();
+        dateInput.Instance.Disabled.Should().BeFalse();
+        DateTime.ParseExact(dateInput.Instance.Value!, "yyyy-MM-dd", CultureInfo.InvariantCulture)
+            .Should().BeAfter(DateTime.Today);
     }
 
     [Then("the external account expiry only accepts future dates")]
