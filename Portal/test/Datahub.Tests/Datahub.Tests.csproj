@@ -3,6 +3,7 @@
 		<TargetFramework>net10.0</TargetFramework>
 		<IsPackable>false</IsPackable>
 		<Nullable>enable</Nullable>
+    <OutputType>Exe</OutputType>
 	</PropertyGroup>
 	<PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Release|AnyCPU'">
 		<Optimize>false</Optimize>
@@ -33,7 +34,7 @@
 	<ItemGroup>
 		<PackageReference Include="bunit" />
 		<PackageReference Include="Microsoft.EntityFrameworkCore.InMemory" />
-		<PackageReference Include="Microsoft.NET.Test.Sdk" />
+		<PackageReference Include="Microsoft.Testing.Platform" />
     <PackageReference Include="Microsoft.Testing.Extensions.TrxReport" />
     <PackageReference Include="Moq" />
 		<PackageReference Include="Neovolve.Logging.Xunit" />
