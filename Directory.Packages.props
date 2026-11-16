@@ -185,7 +185,7 @@
     <PackageVersion Include="Polly" Version="8.8.0" />
     <PackageVersion Include="Polly.Contrib.WaitAndRetry" Version="1.1.1" />
     <PackageVersion Include="PSC.Blazor.Components.MarkdownEditor" Version="10.0.13" />
-    <PackageVersion Include="ReportGenerator" Version="5.5.11" />
+    <PackageVersion Include="ReportGenerator" Version="5.5.12" />
     <PackageVersion Include="Reqnroll" Version="3.3.4" />
     <PackageVersion Include="Reqnroll.NUnit" Version="3.3.4" />
     <PackageVersion Include="Reqnroll.xUnit" Version="3.3.4" />
