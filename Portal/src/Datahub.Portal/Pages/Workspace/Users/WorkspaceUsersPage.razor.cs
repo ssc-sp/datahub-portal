@@ -7,6 +7,7 @@ using Datahub.Core.Model.Users;
 using Datahub.Shared.Entities;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.AspNetCore.Components;
+using Microsoft.JSInterop;
 using MudBlazor;
 using MudBlazor.Utilities;
 using Datahub.Portal.Pages.Tools.LockedUsers;
@@ -193,10 +194,10 @@ namespace Datahub.Portal.Pages.Workspace.Users
         {
             await base.OnAfterRenderAsync(firstRender);
 
-            if (_focusInviteUserButton && _inviteUserButton is not null)
+            if (_focusInviteUserButton)
             {
                 _focusInviteUserButton = false;
-                await _inviteUserButton.FocusAsync();
+                await _jsRuntime.InvokeVoidAsync("focusElementById", InviteUserButtonId);
             }
         }
 

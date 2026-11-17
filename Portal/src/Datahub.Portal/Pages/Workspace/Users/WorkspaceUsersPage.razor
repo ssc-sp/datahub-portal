@@ -17,6 +17,7 @@
 @inject ILockedUserManagementService _lockedUserManagementService
 @inject IDialogService _dialogService
 @inject ISnackbar _snackbar
+@inject IJSRuntime _jsRuntime
 @inject IDbContextFactory<DatahubProjectDBContext> _dbContextFactory
 @inject Microsoft.FeatureManagement.IFeatureManagerSnapshot _featureManager
 @inject IExternalUserInvitationService _externalUserInvitationService
@@ -64,15 +65,14 @@
     {
         <MudStack Class="mt-6 mb-4">
             <MudStack Row Class="mt-6 mb-4">
-                <DHMainContentTitle Title="@Localizer["Workspace Members"]" />
+                <DHMainContentTitle Title="@Localizer["Workspace Users"]" />
                 <MudSpacer />
                 <DatahubAuthView AuthLevel="DatahubAuthView.AuthLevels.WorkspaceAdmin" ProjectAcronym="@WorkspaceAcronym" ElevatedWorkspaceAccessEnabled="@ElevatedWorkspaceAccessEnabled">
-                    <DHButton @ref="_inviteUserButton" HtmlTag="button" ButtonType="ButtonType.Button"
-                              Variant="Variant.Outlined" Color="Color.Primary" EndIcon="@Icons.Material.Outlined.PersonAdd"
-                              OnClick="ShowInviteForm" Disabled="@_usersToUpdate.Any()"
-                              aria-expanded="@(_showInviteForm ? "true" : "false")" aria-controls="entra-invite-form">
+                    <GcdsButton Id="@InviteUserButtonId" Type="GcdsButtonType.Button" Role="GcdsButtonRole.Primary"
+                                OnClick="ShowInviteForm" Disabled="@_usersToUpdate.Any()"
+                                aria-expanded="@(_showInviteForm ? "true" : "false")" aria-controls="entra-invite-form">
                         @Localizer["Invite New User"]
-                    </DHButton>
+                    </GcdsButton>
                 </DatahubAuthView>
             </MudStack>
             @if (!string.IsNullOrWhiteSpace(_inviteStatusMessage))
@@ -278,7 +278,7 @@
     private bool _gccfEnabled = false;
     private bool _showInviteForm;
     private bool _focusInviteUserButton;
-    private DHButton? _inviteUserButton;
+    private const string InviteUserButtonId = "invite-new-user";
 
     //
     private int _workspaceLeadCount => _projectUsers?.Count(x => x.Role?.Id == (int)Project_Role.RoleNames.WorkspaceLead) ?? 0;
