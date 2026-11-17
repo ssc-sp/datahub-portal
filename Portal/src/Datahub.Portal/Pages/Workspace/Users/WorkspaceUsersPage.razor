@@ -30,30 +30,26 @@
     @if (_usersToUpdate.Any())
     {
         <MudStack Class="sticky-stack">
-            <MudStack Row AlignItems="AlignItems.Center">
-                <MudElement>
-                    <GcdsButton Id="save-changes" Type="GcdsButtonType.Button" Role="GcdsButtonRole.Secondary"
-                                Disabled="@(_updateInProgress || _validationErrorMessage is not null)" OnClick="SaveChanges">
-                        @Localizer["Save Changes"]
-                    </GcdsButton>
-                </MudElement>
-                @if (_validationErrorMessage is null)
-                {
-                    <div class="my-3" role="status">
-                        <GcdsNotice NoticeRole="info" NoticeTitle="@Localizer["Unsaved changes"]" NoticeTitleTag="h3">
-                            <GcdsText>@Localizer["You have unsaved changes. Please save them before leaving this page."]</GcdsText>
-                        </GcdsNotice>
-                    </div>
-                }
-                else
-                {
-                    <div class="my-3" role="alert">
-                        <GcdsNotice NoticeRole="danger" NoticeTitle="@Localizer["Error"]" NoticeTitleTag="h3">
-                            <GcdsText>@_validationErrorMessage</GcdsText>
-                        </GcdsNotice>
-                    </div>
-                }
-            </MudStack>
+            @if (_validationErrorMessage is null)
+            {
+                <div class="my-3" role="status">
+                    <GcdsNotice NoticeRole="info" NoticeTitle="@Localizer["Unsaved changes"]" NoticeTitleTag="h3">
+                        <GcdsText>@Localizer["You have unsaved changes. Please save them before leaving this page."]</GcdsText>
+                        <GcdsButton Id="save-changes" Type="GcdsButtonType.Button" Role="GcdsButtonRole.Secondary"
+                                    Disabled="@(_updateInProgress || _validationErrorMessage is not null)" OnClick="SaveChanges">
+                            @Localizer["Save Changes"]
+                        </GcdsButton>
+                    </GcdsNotice>
+                </div>
+            }
+            else
+            {
+                <div class="my-3" role="alert">
+                    <GcdsNotice NoticeRole="danger" NoticeTitle="@Localizer["Error"]" NoticeTitleTag="h3">
+                        <GcdsText>@_validationErrorMessage</GcdsText>
+                    </GcdsNotice>
+                </div>
+            }
         </MudStack>
     }
 </DatahubAuthView>
