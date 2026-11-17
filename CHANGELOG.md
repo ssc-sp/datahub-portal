@@ -3,6 +3,35 @@
 <!-- markdownlint-disable MD024 -->
 # Changelog
 
+## [10.4.0](https://github.com/ssc-sp/datahub-portal/compare/v10.3.0...v10.4.0) (2026-11-13)
+
+
+### Features
+
+* added logic to prevent PB projects to invite external users ([#2166](https://github.com/ssc-sp/datahub-portal/issues/2166)) ([f6c8b6e](https://github.com/ssc-sp/datahub-portal/commit/f6c8b6e7832a4d8b5d640eabed20e9b4d455e22b))
+* added PB in version when using 'enhanced' modules ([#2181](https://github.com/ssc-sp/datahub-portal/issues/2181)) ([ece4ada](https://github.com/ssc-sp/datahub-portal/commit/ece4adaaf24b9ffc8c2316e0991313a98980053d))
+* Making role changes nearly instantaneous ([#2173](https://github.com/ssc-sp/datahub-portal/issues/2173)) ([4143a4b](https://github.com/ssc-sp/datahub-portal/commit/4143a4b8f26184328dfc8464bc07dd4ccc7c9423))
+
+
+### Bug Fixes
+
+* Adding validation that emails are tied to real Entra accounts using the add user form ([#2178](https://github.com/ssc-sp/datahub-portal/issues/2178)) ([06d2d2a](https://github.com/ssc-sp/datahub-portal/commit/06d2d2a06981e2bfa0b57d859e6b349c6ad12eaa))
+* Ensuring collaborators cannot toggle the data steward checkbox ([#2163](https://github.com/ssc-sp/datahub-portal/issues/2163)) ([2fba622](https://github.com/ssc-sp/datahub-portal/commit/2fba622c30058c7b423929f45aa3f6bfecf8b90e))
+* Fixing a bug where the WorkspaceSidebar wrongly hides the workspace selector ([#2161](https://github.com/ssc-sp/datahub-portal/issues/2161)) ([99254bd](https://github.com/ssc-sp/datahub-portal/commit/99254bd3bdfe65a2d039bbc48870b8ea0dd370d6))
+* Fixing a crash on the statistics page ([#2164](https://github.com/ssc-sp/datahub-portal/issues/2164)) ([5343ef0](https://github.com/ssc-sp/datahub-portal/commit/5343ef0865b27110427ed823c9bca3190d71d6e9))
+* health check page improvements and fixes ([#2179](https://github.com/ssc-sp/datahub-portal/issues/2179)) ([dd6a904](https://github.com/ssc-sp/datahub-portal/commit/dd6a9042ca0c9124aeb676e0d7cab8464884c6f0))
+* Hiding the Filters label if no filters are available ([#2172](https://github.com/ssc-sp/datahub-portal/issues/2172)) ([813f1d9](https://github.com/ssc-sp/datahub-portal/commit/813f1d958f67fedf2d24c4232c8eb5c6a3a21f60))
+* improving written descriptions ([#2165](https://github.com/ssc-sp/datahub-portal/issues/2165)) ([63e142f](https://github.com/ssc-sp/datahub-portal/commit/63e142fbdac04f3003c9cff517c1c41f76059249))
+* Protected B workspaces provision a single workspace template (AB[#4377](https://github.com/ssc-sp/datahub-portal/issues/4377)) ([#2167](https://github.com/ssc-sp/datahub-portal/issues/2167)) ([3808970](https://github.com/ssc-sp/datahub-portal/commit/3808970f16fd6781b9c2cd3a3978b527f4655acb))
+* publishing only viewable for admins or leads ([#2159](https://github.com/ssc-sp/datahub-portal/issues/2159)) ([ee939c8](https://github.com/ssc-sp/datahub-portal/commit/ee939c88a44af020b45e7e8f7beddf38e5469428))
+* Redirect a deleted workspace's section URLs to its dashboard (AB[#4573](https://github.com/ssc-sp/datahub-portal/issues/4573)) ([#2175](https://github.com/ssc-sp/datahub-portal/issues/2175)) ([ec879fb](https://github.com/ssc-sp/datahub-portal/commit/ec879fb0524f98b9516e4ed5296f1ccbbae1d788))
+* Restricting Data Steward checkbox to workspace lead or admin ([#2162](https://github.com/ssc-sp/datahub-portal/issues/2162)) ([6952b13](https://github.com/ssc-sp/datahub-portal/commit/6952b1320d4a2f0f532900871e66479d12588e83))
+* Restricting the external user expiry date to the future ([#2177](https://github.com/ssc-sp/datahub-portal/issues/2177)) ([35169a9](https://github.com/ssc-sp/datahub-portal/commit/35169a91f96796557cfafba1f36c7911cf954eb9))
+* Stop Resource Provisioner workspace PRs from reverting files on the infrastructure main branch ([#2182](https://github.com/ssc-sp/datahub-portal/issues/2182)) ([e7ee164](https://github.com/ssc-sp/datahub-portal/commit/e7ee1640cdb2d9301a18c0f7e51e5ebe6d344a6d))
+* Storage access and deletion state for Protected B workspaces (AB[#4566](https://github.com/ssc-sp/datahub-portal/issues/4566), AB[#4567](https://github.com/ssc-sp/datahub-portal/issues/4567), AB[#4572](https://github.com/ssc-sp/datahub-portal/issues/4572)) ([#2174](https://github.com/ssc-sp/datahub-portal/issues/2174)) ([311c44f](https://github.com/ssc-sp/datahub-portal/commit/311c44f21a6c01a321fb023d0da642684cb96b06))
+* Track and assign Protected B subnet groups, with status and range on the Networking page ([#2183](https://github.com/ssc-sp/datahub-portal/issues/2183)) ([24c8d45](https://github.com/ssc-sp/datahub-portal/commit/24c8d454bede55c48deaad23285ee5a49e123a5e))
+* user should not see removed workspaces in workspace dropdown list ([#2158](https://github.com/ssc-sp/datahub-portal/issues/2158)) ([5cf5262](https://github.com/ssc-sp/datahub-portal/commit/5cf52625b83677ccda9fb59f0a7dbb27917d856d))
+
 ## [10.3.0](https://github.com/ssc-sp/datahub-portal/compare/v10.2.0...v10.3.0) (2026-10-27)
 
 

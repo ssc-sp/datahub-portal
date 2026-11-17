@@ -165,16 +165,14 @@ Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "Pipelines", "Pipelines", "{
 EndProject
 Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "Github", "Github", "{3D033E58-9544-4099-AFF1-C820B0C28F7C}"
 	ProjectSection(SolutionItems) = preProject
-		.github\workflows\apply-rulesets.yml = .github\workflows\apply-rulesets.yml
-		.github\workflows\code-linting.yml = .github\workflows\code-linting.yml
-		.github\workflows\codeql.yml = .github\workflows\codeql.yml
+		.github\workflows\create-release.yml = .github\workflows\create-release.yml
 		.github\workflows\dataportal-translation-linting.yml = .github\workflows\dataportal-translation-linting.yml
-		.github\workflows\docker-image.yml = .github\workflows\docker-image.yml
-		.github\workflows\pr-build.yml = .github\workflows\pr-build.yml
-		.github\workflows\pr-commit-linting.yml = .github\workflows\pr-commit-linting.yml
-		.github\workflows\refresh-stale-prs.yml = .github\workflows\refresh-stale-prs.yml
+		.github\workflows\pr-code-linting.yml = .github\workflows\pr-code-linting.yml
+		.github\workflows\pr-compliance.yml = .github\workflows\pr-compliance.yml
+		.github\workflows\pr-refresh-stale.yml = .github\workflows\pr-refresh-stale.yml
+		.github\workflows\pr-secret-scanning.yml = .github\workflows\pr-secret-scanning.yml
+		.github\workflows\push-poc.yml = .github\workflows\push-poc.yml
 		.github\workflows\trivy.yml = .github\workflows\trivy.yml
-		.github\workflows\update-trivy-cache.yml = .github\workflows\update-trivy-cache.yml
 	EndProjectSection
 EndProject
 Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "test", "test", "{7DC54F87-A118-4F67-A75A-DE4949F5C854}"
@@ -377,9 +375,9 @@ Global
 		{7399BACF-CD75-4F45-8A09-BB56823DC17C} = {7DC54F87-A118-4F67-A75A-DE4949F5C854}
 	EndGlobalSection
 	GlobalSection(ExtensibilityGlobals) = postSolution
-		RESX_ConfirmAddLanguageFile = True
-		RESX_AutoCreateNewLanguageFiles = True
 		SolutionGuid = {9DC4B901-16FF-4FF2-9ED6-B286EA17048E}
+		RESX_AutoCreateNewLanguageFiles = True
+		RESX_ConfirmAddLanguageFile = True
 	EndGlobalSection
 	GlobalSection(SharedMSBuildProjectFiles) = preSolution
 		Desktop\Desktop.SharedCode\Desktop.SharedCode.projitems*{6c2d8f35-4efa-4474-9973-fe6b2881e59a}*SharedItemsImports = 5
