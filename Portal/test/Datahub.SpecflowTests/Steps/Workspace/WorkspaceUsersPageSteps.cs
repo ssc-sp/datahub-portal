@@ -16,6 +16,7 @@ using Datahub.Portal.Layout;
 using Datahub.Portal.Pages.Workspace.Users;
 using Datahub.SpecflowTests.Utils;
 using FluentAssertions;
+using GcdsWrapper.Blazor;
 using Google.Protobuf.WellKnownTypes;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Components.Forms;
@@ -260,11 +261,10 @@ namespace Datahub.SpecflowTests.Steps
             return roleSelector!;
         }
 
-        private static IRenderedComponent<MudButton>? FindSaveChangesButton(IRenderedComponent<WorkspaceUsersPage> workspaceUsersPage)
+        private static IRenderedComponent<GcdsButton>? FindSaveChangesButton(IRenderedComponent<WorkspaceUsersPage> workspaceUsersPage)
         {
-            var allButtons = workspaceUsersPage.FindComponents<MudButton>();
-            var saveChangesButton = allButtons.FirstOrDefault(b => b.Instance.Tag is string tagStr && tagStr == "SaveChanges");
-            return saveChangesButton;
+            return workspaceUsersPage.FindComponents<GcdsButton>()
+                .FirstOrDefault(button => button.Instance.Id == "save-changes");
         }
 
         private async Task ToggleDataStewardRole(string email, bool desiredStatus)
