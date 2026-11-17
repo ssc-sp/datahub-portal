@@ -3,6 +3,7 @@
 @using Datahub.Core.Model.Users
 @using Datahub.Infrastructure.Services.UserManagement
 @using Datahub.Portal.Pages.Tools.Users
+@using GcdsWrapper.Blazor
 @using MudBlazor.Utilities
 @using Datahub.Portal.Components.User
 @using Datahub.Application.Commands
@@ -31,7 +32,10 @@ else if (_gccfEnabled)
 {
     <MudStack>
         <MudStack Row Class="mt-6 mb-4">
-            <DHMainContentTitle Title="@Localizer["External Workspace Members"]" />
+            <DHMainContentTitle Title="@Localizer["External Workspace Users"]" />
+            <GcdsText>
+                @Localizer["External users are users who are not part of the Government of Canada but have been granted access to this workspace. You can manage their access and invite new users here."]"]
+            </GcdsText>
             <MudSpacer />
             <DatahubAuthView AuthLevel="DatahubAuthView.AuthLevels.WorkspaceLead" ProjectAcronym="@WorkspaceAcronym"
                              ElevatedWorkspaceAccessEnabled="@ElevatedWorkspaceAccessEnabled">
