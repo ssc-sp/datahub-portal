@@ -907,6 +907,78 @@ namespace Datahub.Core.Migrations
                     b.ToTable("SelfRegistrationDetails", (string)null);
                 });
 
+            modelBuilder.Entity("Datahub.Core.Model.PipelineMonitoring.PipelineObservation", b =>
+                {
+                    b.Property<Guid>("Id")
+                        .HasColumnType("uniqueidentifier");
+
+                    b.Property<int>("DefinitionId")
+                        .HasColumnType("int");
+
+                    b.Property<string>("Environment")
+                        .IsRequired()
+                        .HasMaxLength(16)
+                        .HasColumnType("nvarchar(16)");
+
+                    b.Property<string>("Kind")
+                        .IsRequired()
+                        .HasMaxLength(16)
+                        .HasColumnType("nvarchar(16)");
+
+                    b.Property<DateTime>("ObservedAtUtc")
+                        .HasColumnType("datetime2");
+
+                    b.Property<string>("Organization")
+                        .IsRequired()
+                        .HasMaxLength(64)
+                        .HasColumnType("nvarchar(64)");
+
+                    b.Property<string>("PayloadHash")
+                        .IsRequired()
+                        .HasMaxLength(64)
+                        .HasColumnType("nvarchar(64)");
+
+                    b.Property<string>("PayloadJson")
+                        .IsRequired()
+                        .HasColumnType("nvarchar(max)");
+
+                    b.Property<Guid>("ProjectId")
+                        .HasColumnType("uniqueidentifier");
+
+                    b.Property<DateTime>("ReceivedAtUtc")
+                        .HasColumnType("datetime2");
+
+                    b.Property<long?>("RunId")
+                        .HasColumnType("bigint");
+
+                    b.Property<DateTime?>("SourceChangedAtUtc")
+                        .HasColumnType("datetime2");
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("Organization", "ProjectId", "Environment", "DefinitionId", "Kind", "ObservedAtUtc");
+
+                    b.HasIndex("Organization", "ProjectId", "Environment", "DefinitionId", "RunId", "ObservedAtUtc");
+
+                    b.ToTable("PipelineObservations", (string)null);
+                });
+
+            modelBuilder.Entity("Datahub.Core.Model.PipelineMonitoring.PipelineObservationWorkspace", b =>
+                {
+                    b.Property<Guid>("ObservationId")
+                        .HasColumnType("uniqueidentifier");
+
+                    b.Property<string>("Acronym")
+                        .HasMaxLength(64)
+                        .HasColumnType("nvarchar(64)");
+
+                    b.HasKey("ObservationId", "Acronym");
+
+                    b.HasIndex("Acronym", "ObservationId");
+
+                    b.ToTable("PipelineObservationWorkspaces", (string)null);
+                });
+
             modelBuilder.Entity("Datahub.Core.Model.Projects.Datahub_Project", b =>
                 {
                     b.Property<int>("Project_ID")
@@ -2306,6 +2378,15 @@ namespace Datahub.Core.Migrations
                     b.Navigation("Project");
                 });
 
+            modelBuilder.Entity("Datahub.Core.Model.PipelineMonitoring.PipelineObservationWorkspace", b =>
+                {
+                    b.HasOne("Datahub.Core.Model.PipelineMonitoring.PipelineObservation", null)
+                        .WithMany("Workspaces")
+                        .HasForeignKey("ObservationId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+                });
+
             modelBuilder.Entity("Datahub.Core.Model.Projects.Datahub_Project", b =>
                 {
                     b.HasOne("Datahub.Core.Model.Subscriptions.DatahubAzureSubscription", "DatahubAzureSubscription")
@@ -2645,6 +2726,11 @@ namespace Datahub.Core.Migrations
             modelBuilder.Entity("Datahub.Core.Model.Onboarding.GCHostingWorkspaceDetails", b =>
                 {
                     b.Navigation("WorkspacesInBudget");
+                });
+
+            modelBuilder.Entity("Datahub.Core.Model.PipelineMonitoring.PipelineObservation", b =>
+                {
+                    b.Navigation("Workspaces");
                 });
 
             modelBuilder.Entity("Datahub.Core.Model.Projects.Datahub_Project", b =>
