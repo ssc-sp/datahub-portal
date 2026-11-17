@@ -1,6 +1,6 @@
 # Task 4665 DEV monitoring foundation
 
-Status: implementation submitted for review through the Step 1 PR. Database application remains gated on the approved deployment process. The user authorized Step 2 development against an isolated local database while that review proceeds; this does not authorize a manual DEV migration or deployment.
+Status: implementation prepared for the Step 1 PR. Database application remains gated on the approved deployment process. The user authorized Step 2 development against an isolated local database while review proceeds; this does not authorize a manual DEV migration or deployment.
 
 This increment follows [Story 4664](https://dev.azure.com/SSC-FSDH/FSDH/_workitems/edit/4664) and [Task 4665](https://dev.azure.com/SSC-FSDH/FSDH/_workitems/edit/4665): Protected B monitoring in DEV, using existing service access. The older PRE architecture draft in this directory is background; its request ledger, missing-run guarantees and nine-stage breakdown do not govern this increment.
 
