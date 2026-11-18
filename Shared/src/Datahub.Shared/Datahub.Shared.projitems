@@ -9,6 +9,7 @@
     <Import_RootNamespace>Datahub.Shared</Import_RootNamespace>
   </PropertyGroup>
   <ItemGroup>
+    <Compile Include="$(MSBuildThisFileDirectory)Entities\PipelineMonitoring\PipelineRunObservationMessage.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)Annotations\AnnotationTools.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)Entities\UserFiles.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)Entities\WorkspaceToolConfiguration\IWorkspaceToolWithSuffix.cs" />
