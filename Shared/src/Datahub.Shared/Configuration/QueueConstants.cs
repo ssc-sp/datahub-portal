@@ -19,6 +19,9 @@ public static class StorageQueueConstants
 
 public static class QueueConstants
 {
+    /// <summary>Proposed pipeline monitoring channel; provisioning and consumer registration are separate tasks.</summary>
+    public const string PipelineStatusQueueName = "pipeline-status";
+
     /// <summary>
     /// Queue: <c>pong-queue</c><br/>
     /// Used for ping/pong health probes between services.

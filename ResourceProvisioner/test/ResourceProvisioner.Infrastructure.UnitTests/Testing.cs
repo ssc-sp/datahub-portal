@@ -29,7 +29,7 @@ public class Testing
 
     internal static ResourceProvisionerConfiguration _resourceProvisionerConfiguration = null!;
 
-    internal const string TestWorkspaceVersion = "v5.0.4";
+    internal const string TestWorkspaceVersion = "v7.2.8";
 
     internal const string RequestingUser = "Unit Test User";
     internal const string RequestingUserEmail = "unittest@user.com";
