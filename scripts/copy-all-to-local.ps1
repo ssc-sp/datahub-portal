@@ -16,10 +16,10 @@ Import-Module $CurrentPath/appsettings.psm1 -Force
 Import-Module $CurrentPath/dbutils.psm1 -Force
 
 Connect-FSDHAzure
-$server = Read-VaultSecret "fsdh-key-$EnvironmentName" "datahub-mssql-server"
-$db1 = Read-VaultSecret "fsdh-key-$EnvironmentName" "datahub-mssql-projectdb"
+$server = Read-VaultSecret "g2dc-cto-fsdh-$EnvironmentName-kv" "datahub-mssql-server"
+$db1 = Read-VaultSecret "g2dc-cto-fsdh-$EnvironmentName-kv" "datahub-mssql-projectdb"
 
-Copy-AzureDbToLocal -ServerName $server -DatabaseName $db1 -LocalPath $LocalPath -SkipExport:$SkipExport -UseKeyVaultCredentials:$True -EnvironmentName $EnvironmentName
+Copy-AzureDbToLocal -ServerName $server -DatabaseName $db1 -LocalPath $LocalPath -SkipExport:$SkipExport -EnvironmentName $EnvironmentName
 
-$db2 = Read-VaultSecret "fsdh-key-$EnvironmentName" "dh-portal-metadatadb"
-Copy-AzureDbToLocal -ServerName $server -DatabaseName $db2 -LocalPath $LocalPath -SkipExport:$SkipExport -UseKeyVaultCredentials:$True -EnvironmentName $EnvironmentName
+$db2 = Read-VaultSecret "g2dc-cto-fsdh-$EnvironmentName-kv" "dh-portal-metadatadb"
+Copy-AzureDbToLocal -ServerName $server -DatabaseName $db2 -LocalPath $LocalPath -SkipExport:$SkipExport -EnvironmentName $EnvironmentName
