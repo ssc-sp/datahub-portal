@@ -27,7 +27,7 @@ namespace Datahub.Core.Extensions
 
         public static string GetPostgresId(this Project_Resources2 postgresResource)
         {
-            if (postgresResource is not null && postgresResource.CreatedAt.HasValue && TerraformTemplate.GetTerraformServiceType(TerraformTemplate.AzurePostgres) == postgresResource.ResourceType)
+            if (postgresResource is not null && postgresResource.CreatedAt.HasValue && TerraformTemplate.AzurePostgresServiceTypes.Contains(postgresResource.ResourceType))
             {
                 if (string.IsNullOrEmpty(postgresResource.JsonContent))
                 {
@@ -70,8 +70,7 @@ namespace Datahub.Core.Extensions
 
         public static string GetDbkResourceGroupName(this Datahub_Project project, string projectResourceGroupName)
         {
-            var dbkResourceTemplateType = TerraformTemplate.GetTerraformServiceType(TerraformTemplate.AzureDatabricks);
-            var dbkResource = project.Resources?.FirstOrDefault(r => r.ResourceType == dbkResourceTemplateType);
+            var dbkResource = project.Resources?.FirstOrDefault(r => TerraformTemplate.AzureDatabricksServiceTypes.Contains(r.ResourceType));
             if (dbkResource is not null && dbkResource.CreatedAt.HasValue)
             {
                 string rgName = string.Join(

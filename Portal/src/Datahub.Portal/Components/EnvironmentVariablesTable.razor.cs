@@ -261,10 +261,9 @@ namespace Datahub.Portal.Components
                 return false;
             }
 
-            var webAppResourceType = TerraformTemplate.AzureAppService;
             var webAppResource = ctx.Project_Resources2.FirstOrDefault(r =>
                 r.ProjectId == project.Project_ID &&
-                r.ResourceType == TerraformTemplate.GetTerraformServiceType(webAppResourceType));
+                TerraformTemplate.AzureAppServiceServiceTypes.Contains(r.ResourceType));
             if (webAppResource is null)
             {
                 _logger.LogError($"WebApp resource not found in database.");
