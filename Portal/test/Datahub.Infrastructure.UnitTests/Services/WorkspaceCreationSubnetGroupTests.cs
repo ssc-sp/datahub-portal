@@ -42,7 +42,7 @@ public class WorkspaceCreationSubnetGroupTests
 
         var subscriptionService = Substitute.For<IDatahubAzureSubscriptionService>();
         subscriptionService.NextSubscriptionAsync()
-            .Returns(new DatahubAzureSubscription { Id = 1, TenantId = "tenant", SubscriptionId = "sub", SubscriptionName = "Test subscription" });
+            .Returns(new DatahubAzureSubscription { Id = 1, TenantId = "tenant", SubscriptionId = "sub", SubscriptionName = "Test subscription", Classification = ClassificationType.Unclassified });
 
         var workspaceVersionService = Substitute.For<IWorkspaceVersionService>();
         workspaceVersionService.GetLatestVersionAsync().Returns("v1.0.0");
@@ -81,7 +81,7 @@ public class WorkspaceCreationSubnetGroupTests
             {
                 VNetId = "/subscriptions/sub/resourceGroups/rg/providers/Microsoft.Network/virtualNetworks/vnet",
                 VNetName = "vnet",
-                Subscription = new DatahubAzureSubscription { TenantId = "tenant", SubscriptionId = "sub-vnet", SubscriptionName = "VNet subscription" }
+                Subscription = new DatahubAzureSubscription { TenantId = "tenant", SubscriptionId = "sub-vnet", SubscriptionName = "VNet subscription", Classification = ClassificationType.Unclassified }
             }
         });
         await ctx.SaveChangesAsync();

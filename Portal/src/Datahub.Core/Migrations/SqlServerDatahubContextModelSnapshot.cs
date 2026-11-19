@@ -1629,6 +1629,9 @@ namespace Datahub.Core.Migrations
 
                     b.HasKey("Id");
 
+                    b.HasIndex("SubscriptionId")
+                        .IsUnique();
+
                     b.ToTable("AzureSubscriptions", (string)null);
                 });
 

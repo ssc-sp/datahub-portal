@@ -7,6 +7,7 @@ using Datahub.Core.Model.Projects;
 using Datahub.Core.Model.Subscriptions;
 using Datahub.Infrastructure.Services;
 using Datahub.Infrastructure.Services.Subscriptions;
+using Datahub.Metadata.Model;
 using FluentAssertions;
 using Microsoft.EntityFrameworkCore;
 using Reqnroll;
@@ -33,7 +34,8 @@ public sealed class DatahubAzureSubscriptionSteps(
         {
             SubscriptionId = Testing.WorkspaceSubscriptionGuid,
             TenantId = Testing.WorkspaceTenantGuid,
-            SubscriptionName = Testing.SubscriptionName
+            SubscriptionName = Testing.SubscriptionName,
+            Classification = ClassificationType.Unclassified
         };
 
         await using var ctx = await dbContextFactory.CreateDbContextAsync();
@@ -70,7 +72,8 @@ public sealed class DatahubAzureSubscriptionSteps(
         {
             SubscriptionId = Testing.WorkspaceSubscriptionGuid,
             TenantId = Testing.WorkspaceTenantGuid,
-            SubscriptionName = Testing.SubscriptionName
+            SubscriptionName = Testing.SubscriptionName,
+            Classification = ClassificationType.Unclassified
         };
 
         await datahubAzureSubscriptionService.AddSubscriptionAsync(subscription);
@@ -95,7 +98,8 @@ public sealed class DatahubAzureSubscriptionSteps(
             {
                 SubscriptionId = "invalid-subscription-id",
                 TenantId = "invalid-tenant-id",
-                SubscriptionName = "Invalid Subscription"
+                SubscriptionName = "Invalid Subscription",
+                Classification = ClassificationType.Unclassified
             };
 
             await datahubAzureSubscriptionService.AddSubscriptionAsync(subscription);
@@ -131,7 +135,8 @@ public sealed class DatahubAzureSubscriptionSteps(
         {
             SubscriptionId = Testing.WorkspaceSubscriptionGuid,
             TenantId = Testing.WorkspaceTenantGuid,
-            SubscriptionName = Testing.SubscriptionName
+            SubscriptionName = Testing.SubscriptionName,
+            Classification = ClassificationType.Unclassified
         };
 
         await using var ctx = await dbContextFactory.CreateDbContextAsync();
@@ -161,7 +166,8 @@ public sealed class DatahubAzureSubscriptionSteps(
             {
                 SubscriptionId = "non-existing-subscription-id",
                 TenantId = "non-existing-tenant-id",
-                SubscriptionName = "Non-existing Subscription"
+                SubscriptionName = "Non-existing Subscription",
+                Classification = ClassificationType.Unclassified
             };
 
             await datahubAzureSubscriptionService.DisableSubscriptionAsync(subscription.SubscriptionId);
@@ -180,7 +186,8 @@ public sealed class DatahubAzureSubscriptionSteps(
         {
             SubscriptionId = string.Format(p0),
             TenantId = Testing.WorkspaceTenantGuid,
-            SubscriptionName = Testing.SubscriptionName
+            SubscriptionName = Testing.SubscriptionName,
+            Classification = ClassificationType.Unclassified
         };
 
         ctx.AzureSubscriptions.Add(subscription);
@@ -237,7 +244,8 @@ public sealed class DatahubAzureSubscriptionSteps(
         {
             SubscriptionId = Testing.WorkspaceSubscriptionGuid,
             TenantId = Testing.WorkspaceTenantGuid,
-            SubscriptionName = Testing.SubscriptionName
+            SubscriptionName = Testing.SubscriptionName,
+            Classification = ClassificationType.Unclassified
         };
 
         await using var ctx = await dbContextFactory.CreateDbContextAsync();
@@ -266,14 +274,16 @@ public sealed class DatahubAzureSubscriptionSteps(
         {
             SubscriptionId = Testing.WorkspaceSubscriptionGuid,
             TenantId = Testing.WorkspaceTenantGuid,
-            SubscriptionName = Testing.SubscriptionName
+            SubscriptionName = Testing.SubscriptionName,
+            Classification = ClassificationType.Unclassified
         };
 
         var subscription2 = new DatahubAzureSubscription()
         {
             SubscriptionId = Testing.WorkspaceSubscriptionGuid2,
             TenantId = Testing.WorkspaceTenantGuid,
-            SubscriptionName = Testing.SubscriptionName2
+            SubscriptionName = Testing.SubscriptionName2,
+            Classification = ClassificationType.Unclassified
         };
 
         ctx.AzureSubscriptions.Add(subscription1);
@@ -307,7 +317,8 @@ public sealed class DatahubAzureSubscriptionSteps(
             Id = subscription!.Id,
             SubscriptionId = "updated-subscription-id",
             TenantId = subscription.TenantId,
-            SubscriptionName = subscription.SubscriptionName
+            SubscriptionName = subscription.SubscriptionName,
+            Classification = ClassificationType.Unclassified
         };
 
         await datahubAzureSubscriptionService.UpdateSubscriptionAsync(updatedSubscription);
@@ -322,7 +333,8 @@ public sealed class DatahubAzureSubscriptionSteps(
             {
                 SubscriptionId = "invalid-subscription-id",
                 TenantId = "invalid-tenant-id",
-                SubscriptionName = "Invalid Subscription"
+                SubscriptionName = "Invalid Subscription",
+                Classification = ClassificationType.Unclassified
             };
 
             await datahubAzureSubscriptionService.AddSubscriptionAsync(subscription);
@@ -395,7 +407,8 @@ public sealed class DatahubAzureSubscriptionSteps(
         {
             SubscriptionName = Testing.SubscriptionName,
             SubscriptionId = Testing.WorkspaceSubscriptionGuid,
-            TenantId = Testing.WorkspaceTenantGuid
+            TenantId = Testing.WorkspaceTenantGuid,
+            Classification = ClassificationType.Unclassified
         };
 
         await datahubAzureSubscriptionService.AddSubscriptionAsync(subscription);

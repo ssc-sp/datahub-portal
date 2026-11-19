@@ -2,6 +2,7 @@ using Datahub.Application.Configuration;
 using Datahub.Core.Model.Context;
 using Datahub.Core.Model.Projects;
 using Datahub.Core.Model.Subscriptions;
+using Datahub.Metadata.Model;
 using Datahub.Portal.Pages.Workspace.Settings;
 using Datahub.Shared.Entities;
 using FluentAssertions;
@@ -32,7 +33,8 @@ public class WorkspaceSharedKeyAccessControlSteps(
         {
             SubscriptionId = subscriptionId,
             TenantId = Testing.WorkspaceTenantGuid,
-            SubscriptionName = Testing.SubscriptionName
+            SubscriptionName = Testing.SubscriptionName,
+            Classification = ClassificationType.Unclassified
         };
                
         var resourceGroup = new Project_Resources2

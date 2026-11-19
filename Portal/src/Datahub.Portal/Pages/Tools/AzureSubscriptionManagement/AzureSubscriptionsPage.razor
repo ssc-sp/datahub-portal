@@ -1,5 +1,6 @@
 @using Datahub.Core.Model.Subscriptions
 @using Datahub.Application.Services.Subscriptions
+@using Datahub.Metadata.Model
 
 @inject IDatahubAzureSubscriptionService _datahubAzureSubscriptionService
 @inject DatahubPortalConfiguration _portalConfiguration
@@ -63,6 +64,9 @@
                 <MudTableSortLabel SortBy="@(new Func<DatahubAzureSubscription, object>(x => x.Nickname))">@Localizer["Nickname"]</MudTableSortLabel>
             </MudTh>
             <MudTh>
+                <MudTableSortLabel SortBy="@(new Func<DatahubAzureSubscription, object>(x => x.Classification))">@Localizer["Classification"]</MudTableSortLabel>
+            </MudTh>
+            <MudTh>
                 <MudTableSortLabel SortBy="@(new Func<DatahubAzureSubscription, object>(x => _numberOfWorkspaceRemaining[x.SubscriptionId]))">@Localizer["Number of Workspaces"]</MudTableSortLabel>
             </MudTh>
         </HeaderContent>
@@ -72,6 +76,7 @@
             <MudTd DataLabel="@Localizer["Subscription ID"]">@context.SubscriptionId</MudTd>
             <MudTd DataLabel="@Localizer["Subscription Name"]">@context.SubscriptionName</MudTd>
             <MudTd DataLabel="@Localizer["Nickname"]">@context.Nickname</MudTd>
+            <MudTd DataLabel="@Localizer["Classification"]">@context.Classification.ToSpacedString()</MudTd>
             <MudTd DataLabel="@Localizer["Number of Workspaces"]">
                 @(_portalConfiguration.Hosting.WorkspaceCountPerAzureSubscription - _numberOfWorkspaceRemaining[context.SubscriptionId]) / @_portalConfiguration.Hosting.WorkspaceCountPerAzureSubscription
             </MudTd>
@@ -93,6 +98,15 @@
             <MudTd DataLabel="@Localizer["Name"]">
                 <MudTextField @bind-Value="@context.Nickname"/>
             </MudTd>
+            <MudTd DataLabel="@Localizer["Classification"]">
+                <MudSelect T="ClassificationType" @bind-Value="@context.Classification">
+                    @foreach (var classification in Enum.GetValues<ClassificationType>())
+                    {
+                        <MudSelectItem Value="@classification">@classification.ToSpacedString()</MudSelectItem>
+                    }
+                </MudSelect>
+            </MudTd>
+            <MudTd />
         </RowEditingTemplate>
         <EditButtonContent Context="button">
             <MudIconButton Size="@Size.Small" Icon="@SidebarIcons.Edit" Class="pa-0" OnClick="@button.ButtonAction" Disabled="@button.ButtonDisabled"/>
@@ -128,7 +142,7 @@
         foreach (var subscription in _subscriptions)
         {
             var numberOfWorkspaces = await _datahubAzureSubscriptionService.NumberOfRemainingWorkspacesAsync(subscription.SubscriptionId);
-            _numberOfWorkspaceRemaining.Add(subscription.SubscriptionId, numberOfWorkspaces);
+            _numberOfWorkspaceRemaining[subscription.SubscriptionId] = numberOfWorkspaces;
         }
     }
 

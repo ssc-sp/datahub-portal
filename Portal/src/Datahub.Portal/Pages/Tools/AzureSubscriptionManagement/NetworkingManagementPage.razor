@@ -82,7 +82,14 @@
             <MudTd DataLabel="@Localizer["VNet Resource ID"]">
                 <MudTextField @bind-Value="@context.VNetId" Required />
             </MudTd>
-            <MudTd DataLabel="@Localizer["Subscription"]">@GetSubscriptionLabel(context.SubscriptionId)</MudTd>
+            <MudTd DataLabel="@Localizer["Subscription"]">
+                <MudSelect T="int" @bind-Value="@context.SubscriptionId" Required>
+                    @foreach (var sub in _subscriptions)
+                    {
+                        <MudSelectItem Value="@sub.Id">@sub.Nickname (@sub.SubscriptionName)</MudSelectItem>
+                    }
+                </MudSelect>
+            </MudTd>
             <MudTd />
             <MudTd />
         </RowEditingTemplate>

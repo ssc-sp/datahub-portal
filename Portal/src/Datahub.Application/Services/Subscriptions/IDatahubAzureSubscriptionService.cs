@@ -17,8 +17,8 @@ public interface IDatahubAzureSubscriptionService
     /// Checks if a Datahub Azure subscription with the specified subscriptionId exists.
     /// </summary>
     /// <param name="subscriptionId">The subscription ID to check.</param>
-    /// <returns>Returns true if the subscription exists, otherwise false.</returns>
-    Task<DatahubAzureSubscription> SubscriptionExistsAsync(string subscriptionId);
+    /// <returns>Returns the subscription exists, otherwise null.</returns>
+    Task<DatahubAzureSubscription?> SubscriptionExistsAsync(string subscriptionId);
 
     /// <summary>
     /// Adds a Datahub Azure subscription to the database.

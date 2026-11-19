@@ -1,5 +1,6 @@
 using Datahub.Core.Model.Projects;
 using Datahub.Metadata.Model;
+using Microsoft.EntityFrameworkCore;
 
 namespace Datahub.Core.Model.Subscriptions;
 
@@ -7,6 +8,7 @@ namespace Datahub.Core.Model.Subscriptions;
 /// Represents an Azure subscription associated with Datahub workspaces.
 /// Provides necessary information to manage and provision Azure resources.
 /// </summary>
+[Index(nameof(SubscriptionId), IsUnique = true)]
 public class DatahubAzureSubscription
 {
     /// <summary>

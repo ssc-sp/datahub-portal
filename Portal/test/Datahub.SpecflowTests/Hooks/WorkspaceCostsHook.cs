@@ -11,6 +11,7 @@ using Datahub.Core.Model.Context;
 using Datahub.Core.Model.Projects;
 using Datahub.Core.Model.Subscriptions;
 using Datahub.Infrastructure.Services.Cost;
+using Datahub.Metadata.Model;
 using Datahub.Shared.Entities;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Configuration;
@@ -23,7 +24,7 @@ namespace Datahub.SpecflowTests.Hooks
 {
     [Binding]
     public class WorkspaceCostsHook
-    {
+    {       
         [BeforeScenario("WorkspaceCosts")]
         public void BeforeScenarioWorkspaceCosts(IObjectContainer objectContainer,
             ScenarioContext scenarioContext)
@@ -226,6 +227,7 @@ namespace Datahub.SpecflowTests.Hooks
                 TenantId = Testing.WorkspaceTenantGuid,
                 SubscriptionId = Testing.WorkspaceSubscriptionGuid,
                 SubscriptionName = Testing.SubscriptionName,
+                Classification = ClassificationType.Unclassified
             };
             context.AzureSubscriptions.Add(sub);
             context.SaveChanges();
@@ -326,6 +328,18 @@ namespace Datahub.SpecflowTests.Hooks
                 LastUpdate = DateTime.UtcNow.AddHours(-6),
             };
             context.Project_Credits.Add(projectCredit);
+            context.SaveChanges();
+
+            // Set default classification for remaining workspace subscription objects
+            var remainingSubscriptions = context.AzureSubscriptions
+                .Where(s => s.SubscriptionId != Testing.WorkspaceSubscriptionGuid)
+                .ToList();
+
+            foreach (var subscription in remainingSubscriptions)
+            {
+                subscription.Classification = "Uncategorized"; // Set your desired default classification here
+            }
+
             context.SaveChanges();
         }
 

@@ -1575,6 +1575,9 @@ namespace Datahub.Core.Migrations.SqliteDatahub
 
                     b.HasKey("Id");
 
+                    b.HasIndex("SubscriptionId")
+                        .IsUnique();
+
                     b.ToTable("AzureSubscriptions", (string)null);
                 });
 

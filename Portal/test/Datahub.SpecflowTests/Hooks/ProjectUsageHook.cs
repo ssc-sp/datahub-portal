@@ -1,4 +1,3 @@
-using System.Text.Json;
 using Azure.Core;
 using Datahub.Application.Configuration;
 using Datahub.Application.Services;
@@ -13,6 +12,7 @@ using Datahub.Functions;
 using Datahub.Functions.Services;
 using Datahub.Infrastructure.Queues.Messages;
 using Datahub.Infrastructure.Services.Cost;
+using Datahub.Metadata.Model;
 using Datahub.Shared.Entities;
 using MassTransit;
 using Microsoft.EntityFrameworkCore;
@@ -21,6 +21,7 @@ using Microsoft.Extensions.Logging;
 using NSubstitute;
 using Reqnroll;
 using Reqnroll.BoDi;
+using System.Text.Json;
 
 namespace Datahub.SpecflowTests.Hooks
 {
@@ -196,7 +197,8 @@ namespace Datahub.SpecflowTests.Hooks
             {
                 TenantId = Testing.WorkspaceTenantGuid,
                 SubscriptionId = Testing.WorkspaceSubscriptionGuid,
-                SubscriptionName = Testing.SubscriptionName,
+                SubscriptionName = Testing.SubscriptionName,                
+                Classification = ClassificationType.Unclassified
             };
             context.AzureSubscriptions.Add(sub);
             context.SaveChanges();

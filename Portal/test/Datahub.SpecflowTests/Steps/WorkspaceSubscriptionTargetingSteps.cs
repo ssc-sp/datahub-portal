@@ -4,6 +4,7 @@ using Datahub.Core.Model.Context;
 using Datahub.Core.Model.Datahub;
 using Datahub.Core.Model.Projects;
 using Datahub.Core.Model.Subscriptions;
+using Datahub.Metadata.Model;
 using Datahub.Shared.Entities;
 using Datahub.SpecflowTests.Utils;
 using FluentAssertions;
@@ -58,7 +59,8 @@ public sealed class WorkspaceSubscriptionTargetingSteps(
         {
             SubscriptionId = p0,
             TenantId = Testing.WorkspaceTenantGuid,
-            SubscriptionName = Testing.SubscriptionName
+            SubscriptionName = Testing.SubscriptionName,
+            Classification = ClassificationType.Unclassified
         };
         
         ctx.AzureSubscriptions.Add(subscription);
