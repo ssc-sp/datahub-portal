@@ -299,7 +299,10 @@
 
             await InvokeAsync(StateHasChanged);
 
-            await _requestManagementService.TriggerBuildVersionUpdates(versionTag.Tag, email);
+            if (versionTag.UpgradeExistingWorkspaces)
+            {
+                await _requestManagementService.TriggerBuildVersionUpdates(versionTag.Tag, email);
+            }
 
             _snackbar.Add(Localizer["Successfully added version: {0}", versionTag.Tag], Severity.Success);
 
