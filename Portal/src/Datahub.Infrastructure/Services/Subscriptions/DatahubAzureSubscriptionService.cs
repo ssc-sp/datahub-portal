@@ -160,15 +160,26 @@ public class DatahubAzureSubscriptionService(
     /// <exception cref="InvalidOperationException">Thrown when there are no subscriptions available or no subscriptions available with remaining workspaces.</exception>
     public async Task<DatahubAzureSubscription> NextSubscriptionAsync()
     {
+        return await NextSubscriptionAsync(ClassificationType.Unclassified);
+    }
+
+    /// <summary>
+    /// Retrieves the next available DatahubAzureSubscription for the requested classification.
+    /// </summary>
+    /// <param name="classification">The classification of the workspace.</param>
+    /// <returns>The task result contains the next available DatahubAzureSubscription.</returns>
+    public async Task<DatahubAzureSubscription> NextSubscriptionAsync(ClassificationType classification)
+    {
         await using var ctx = await dbContextFactory.CreateDbContextAsync();
         var subscriptions = await ctx.AzureSubscriptions
             .AsNoTracking()
             .Include(e => e.Workspaces)
+            .Where(s => s.Classification == classification)
             .ToListAsync();
 
         if (subscriptions.Count == 0)
         {
-            throw new InvalidOperationException("No subscriptions available.");
+            throw new InvalidOperationException($"No subscriptions available for classification {classification}.");
         }
 
         var subscriptionStrategy = new DatahubSubscriptionStrategy(portalConfiguration);

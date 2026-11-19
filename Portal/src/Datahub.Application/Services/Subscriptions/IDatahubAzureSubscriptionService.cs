@@ -1,5 +1,6 @@
 using Datahub.Core.Model.Projects;
 using Datahub.Core.Model.Subscriptions;
+using Datahub.Metadata.Model;
 
 namespace Datahub.Application.Services.Subscriptions;
 
@@ -40,6 +41,15 @@ public interface IDatahubAzureSubscriptionService
     /// <param name="subscriptionId">The GUID of the Datahub Azure subscription.</param>
     /// <returns>The task result contains the number of remaining workspaces.</returns>
     Task<int> NumberOfRemainingWorkspacesAsync(string subscriptionId);
+
+    /// <summary>
+    /// Retrieves the next available Datahub Azure subscription for the specified classification.
+    /// </summary>
+    /// <param name="classification">The required classification level for the target subscription.</param>
+    /// <returns>
+    /// The task result contains the next available Datahub Azure subscription.
+    /// </returns>
+    Task<DatahubAzureSubscription> NextSubscriptionAsync(ClassificationType classification);
 
     /// <summary>
     /// Retrieves the next available Datahub Azure subscription.

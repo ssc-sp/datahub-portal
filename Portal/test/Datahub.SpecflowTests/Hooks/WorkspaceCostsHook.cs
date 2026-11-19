@@ -337,7 +337,7 @@ namespace Datahub.SpecflowTests.Hooks
 
             foreach (var subscription in remainingSubscriptions)
             {
-                subscription.Classification = "Uncategorized"; // Set your desired default classification here
+                subscription.Classification = ClassificationType.Unclassified;
             }
 
             context.SaveChanges();
