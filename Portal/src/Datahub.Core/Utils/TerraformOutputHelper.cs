@@ -17,7 +17,7 @@ public static class TerraformOutputHelper
                 string.Join(",", expectedTerraformOutput, GetExpectedTerraformOutputAzureStorageString());
         }
 
-        if (project.Resources.Any(r => r.ResourceType.Equals(TerraformTemplate.GetTerraformServiceType(TerraformTemplate.AzureDatabricks))))
+        if (project.Resources.Any(r => TerraformTemplate.AzureDatabricksServiceTypes.Contains(r.ResourceType)))
         {
             expectedTerraformOutput = string.Join(",", expectedTerraformOutput,
                 GetExpectedTerraformOutputAzureDatabricksString());
@@ -25,13 +25,13 @@ public static class TerraformOutputHelper
             workspaceUrl ??= TerraformVariableExtraction.ExtractDatabricksUrl(project, null);
         }
 
-        if (project.Resources.Any(r => r.ResourceType.Equals(TerraformTemplate.GetTerraformServiceType(TerraformTemplate.AzureAppService))))
+        if (project.Resources.Any(r => TerraformTemplate.AzureAppServiceServiceTypes.Contains(r.ResourceType)))
         {
             expectedTerraformOutput =
                 string.Join(",", expectedTerraformOutput, GetExpectedTerraformOutputAzureWebAppString());
         }
 
-        if (project.Resources.Any(r => r.ResourceType.Equals(TerraformTemplate.GetTerraformServiceType(TerraformTemplate.AzurePostgres))))
+        if (project.Resources.Any(r => TerraformTemplate.AzurePostgresServiceTypes.Contains(r.ResourceType)))
         {
             expectedTerraformOutput =
                 string.Join(",", expectedTerraformOutput, GetExpectedTerraformOutputAzurePostgresString());
