@@ -99,6 +99,27 @@ public class TerraformTemplate
     public static readonly string[] WorkspaceTemplateServiceTypes =
         WorkspaceTemplateNames.Select(GetTerraformServiceType).ToArray();
 
+    // A tool is provisioned from its base template, or from its enhanced template in a Protected B workspace. Both emit
+    // the same Terraform outputs, so they are matched together.
+
+    /// <summary>
+    /// Service types of the base and enhanced Azure Databricks templates, for matching <c>Project_Resources2.ResourceType</c>.
+    /// </summary>
+    public static readonly string[] AzureDatabricksServiceTypes =
+        [GetTerraformServiceType(AzureDatabricks), GetTerraformServiceType(AzureDatabricksEnhanced)];
+
+    /// <summary>
+    /// Service types of the base and enhanced Azure App Service templates, for matching <c>Project_Resources2.ResourceType</c>.
+    /// </summary>
+    public static readonly string[] AzureAppServiceServiceTypes =
+        [GetTerraformServiceType(AzureAppService), GetTerraformServiceType(AzureAppServiceEnhanced)];
+
+    /// <summary>
+    /// Service types of the base and enhanced Azure Postgres templates, for matching <c>Project_Resources2.ResourceType</c>.
+    /// </summary>
+    public static readonly string[] AzurePostgresServiceTypes =
+        [GetTerraformServiceType(AzurePostgres), GetTerraformServiceType(AzurePostgresEnhanced)];
+
     // Parameterless constructor for deserialization
     public TerraformTemplate()
     {
