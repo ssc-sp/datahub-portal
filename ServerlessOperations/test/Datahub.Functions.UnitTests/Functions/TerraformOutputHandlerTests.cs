@@ -203,8 +203,9 @@ public class TerraformOutputHandlerTests
     }
 
 
-    [Test]
-    public async Task ShouldProcessAzureDatabricksOutputVariables()
+    [TestCase(TerraformTemplate.AzureDatabricks)]
+    [TestCase(TerraformTemplate.AzureDatabricksEnhanced)]
+    public async Task ShouldProcessAzureDatabricksOutputVariables(string template)
     {
         var project = new Datahub_Project()
         {
@@ -226,7 +227,7 @@ public class TerraformOutputHandlerTests
         {
             Project = project,
             RequestedBy = currentPortalUser,
-            ResourceType = TerraformTemplate.GetTerraformServiceType(TerraformTemplate.AzureDatabricks)
+            ResourceType = TerraformTemplate.GetTerraformServiceType(template)
         };
         _context.Project_Resources2.Add(databricksResource);
         await _context.SaveChangesAsync();
@@ -272,8 +273,9 @@ public class TerraformOutputHandlerTests
         Assert.That(processedResourceInputJsonContent, Is.Not.Null);
     }
 
-    [Test]
-    public async Task ShouldProcessAzureWebAppOutputVariables()
+    [TestCase(TerraformTemplate.AzureAppService)]
+    [TestCase(TerraformTemplate.AzureAppServiceEnhanced)]
+    public async Task ShouldProcessAzureWebAppOutputVariables(string template)
     {
         var project = new Datahub_Project()
         {
@@ -295,7 +297,7 @@ public class TerraformOutputHandlerTests
         {
             Project = project,
             RequestedBy = currentPortalUser,
-            ResourceType = TerraformTemplate.GetTerraformServiceType(TerraformTemplate.AzureAppService)
+            ResourceType = TerraformTemplate.GetTerraformServiceType(template)
         };
 
         _context.Project_Resources2.Add(webAppResource);
@@ -343,8 +345,9 @@ public class TerraformOutputHandlerTests
         Assert.That(updatedProject!.WebAppEnabled, Is.True);
     }
 
-    [Test]
-    public async Task ShouldProcessAzurePostgresOutputVariables()
+    [TestCase(TerraformTemplate.AzurePostgres)]
+    [TestCase(TerraformTemplate.AzurePostgresEnhanced)]
+    public async Task ShouldProcessAzurePostgresOutputVariables(string template)
     {
         var project = new Datahub_Project()
         {
@@ -366,7 +369,7 @@ public class TerraformOutputHandlerTests
         {
             Project = project,
             RequestedBy = currentPortalUser,
-            ResourceType = TerraformTemplate.GetTerraformServiceType(TerraformTemplate.AzurePostgres)
+            ResourceType = TerraformTemplate.GetTerraformServiceType(template)
         };
 
         _context.Project_Resources2.Add(postgresResource);
