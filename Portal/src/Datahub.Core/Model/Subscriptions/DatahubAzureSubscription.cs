@@ -1,4 +1,5 @@
 using Datahub.Core.Model.Projects;
+using Datahub.Metadata.Model;
 
 namespace Datahub.Core.Model.Subscriptions;
 
@@ -27,6 +28,11 @@ public class DatahubAzureSubscription
     /// Gets or sets the name of the Azure Subscription.
     /// </summary>
     public required string SubscriptionName { get; set; }
+
+    /// <summary>
+    /// Gets or sets the classification type for the subscription
+    /// </summary>
+    public required ClassificationType Classification { get; set; } = ClassificationType.Unclassified;
 
     /// <summary>
     /// Gets or sets the user-friendly alias or nickname for the subscription.
