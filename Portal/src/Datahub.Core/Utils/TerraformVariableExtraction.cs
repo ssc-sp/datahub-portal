@@ -25,9 +25,8 @@ public static class TerraformVariableExtraction
     /// <returns>The Databricks workspace Id.</returns>
     public static string? ExtractDatabricksWorkspaceId(Datahub_Project? project)
     {
-        var databricksTemplateName = TerraformTemplate.GetTerraformServiceType(TerraformTemplate.AzureDatabricks);
         return ExtractStringVariable(
-            project?.Resources?.FirstOrDefault(r => r.ResourceType == databricksTemplateName)?.JsonContent,
+            GetToolResource(project, TerraformTemplate.AzureDatabricksServiceTypes)?.JsonContent,
             "workspace_id");
     }
 
@@ -39,9 +38,8 @@ public static class TerraformVariableExtraction
     /// <returns>Databricks url of the project</returns>
     public static string? ExtractDatabricksUrl(Datahub_Project? project, bool? isFrench)
     {
-        var databricksTemplateName = TerraformTemplate.GetTerraformServiceType(TerraformTemplate.AzureDatabricks);
         var databricksUrlVariable = ExtractStringVariable(
-            project?.Resources?.FirstOrDefault(r => r.ResourceType == databricksTemplateName)?.JsonContent,
+            GetToolResource(project, TerraformTemplate.AzureDatabricksServiceTypes)?.JsonContent,
             "workspace_url");
 
         return AddLanguageURLParameter(FormatDatabricksUrl(databricksUrlVariable), isFrench);
@@ -89,9 +87,7 @@ public static class TerraformVariableExtraction
     /// <returns>The AppServiceConfiguration object containing the configuration info of the app service</returns>
     public static AppServiceConfiguration? ExtractAppServiceConfiguration(Datahub_Project? project)
     {
-        var appServiceTemplateName = TerraformTemplate.GetTerraformServiceType(TerraformTemplate.AzureAppService);
-        var appServiceResource = project?.Resources?.FirstOrDefault(r =>
-            r.ResourceType == appServiceTemplateName);
+        var appServiceResource = GetToolResource(project, TerraformTemplate.AzureAppServiceServiceTypes);
 
         if (appServiceResource == null)
         {
@@ -151,9 +147,7 @@ public static class TerraformVariableExtraction
     /// <returns>A PostgresConfiguration object if the resource exists, null otherwise</returns>
     public static PostgresConfiguration? ExtractPostgresConfiguration(Datahub_Project? project)
     {
-        var postgresTemplateName = TerraformTemplate.GetTerraformServiceType(TerraformTemplate.AzurePostgres);
-        var postgresResource = project?.Resources?.FirstOrDefault(r =>
-            r.ResourceType == postgresTemplateName);
+        var postgresResource = GetToolResource(project, TerraformTemplate.AzurePostgresServiceTypes);
         if (postgresResource is null) return null;
         var config = ExtractPostgresConfiguration(postgresResource);
 
@@ -204,9 +198,7 @@ public static class TerraformVariableExtraction
     /// langword="null"/> if the project does not contain a Databricks resource.</returns>
     public static DatabricksConfiguration? ExtractDatabricksConfiguration(Datahub_Project? project)
     {
-        var databricksTemplateName = TerraformTemplate.GetTerraformServiceType(TerraformTemplate.AzureDatabricks);
-        var databricksResource = project?.Resources?.FirstOrDefault(r =>
-            r.ResourceType == databricksTemplateName);
+        var databricksResource = GetToolResource(project, TerraformTemplate.AzureDatabricksServiceTypes);
 
         if (databricksResource != null && databricksResource.InputJsonContent != null)
         {
@@ -257,9 +249,8 @@ public static class TerraformVariableExtraction
     /// <returns>The Azure Postgres host, or null if not found.</returns>
     public static string? ExtractAzurePostgresHost(Datahub_Project? project)
     {
-        var azureDatabaseTemplateName = TerraformTemplate.GetTerraformServiceType(TerraformTemplate.AzurePostgres);
         return ExtractStringVariable(
-            project?.Resources?.FirstOrDefault(r => r.ResourceType == azureDatabaseTemplateName)?.JsonContent,
+            GetToolResource(project, TerraformTemplate.AzurePostgresServiceTypes)?.JsonContent,
             "postgres_dns");
     }
 
@@ -270,9 +261,8 @@ public static class TerraformVariableExtraction
     /// <returns>The name of the Azure PostgreSQL database.</returns>
     public static string? ExtractAzurePostgresDatabaseName(Datahub_Project? workspace)
     {
-        var azureDatabaseTemplateName = TerraformTemplate.GetTerraformServiceType(TerraformTemplate.AzurePostgres);
         return ExtractStringVariable(
-            workspace?.Resources?.FirstOrDefault(r => r.ResourceType == azureDatabaseTemplateName)?.JsonContent,
+            GetToolResource(workspace, TerraformTemplate.AzurePostgresServiceTypes)?.JsonContent,
             "postgres_db_name");
     }
 
@@ -283,9 +273,8 @@ public static class TerraformVariableExtraction
     /// <returns>The extracted username secret name.</returns>
     public static string? ExtractAzurePostgresUsernameSecretName(Datahub_Project? workspace)
     {
-        var azureDatabaseTemplateName = TerraformTemplate.GetTerraformServiceType(TerraformTemplate.AzurePostgres);
         return ExtractStringVariable(
-            workspace?.Resources?.FirstOrDefault(r => r.ResourceType == azureDatabaseTemplateName)?.JsonContent,
+            GetToolResource(workspace, TerraformTemplate.AzurePostgresServiceTypes)?.JsonContent,
             "postgres_secret_name_admin");
     }
 
@@ -296,9 +285,8 @@ public static class TerraformVariableExtraction
     /// <returns>The name of the Azure PostgreSQL password secret, or null if not found.</returns>
     public static string? ExtractAzurePostgresPasswordSecretName(Datahub_Project? workspace)
     {
-        var azureDatabaseTemplateName = TerraformTemplate.GetTerraformServiceType(TerraformTemplate.AzurePostgres);
         return ExtractStringVariable(
-            workspace?.Resources?.FirstOrDefault(r => r.ResourceType == azureDatabaseTemplateName)?.JsonContent,
+            GetToolResource(workspace, TerraformTemplate.AzurePostgresServiceTypes)?.JsonContent,
             "postgres_secret_name_password");
     }
 
@@ -329,6 +317,10 @@ public static class TerraformVariableExtraction
     private static Project_Resources2? GetWorkspaceTemplateResource(Datahub_Project? workspace) =>
         workspace?.Resources?.FirstOrDefault(r => TerraformTemplate.WorkspaceTemplateServiceTypes.Contains(r.ResourceType));
 
+    // A tool is either its base or its enhanced (Protected B) template, e.g. TerraformTemplate.AzureDatabricksServiceTypes.
+    private static Project_Resources2? GetToolResource(Datahub_Project? workspace, string[] serviceTypes) =>
+        workspace?.Resources?.FirstOrDefault(r => serviceTypes.Contains(r.ResourceType));
+
     private static Project_Resources2? GetProjectResource(Datahub_Project? workspace, string terraformTemplateName)
     {
         var fullTemplateName = TerraformTemplate.GetTerraformServiceType(terraformTemplateName);
@@ -350,6 +342,18 @@ public static class TerraformVariableExtraction
         }
 
         return TerraformStatus.CreatedOrInProcessOf(resource.Status);
+    }
+
+    /// <summary>
+    /// Checks if a tool has been requested for the given workspace, in either of its templates.
+    /// </summary>
+    /// <param name="workspace">The Datahub workspace.</param>
+    /// <param name="serviceTypes">The tool's service types, e.g. <see cref="TerraformTemplate.AzureAppServiceServiceTypes"/>.</param>
+    /// <returns>True if the resource has been requested and not deleted</returns>
+    public static bool IsResourceRequested(Datahub_Project? workspace, string[] serviceTypes)
+    {
+        var resource = GetToolResource(workspace, serviceTypes);
+        return resource is not null && TerraformStatus.CreatedOrInProcessOf(resource.Status);
     }
 
     /// <summary>
