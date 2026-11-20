@@ -130,7 +130,7 @@
         _subscriptions = await _datahubAzureSubscriptionService.ListSubscriptionsAsync();
         try
         {
-            _activeSubscription = await _datahubAzureSubscriptionService.NextSubscriptionAsync();
+            _activeSubscription = await _datahubAzureSubscriptionService.NextSubscriptionAsync(ClassificationType.Unclassified);
         }
         catch (Exception e)
         {

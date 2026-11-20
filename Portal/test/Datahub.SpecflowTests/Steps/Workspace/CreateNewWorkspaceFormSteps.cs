@@ -97,7 +97,7 @@ namespace Datahub.SpecflowTests.Steps.Workspace
             var catalogSearch = Substitute.For<IDatahubCatalogSearch>();
             var metadataService = Substitute.For<IMetadataBrokerService>();
             var resourceMessagingService = Substitute.For<IResourceMessagingService>();
-            azureSubService.NextSubscriptionAsync()
+            azureSubService.NextSubscriptionAsync(Metadata.Model.ClassificationType.Unclassified)
                 .Returns(new Core.Model.Subscriptions.DatahubAzureSubscription() { Id = 1, SubscriptionId = "test-subscription-id", TenantId = "test-tenant-id", SubscriptionName = "Test Subscription", Classification = Datahub.Metadata.Model.ClassificationType.Unclassified });
 
             var mockedWorkspaceCreationService = Substitute.ForPartsOf<WorkspaceCreationService>(

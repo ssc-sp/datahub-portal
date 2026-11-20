@@ -147,7 +147,7 @@ namespace Datahub.SpecflowTests.Steps.GCHosting
 
 
 
-            azureSubService.NextSubscriptionAsync()
+            azureSubService.NextSubscriptionAsync(ClassificationType.Unclassified)
                 .Returns(new Core.Model.Subscriptions.DatahubAzureSubscription() { Id = 1, SubscriptionId = "test-subscription-id", TenantId = "test-tenant-id", SubscriptionName = "Test Subscription", Classification = Datahub.Metadata.Model.ClassificationType.Unclassified });
 
             var mockedWorkspaceCreationService = Substitute.ForPartsOf<WorkspaceCreationService>(

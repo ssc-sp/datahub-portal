@@ -214,7 +214,7 @@ public sealed class DatahubAzureSubscriptionSteps(
     {
         try
         {
-            var subscription = await datahubAzureSubscriptionService.NextSubscriptionAsync();
+            var subscription = await datahubAzureSubscriptionService.NextSubscriptionAsync(ClassificationType.Unclassified);
             scenarioContext["subscription"] = subscription;
         }
         catch (Exception e)
@@ -295,7 +295,7 @@ public sealed class DatahubAzureSubscriptionSteps(
     [Given(@"the next available subscription has one spot left")]
     public async Task GivenTheNextAvailableSubscriptionHasOneSpotLeft()
     {
-        var subscription = await datahubAzureSubscriptionService.NextSubscriptionAsync();
+        var subscription = await datahubAzureSubscriptionService.NextSubscriptionAsync(ClassificationType.Unclassified);
         var numberOfRemainingWorkspaces =
             await datahubAzureSubscriptionService.NumberOfRemainingWorkspacesAsync(subscription.SubscriptionId);
 
