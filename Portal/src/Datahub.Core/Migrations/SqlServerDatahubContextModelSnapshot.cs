@@ -17,7 +17,7 @@ namespace Datahub.Core.Migrations
         {
 #pragma warning disable 612, 618
             modelBuilder
-                .HasAnnotation("ProductVersion", "10.0.13")
+                .HasAnnotation("ProductVersion", "10.0.14")
                 .HasAnnotation("Relational:MaxIdentifierLength", 128);
 
             SqlServerModelBuilderExtensions.UseIdentityColumns(modelBuilder);
@@ -1605,6 +1605,9 @@ namespace Datahub.Core.Migrations
 
                     SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<int>("Id"));
 
+                    b.Property<byte>("Classification")
+                        .HasColumnType("tinyint");
+
                     b.Property<string>("Nickname")
                         .HasMaxLength(100)
                         .HasColumnType("nvarchar(100)");
@@ -1625,6 +1628,9 @@ namespace Datahub.Core.Migrations
                         .HasColumnType("nvarchar(36)");
 
                     b.HasKey("Id");
+
+                    b.HasIndex("SubscriptionId")
+                        .IsUnique();
 
                     b.ToTable("AzureSubscriptions", (string)null);
                 });
