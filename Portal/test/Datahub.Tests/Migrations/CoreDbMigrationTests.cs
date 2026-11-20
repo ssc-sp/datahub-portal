@@ -61,7 +61,8 @@ public class CoreDbMigrationTests : IAsyncLifetime
  {
  SubscriptionId = "00000000-0000-0000-0000-000000000000",
  TenantId = "00000000-0000-0000-0000-000000000000",
- SubscriptionName = "Local"
+ SubscriptionName = "Local",
+ Classification = Datahub.Metadata.Model.ClassificationType.Unclassified
  });
  await ctx.SaveChangesAsync();
  }
