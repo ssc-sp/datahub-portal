@@ -95,6 +95,67 @@ class RemoveRoleAssignmentTests(unittest.TestCase):
             [("/subscriptions/sub-id/resourceGroups/rg/providers/Microsoft.Storage/storageAccounts/account", "assignment-1")],
         )
 
+    def test_assign_storage_account_reader_uses_account_scope(self):
+        module = importlib.import_module("lib.azstorage_utils")
+
+        class FakeRoleAssignments:
+            def __init__(self):
+                self.created = []
+
+            def create(self, scope, role_assignment_name, parameters):
+                self.created.append((scope, role_assignment_name, parameters))
+
+        class FakeClient:
+            def __init__(self):
+                self.role_assignments = FakeRoleAssignments()
+
+        client = FakeClient()
+        account_scope = "/subscriptions/sub-id/resourceGroups/rg/providers/Microsoft.Storage/storageAccounts/account"
+
+        module.assign_storage_account_reader(
+            client,
+            "sub-id",
+            account_scope,
+            "user-123",
+        )
+
+        scope, _role_assignment_name, parameters = client.role_assignments.created[0]
+        self.assertEqual(scope, account_scope)
+        self.assertEqual(
+            parameters.role_definition_id,
+            "/subscriptions/sub-id/providers/Microsoft.Authorization/roleDefinitions/acdd72a7-3385-48ef-bd42-f606fba81ae7",
+        )
+        self.assertEqual(parameters.principal_id, "user-123")
+
+    def test_remove_existing_role_deletes_storage_account_reader_assignment(self):
+        module = importlib.import_module("lib.azstorage_utils")
+
+        class FakeRoleAssignment:
+            name = "assignment-1"
+            principal_id = "user-123"
+            role_definition_id = "/subscriptions/sub-id/providers/Microsoft.Authorization/roleDefinitions/acdd72a7-3385-48ef-bd42-f606fba81ae7"
+
+        class FakeRoleAssignments:
+            def __init__(self):
+                self.deleted = []
+
+            def list_for_scope(self, scope):
+                return [FakeRoleAssignment()]
+
+            def delete(self, scope, role_assignment_name):
+                self.deleted.append((scope, role_assignment_name))
+
+        class FakeClient:
+            def __init__(self):
+                self.role_assignments = FakeRoleAssignments()
+
+        client = FakeClient()
+        account_scope = "/subscriptions/sub-id/resourceGroups/rg/providers/Microsoft.Storage/storageAccounts/account"
+
+        module.remove_existing_role(client, account_scope, "user-123")
+
+        self.assertEqual(client.role_assignments.deleted, [(account_scope, "assignment-1")])
+
 
 if __name__ == "__main__":
     unittest.main()
