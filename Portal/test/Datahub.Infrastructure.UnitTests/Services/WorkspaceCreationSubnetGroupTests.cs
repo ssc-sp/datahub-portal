@@ -15,6 +15,8 @@ using Datahub.Metadata.Model;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Logging;
 using NSubstitute;
+using NSubstitute.Core;
+using NSubstitute.Core.Arguments;
 
 namespace Datahub.Infrastructure.UnitTests.Services;
 
@@ -41,7 +43,7 @@ public class WorkspaceCreationSubnetGroupTests
             .Returns(new PortalUser { Id = 1, Email = "lead@example.gc.ca" });
 
         var subscriptionService = Substitute.For<IDatahubAzureSubscriptionService>();
-        subscriptionService.NextSubscriptionAsync()
+        subscriptionService.NextSubscriptionAsync(Arg.Any<ClassificationType>())
             .Returns(new DatahubAzureSubscription { Id = 1, TenantId = "tenant", SubscriptionId = "sub", SubscriptionName = "Test subscription", Classification = ClassificationType.Unclassified });
 
         var workspaceVersionService = Substitute.For<IWorkspaceVersionService>();

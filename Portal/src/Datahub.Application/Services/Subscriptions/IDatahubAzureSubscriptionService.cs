@@ -52,14 +52,6 @@ public interface IDatahubAzureSubscriptionService
     Task<DatahubAzureSubscription> NextSubscriptionAsync(ClassificationType classification);
 
     /// <summary>
-    /// Retrieves the next available Datahub Azure subscription.
-    /// </summary>
-    /// <returns>
-    /// The task result contains the next available Datahub Azure subscription.
-    /// </returns>
-    Task<DatahubAzureSubscription> NextSubscriptionAsync();
-
-    /// <summary>
     /// Updates a Datahub Azure subscription in the database.
     /// </summary>
     /// <param name="subscription">The Datahub Azure subscription to update.</param>
