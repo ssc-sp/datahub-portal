@@ -110,6 +110,7 @@ public class ProjectCreationTests
 
         var subService = new Mock<IDatahubAzureSubscriptionService>();
         subService.Setup(s => s.NextSubscriptionAsync(ClassificationType.Unclassified)).ReturnsAsync(new DatahubAzureSubscription { SubscriptionId = "1234", SubscriptionName = "Test", TenantId = "1234", Classification = ClassificationType.Unclassified });
+        subService.Setup(s => s.NextSubscriptionAsync(ClassificationType.ProtectedB)).ReturnsAsync(new DatahubAzureSubscription { SubscriptionId = "1234", SubscriptionName = "Test", TenantId = "1234", Classification = ClassificationType.ProtectedB });
         var catService = new Mock<IDatahubCatalogSearch>();
         var metService = new Mock<IMetadataBrokerService>();
         var verService = new Mock<IWorkspaceVersionService>();
