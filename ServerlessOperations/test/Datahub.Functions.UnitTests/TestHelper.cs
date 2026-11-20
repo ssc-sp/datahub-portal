@@ -1,30 +1,31 @@
-﻿using Microsoft.Graph;
-using Microsoft.Kiota.Abstractions.Serialization;
+using Azure.Core.Serialization;
+using Datahub.Application.Services.WebApp;
+using Datahub.Core.Data.Databricks;
+using Datahub.Core.Model.Context;
+using Datahub.Core.Model.Projects;
+using Datahub.Core.Model.Subscriptions;
+using Datahub.Core.Model.Users;
+using Datahub.Metadata.Model;
+using Datahub.Shared;
+using Datahub.Shared.Entities;
+using MediatR;
+using Microsoft.Azure.Functions.Worker;
+using Microsoft.Azure.Functions.Worker.Http;
+using Microsoft.EntityFrameworkCore;
+using Microsoft.Extensions.DependencyInjection;
+using Microsoft.Extensions.Options;
+using Microsoft.Graph;
+using Microsoft.Graph.Invitations;
+using Microsoft.Graph.Models;
 using Microsoft.Kiota.Abstractions;
+using Microsoft.Kiota.Abstractions.Serialization;
+using Microsoft.Kiota.Abstractions.Store;
 using Microsoft.Kiota.Serialization.Json;
 using Moq;
-using System.Text;
-using Microsoft.Kiota.Abstractions.Store;
-using Microsoft.Azure.Functions.Worker.Http;
-using Microsoft.Azure.Functions.Worker;
 using NSubstitute;
 using System.Net;
 using System.Security.Claims;
-using Microsoft.Extensions.DependencyInjection;
-using Azure.Core.Serialization;
-using Microsoft.Extensions.Options;
-using Datahub.Core.Model.Context;
-using Microsoft.EntityFrameworkCore;
-using Datahub.Core.Model.Projects;
-using Datahub.Shared;
-using Datahub.Core.Model.Subscriptions;
-using Datahub.Core.Data.Databricks;
-using Datahub.Application.Services.WebApp;
-using Microsoft.Graph.Invitations;
-using Microsoft.Graph.Models;
-using MediatR;
-using Datahub.Core.Model.Users;
-using Datahub.Shared.Entities;
+using System.Text;
 
 namespace Datahub.Functions.UnitTests
 {
@@ -162,7 +163,7 @@ namespace Datahub.Functions.UnitTests
                     Deleted_DT = null,
                     DatahubAzureSubscription = new DatahubAzureSubscription
                     {
-                        SubscriptionId = "test-subscription-id", SubscriptionName="test", TenantId="tenant-id"
+                        SubscriptionId = "test-subscription-id", SubscriptionName="test", TenantId="tenant-id", Classification = ClassificationType.Unclassified
                     },
                     Credits = new Project_Credits{ Current=10}
                 },
@@ -175,7 +176,7 @@ namespace Datahub.Functions.UnitTests
                     Deleted_DT = null,
                     DatahubAzureSubscription = new DatahubAzureSubscription
                     {
-                        SubscriptionId = "test-subscription-id", SubscriptionName="test", TenantId="tenant-i"
+                        SubscriptionId = "test-subscription-id", SubscriptionName="test", TenantId="tenant-i", Classification = ClassificationType.Unclassified
                     },
                     Credits = new Project_Credits{ Current=10},
                     Resources =

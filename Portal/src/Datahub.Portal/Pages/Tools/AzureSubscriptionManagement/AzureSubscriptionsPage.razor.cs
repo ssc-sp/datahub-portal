@@ -1,4 +1,5 @@
 using Datahub.Core.Model.Subscriptions;
+using Datahub.Metadata.Model;
 using Microsoft.AspNetCore.Components;
 using Microsoft.AspNetCore.Components.Web;
 using MudBlazor;
@@ -60,6 +61,7 @@ public partial class AzureSubscriptionsPage : ComponentBase
             SubscriptionId = ((DatahubAzureSubscription)subscription).SubscriptionId,
             Nickname = ((DatahubAzureSubscription)subscription).Nickname,
             SubscriptionName = ((DatahubAzureSubscription)subscription).SubscriptionName,
+            Classification = ((DatahubAzureSubscription)subscription).Classification,
         };
         
         _logger.LogInformation("Backing up item {SubscriptionId} for editing.", ((DatahubAzureSubscription)subscription).SubscriptionId);
@@ -76,6 +78,8 @@ public partial class AzureSubscriptionsPage : ComponentBase
         item.TenantId = _elementBeforeEdit.TenantId;
         item.SubscriptionId = _elementBeforeEdit.SubscriptionId;
         item.Nickname = _elementBeforeEdit.Nickname;
+        item.SubscriptionName = _elementBeforeEdit.SubscriptionName;
+        item.Classification = _elementBeforeEdit.Classification;
         
         _logger.LogInformation("Row edit cancelled for Azure subscription {SubscriptionId}.", item.SubscriptionId);
     }

@@ -6,6 +6,7 @@ The forms used to add workspace users should be part of the page and usable with
         Given the Entra add-user form is rendered
         Then the add-user form is not a dialog
         And the Entra add-user form is labelled by its heading
+        And the Entra add-user form announces step 1 of 3
         And the form uses GCDS inputs and buttons
         And the add-user form actions use button semantics
         When the user cancels the add-user form
@@ -14,16 +15,18 @@ The forms used to add workspace users should be part of the page and usable with
     Scenario: An Entra user's selected role is submitted
         Given the Entra add-user form is rendered
         When an Entra user is selected
-        Then the pending Entra user is displayed as an accessible list item
+        Then the Entra role step is displayed
         When the Entra user's role is changed to Collaborator
-        And the Entra add-user form is submitted
+        And the Entra add-user form advances to review
+        Then the Entra user and role are shown for review
+        When the Entra add-user form is submitted
         Then the Entra user is submitted as a Collaborator
 
     Scenario Outline: A nonexistent Entra user cannot be added
         Given the Entra add-user form is rendered
         When the nonexistent Entra user email "<email>" is entered
         Then the invalid GC email error is displayed
-        And no Entra user is pending
+        And the Entra form remains on the email step
 
         Examples:
             | email            |
@@ -34,7 +37,7 @@ The forms used to add workspace users should be part of the page and usable with
         Given the Entra add-user form is rendered
         When the invalid GC email "<email>" is entered
         Then the invalid GC email error is displayed
-        And no Entra user is pending
+        And the Entra form remains on the email step
         And Entra ID was not searched
 
         Examples:
