@@ -443,7 +443,11 @@ public sealed class DatahubAzureSubscriptionSteps(
         var unstubbedDatahubAzureSubscriptionService = scenarioContext["unstubbedDatahubAzureSubscriptionService"] as DatahubAzureSubscriptionService;
         try
         {
-            await unstubbedDatahubAzureSubscriptionService!.SubscriptionExistsAsync(Guid.NewGuid().ToString());
+            var sub = await unstubbedDatahubAzureSubscriptionService!.SubscriptionExistsAsync(Guid.NewGuid().ToString());
+            if (sub is null)
+            {
+                scenarioContext["exception"] = new InvalidOperationException("no subscription found");
+            }
         }
         catch (Exception e)
         {
