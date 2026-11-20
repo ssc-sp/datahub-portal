@@ -7,6 +7,7 @@ using Datahub.Application.Services.Subscriptions;
 using Datahub.Core.Model.Context;
 using Datahub.Core.Model.Datahub;
 using Datahub.Core.Model.Subscriptions;
+using Datahub.Metadata.Model;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.DependencyInjection;
 using ClientSecretCredential = Azure.Identity.ClientSecretCredential;
@@ -36,7 +37,17 @@ public class DatahubAzureSubscriptionService(
     /// </summary>
     /// <param name="subscriptionId">The subscription ID to check.</param>
     /// <returns>Returns true if the subscription exists, otherwise false.</returns>
-    public Task<DatahubAzureSubscription> SubscriptionExistsAsync(string subscriptionId) => FetchSubscriptionResource(subscriptionId);
+    public async Task<DatahubAzureSubscription?> SubscriptionExistsAsync(string subscriptionId)
+    {
+        try
+        {
+            return await FetchSubscriptionResource(subscriptionId);
+        }
+        catch (InvalidOperationException)
+        {
+            return null;
+        }
+    }
 
 
     /// <summary>
@@ -77,7 +88,8 @@ public class DatahubAzureSubscriptionService(
             {
                 TenantId = subscriptionResource.Value!.Data.TenantId?.ToString() ?? throw new InvalidOperationException("Tenant ID missing"),
                 SubscriptionId = subscriptionId,
-                SubscriptionName = subscriptionResource.Value.Data.DisplayName
+                SubscriptionName = subscriptionResource.Value.Data.DisplayName,                
+                Classification = ClassificationType.Unclassified
             };
         }
         catch (Exception e)
@@ -148,15 +160,26 @@ public class DatahubAzureSubscriptionService(
     /// <exception cref="InvalidOperationException">Thrown when there are no subscriptions available or no subscriptions available with remaining workspaces.</exception>
     public async Task<DatahubAzureSubscription> NextSubscriptionAsync()
     {
+        return await NextSubscriptionAsync(ClassificationType.Unclassified);
+    }
+
+    /// <summary>
+    /// Retrieves the next available DatahubAzureSubscription for the requested classification.
+    /// </summary>
+    /// <param name="classification">The classification of the workspace.</param>
+    /// <returns>The task result contains the next available DatahubAzureSubscription.</returns>
+    public async Task<DatahubAzureSubscription> NextSubscriptionAsync(ClassificationType classification)
+    {
         await using var ctx = await dbContextFactory.CreateDbContextAsync();
         var subscriptions = await ctx.AzureSubscriptions
             .AsNoTracking()
             .Include(e => e.Workspaces)
+            .Where(s => s.Classification == classification)
             .ToListAsync();
 
         if (subscriptions.Count == 0)
         {
-            throw new InvalidOperationException("No subscriptions available.");
+            throw new InvalidOperationException($"No subscriptions available for classification {classification}.");
         }
 
         var subscriptionStrategy = new DatahubSubscriptionStrategy(portalConfiguration);

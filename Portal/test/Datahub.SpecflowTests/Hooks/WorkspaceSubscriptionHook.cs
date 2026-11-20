@@ -11,6 +11,7 @@ using Datahub.Core.Model.Users;
 using Datahub.Core.Services.CatalogSearch;
 using Datahub.Infrastructure.Services;
 using Datahub.Infrastructure.Services.Subscriptions;
+using Datahub.Metadata.Model;
 using MassTransit;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Configuration;

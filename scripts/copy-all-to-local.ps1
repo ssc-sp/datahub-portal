@@ -15,11 +15,22 @@ $CurrentPath = Split-Path -Parent $MyInvocation.MyCommand.Path
 Import-Module $CurrentPath/appsettings.psm1 -Force
 Import-Module $CurrentPath/dbutils.psm1 -Force
 
+$portalProject = Join-Path $CurrentPath "..\Portal\src\Datahub.Portal\Datahub.Portal.csproj"
+foreach ($secret in @(
+    "ConnectionStrings:datahub_mssql_project",
+    "ConnectionStrings:datahub_mssql_metadata"
+)) {
+    & dotnet user-secrets remove $secret --project $portalProject
+    if ($LASTEXITCODE -ne 0) {
+        throw "Failed to remove user secret '$secret' from Datahub.Portal. dotnet user-secrets returned exit code $LASTEXITCODE."
+    }
+}
+
 Connect-FSDHAzure
-$server = Read-VaultSecret "fsdh-key-$EnvironmentName" "datahub-mssql-server"
-$db1 = Read-VaultSecret "fsdh-key-$EnvironmentName" "datahub-mssql-projectdb"
+$server = Read-VaultSecret "g2dc-cto-fsdh-$EnvironmentName-kv" "datahub-mssql-server"
+$db1 = Read-VaultSecret "g2dc-cto-fsdh-$EnvironmentName-kv" "datahub-mssql-projectdb"
 
-Copy-AzureDbToLocal -ServerName $server -DatabaseName $db1 -LocalPath $LocalPath -SkipExport:$SkipExport -UseKeyVaultCredentials:$True -EnvironmentName $EnvironmentName
+Copy-AzureDbToLocal -ServerName $server -DatabaseName $db1 -LocalPath $LocalPath -SkipExport:$SkipExport -EnvironmentName $EnvironmentName
 
-$db2 = Read-VaultSecret "fsdh-key-$EnvironmentName" "dh-portal-metadatadb"
-Copy-AzureDbToLocal -ServerName $server -DatabaseName $db2 -LocalPath $LocalPath -SkipExport:$SkipExport -UseKeyVaultCredentials:$True -EnvironmentName $EnvironmentName
+$db2 = Read-VaultSecret "g2dc-cto-fsdh-$EnvironmentName-kv" "dh-portal-metadatadb"
+Copy-AzureDbToLocal -ServerName $server -DatabaseName $db2 -LocalPath $LocalPath -SkipExport:$SkipExport -EnvironmentName $EnvironmentName

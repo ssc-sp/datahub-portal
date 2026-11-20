@@ -7,6 +7,7 @@ using Datahub.Application.Services.UserManagement;
 using Datahub.Core.Model.Context;
 using Datahub.Core.Model.Projects;
 using Datahub.Core.Model.Subscriptions;
+using Datahub.Metadata.Model;
 using Datahub.Portal.Pages.Workspace.Database;
 using Datahub.SpecflowTests.Utils;
 using FluentAssertions;
@@ -46,6 +47,7 @@ public class IpAddressWhitelistSteps(ScenarioContext scenarioContext) : BunitTes
             SubscriptionId = Testing.WorkspaceSubscriptionGuid,
             SubscriptionName = Testing.SubscriptionName,
             TenantId = Testing.WorkspaceTenantGuid,
+            Classification = ClassificationType.Unclassified
         };
         dbContext.AzureSubscriptions.Add(azureSubscription);
         await dbContext.SaveChangesAsync();

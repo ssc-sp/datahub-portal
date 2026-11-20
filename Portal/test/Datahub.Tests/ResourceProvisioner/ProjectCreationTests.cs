@@ -109,7 +109,8 @@ public class ProjectCreationTests
             .Returns(Task.CompletedTask);
 
         var subService = new Mock<IDatahubAzureSubscriptionService>();
-        subService.Setup(s => s.NextSubscriptionAsync()).ReturnsAsync(new DatahubAzureSubscription { SubscriptionId = "1234", SubscriptionName = "Test", TenantId = "1234" });
+        subService.Setup(s => s.NextSubscriptionAsync(ClassificationType.Unclassified)).ReturnsAsync(new DatahubAzureSubscription { SubscriptionId = "1234", SubscriptionName = "Test", TenantId = "1234", Classification = ClassificationType.Unclassified });
+        subService.Setup(s => s.NextSubscriptionAsync(ClassificationType.ProtectedB)).ReturnsAsync(new DatahubAzureSubscription { SubscriptionId = "1234", SubscriptionName = "Test", TenantId = "1234", Classification = ClassificationType.ProtectedB });
         var catService = new Mock<IDatahubCatalogSearch>();
         var metService = new Mock<IMetadataBrokerService>();
         var verService = new Mock<IWorkspaceVersionService>();
@@ -196,7 +197,8 @@ public class ProjectCreationTests
             {
                 TenantId = "tenant-123",
                 SubscriptionId = "sub-123",
-                SubscriptionName = "Test Sub"
+                SubscriptionName = "Test Sub",
+                Classification = ClassificationType.Unclassified
             };
 
             var vnet = new VNet
@@ -256,7 +258,7 @@ public class ProjectCreationTests
             {
                 VNetId = "/subscriptions/sub-123/resourceGroups/rg-test/providers/Microsoft.Network/virtualNetworks/vnet-test",
                 VNetName = "vnet-test",
-                Subscription = new DatahubAzureSubscription { TenantId = "tenant-123", SubscriptionId = "sub-123", SubscriptionName = "Test Sub" }
+                Subscription = new DatahubAzureSubscription { TenantId = "tenant-123", SubscriptionId = "sub-123", SubscriptionName = "Test Sub", Classification = ClassificationType.Unclassified }
             };
             db.Subnets.Add(new Subnet { SubnetName = "workspace-subnet-1", SubnetGroup = 1, VNet = vnet });
             await db.SaveChangesAsync();
