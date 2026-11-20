@@ -3,6 +3,25 @@
 <!-- markdownlint-disable MD024 -->
 # Changelog
 
+## [10.5.0](https://github.com/ssc-sp/datahub-portal/compare/v10.4.0...v10.5.0) (2026-11-20)
+
+
+### Features
+
+* add pipeline monitoring persistence foundation (AB[#4665](https://github.com/ssc-sp/datahub-portal/issues/4665)) ([#2198](https://github.com/ssc-sp/datahub-portal/issues/2198)) ([0ed3833](https://github.com/ssc-sp/datahub-portal/commit/0ed383371adfbba6cdc3e5d089a354eccd1aa9f9))
+* Portal pipeline improvements ([#2168](https://github.com/ssc-sp/datahub-portal/issues/2168)) ([483fb04](https://github.com/ssc-sp/datahub-portal/commit/483fb0489daa43e7afa63f314bb8e74c912ee950))
+* Protected B subscriptions for PB workspaces ([#2203](https://github.com/ssc-sp/datahub-portal/issues/2203)) ([7d7314d](https://github.com/ssc-sp/datahub-portal/commit/7d7314d992f31851b31d04cc4b30e1080224c9b6))
+* Simplifying the invitation UI for GC users and aligning it with external users ([#2197](https://github.com/ssc-sp/datahub-portal/issues/2197)) ([89063dd](https://github.com/ssc-sp/datahub-portal/commit/89063dd99b74a94dd149bc5cd03c471a0c3658a3))
+
+
+### Bug Fixes
+
+* Adding a module version only upgrades workspaces when opted in ([#2202](https://github.com/ssc-sp/datahub-portal/issues/2202)) ([031f182](https://github.com/ssc-sp/datahub-portal/commit/031f182c66c7ecf397745eb486c416bc8d8e2cdf))
+* **deps:** update .net core & extensions ([#2194](https://github.com/ssc-sp/datahub-portal/issues/2194)) ([25540c8](https://github.com/ssc-sp/datahub-portal/commit/25540c8fbdb83b4e2745cf73f2eccd07081e391c))
+* **deps:** update masstransit ecosystem to 8.5.12 ([#2195](https://github.com/ssc-sp/datahub-portal/issues/2195)) ([53dc034](https://github.com/ssc-sp/datahub-portal/commit/53dc03493522231fdd2d794d7f6ad5070e68d34d))
+* Output handler marks Protected B workspace tools as deployed (AB[#5117](https://github.com/ssc-sp/datahub-portal/issues/5117)) ([#2201](https://github.com/ssc-sp/datahub-portal/issues/2201)) ([739c958](https://github.com/ssc-sp/datahub-portal/commit/739c9586913586a3eef56aed0433970d85d94064))
+* Resource Provisioner uses the workspace's module version tag instead of main  ([#2200](https://github.com/ssc-sp/datahub-portal/issues/2200)) ([161e8bd](https://github.com/ssc-sp/datahub-portal/commit/161e8bd62e743e463bb6799090a716e7e41d490e))
+
 ## [10.4.0](https://github.com/ssc-sp/datahub-portal/compare/v10.3.0...v10.4.0) (2026-11-13)
 
 
