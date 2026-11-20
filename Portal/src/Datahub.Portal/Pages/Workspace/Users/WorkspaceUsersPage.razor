@@ -9,6 +9,7 @@
 @using Datahub.Core.Data
 @using Datahub.Core.Model.Users
 @using Datahub.Portal.Pages.Tools.LockedUsers
+@using GcdsWrapper.Blazor
 
 
 @inject IUserInformationService _userInformationService
@@ -16,6 +17,7 @@
 @inject ILockedUserManagementService _lockedUserManagementService
 @inject IDialogService _dialogService
 @inject ISnackbar _snackbar
+@inject IJSRuntime _jsRuntime
 @inject IDbContextFactory<DatahubProjectDBContext> _dbContextFactory
 @inject Microsoft.FeatureManagement.IFeatureManagerSnapshot _featureManager
 @inject IExternalUserInvitationService _externalUserInvitationService
@@ -26,89 +28,34 @@
 }
 
 <DatahubAuthView AuthLevel="DatahubAuthView.AuthLevels.WorkspaceAdmin" ProjectAcronym="@WorkspaceAcronym" ElevatedWorkspaceAccessEnabled="@ElevatedWorkspaceAccessEnabled">
-    @if (_usersToAdd.Any() || _usersToUpdate.Any())
+    @if (_usersToUpdate.Any())
     {
         <MudStack Class="sticky-stack">
-            <MudStack Row AlignItems="AlignItems.Center">
-                <MudElement>
-                    <DHButton Variant="Variant.Outlined" Color="Color.Primary" Disabled="@(_updateInProgress || _validationErrorMessage is not null)" OnClick="SaveChanges" Tag=@("SaveChanges")>
-                        @Localizer["Save Changes"]
-                    </DHButton>
-                </MudElement>
-                @if (_validationErrorMessage is null)
-                {
-                    <MudAlert Severity="Severity.Info" Class="my-3">
-                        <MudText Typo="Typo.body2">@Localizer["You have unsaved changes. Please save them before leaving this page."]</MudText>
-                    </MudAlert>
-                }
-                else
-                {
-                    <MudAlert Severity="Severity.Error" Class="my-3">
-                        <MudText Typo="Typo.body2">@_validationErrorMessage</MudText>
-                    </MudAlert>
-                }
-            </MudStack>
+            @if (_validationErrorMessage is null)
+            {
+                <div class="my-3" role="status">
+                    <GcdsNotice NoticeRole="info" NoticeTitle="@Localizer["Unsaved changes"]" NoticeTitleTag="h3">
+                        <GcdsText>@Localizer["You have unsaved changes. Please save them before leaving this page."]</GcdsText>
+                        <GcdsButton Id="save-changes" Type="GcdsButtonType.Button" Role="GcdsButtonRole.Secondary"
+                                    Disabled="@(_updateInProgress || _validationErrorMessage is not null)" OnClick="SaveChanges">
+                            @Localizer["Save Changes"]
+                        </GcdsButton>
+                    </GcdsNotice>
+                </div>
+            }
+            else
+            {
+                <div class="my-3" role="alert">
+                    <GcdsNotice NoticeRole="danger" NoticeTitle="@Localizer["Error"]" NoticeTitleTag="h3">
+                        <GcdsText>@_validationErrorMessage</GcdsText>
+                    </GcdsNotice>
+                </div>
+            }
         </MudStack>
     }
 </DatahubAuthView>
 
 <MudStack>
-    <DatahubAuthView AuthLevel="DatahubAuthView.AuthLevels.WorkspaceAdmin" ProjectAcronym="@WorkspaceAcronym" ElevatedWorkspaceAccessEnabled="@ElevatedWorkspaceAccessEnabled">
-        <MudStack>
-            @if (_usersToAdd.Any())
-            {
-                <MudStack>
-                    <h2 tabindex="-1" @ref="_invitationsHeading" class="mud-typography mud-typography-h2">
-                        @Localizer["Invitations"]
-                    </h2>
-                    <MudText Typo="Typo.body1">
-                        @Localizer["You will be inviting the following users to your workspace"]
-                    </MudText>
-                    @foreach (var userToBeAdded in _usersToAdd)
-                    {
-                        <MudPaper Elevation="0" Outlined Class="py-4 px-6">
-                            <MudGrid>
-                                <MudItem xs="4">
-                                    <MudStack Row AlignItems="AlignItems.Center">
-                                        @if (userToBeAdded.GraphGuid == ProjectUserAddEntraUserCommand.NEW_USER_GUID)
-                                        {
-                                            <MudAvatar>
-                                                <DHIcon Icon="@Icons.Material.Outlined.PersonAdd" />
-                                            </MudAvatar>
-                                        }
-                                        else
-                                        {
-                                            <UserAvatar ViewedUser="@userToBeAdded.PortalUser" Size="@Size.Medium" />
-                                        }
-                                        <MudText>
-                                            @if (userToBeAdded.GraphGuid == ProjectUserAddEntraUserCommand.NEW_USER_GUID)
-                                            {
-                                                @userToBeAdded.Email
-                                            }
-                                            else
-                                            {
-                                                @userToBeAdded.DisplayName
-                                            }
-                                        </MudText>
-                                    </MudStack>
-                                </MudItem>
-
-                                <MudItem xs="4">
-                                    <MudStack Row AlignItems="AlignItems.Center">
-                                        <MudText Typo="Typo.body2">
-                                            @Localizer["will be added as a"]
-                                        </MudText>
-                                        <ProjectMembersRoleSelect InitialValue="@userToBeAdded.RoleId" OnRoleChanged="@(newRoleId => UpdateProjectMemberRoleCommand(userToBeAdded, newRoleId))" />
-                                    </MudStack>
-                                </MudItem>
-
-                            </MudGrid>
-                        </MudPaper>
-                    }
-                </MudStack>
-            }
-        </MudStack>
-    </DatahubAuthView>
     @if (_loading)
     {
         <MudProgressCircular Indeterminate Color="Color.Primary" />
@@ -118,21 +65,33 @@
     {
         <MudStack Class="mt-6 mb-4">
             <MudStack Row Class="mt-6 mb-4">
-                <DHMainContentTitle Title="@Localizer["Workspace Members"]" />
+                <DHMainContentTitle Title="@Localizer["Workspace Users"]" />
+                <GcdsText>
+                    @Localizer["Government of Canada users who have access to this workspace. Admins or leads can change their roles, manage data steward access, and invite new users."]
+                </GcdsText>
                 <MudSpacer />
                 <DatahubAuthView AuthLevel="DatahubAuthView.AuthLevels.WorkspaceAdmin" ProjectAcronym="@WorkspaceAcronym" ElevatedWorkspaceAccessEnabled="@ElevatedWorkspaceAccessEnabled">
-                    <DHButton @ref="_inviteUserButton" HtmlTag="button" ButtonType="ButtonType.Button"
-                              Variant="Variant.Outlined" Color="Color.Primary" EndIcon="@Icons.Material.Outlined.PersonAdd"
-                              OnClick="ShowInviteForm" aria-expanded="@(_showInviteForm ? "true" : "false")" aria-controls="entra-invite-form">
+                    <GcdsButton Id="@InviteUserButtonId" Type="GcdsButtonType.Button" Role="GcdsButtonRole.Primary"
+                                OnClick="ShowInviteForm" Disabled="@_usersToUpdate.Any()"
+                                aria-expanded="@(_showInviteForm ? "true" : "false")" aria-controls="entra-invite-form">
                         @Localizer["Invite New User"]
-                    </DHButton>
+                    </GcdsButton>
                 </DatahubAuthView>
             </MudStack>
+            @if (!string.IsNullOrWhiteSpace(_inviteStatusMessage))
+            {
+                <div class="mb-4" role="status">
+                    <GcdsNotice NoticeRole="success" NoticeTitle="@Localizer["Success"]" NoticeTitleTag="h3">
+                        <GcdsText>@_inviteStatusMessage</GcdsText>
+                    </GcdsNotice>
+                </div>
+            }
             @if (_showInviteForm)
             {
                 <DatahubAuthView AuthLevel="DatahubAuthView.AuthLevels.WorkspaceAdmin" ProjectAcronym="@WorkspaceAcronym" ElevatedWorkspaceAccessEnabled="@ElevatedWorkspaceAccessEnabled">
                     <AddNewEntraUsersToProjectForm ProjectAcronym="@WorkspaceAcronym"
                                                    CurrentProjectUsers="@_projectUsers.Where(x => x.Role.Id != (int)Project_Role.RoleNames.Removed).ToList()"
+                                                   SubmissionDisabled="@_usersToUpdate.Any()"
                                                    OnCompleted="HandleInviteFormCompletedAsync"
                                                    OnCancelled="HideInviteFormAsync" />
                 </DatahubAuthView>
@@ -140,10 +99,10 @@
             @if (_gccfEnabled)
             {
                 <DatahubAuthView AuthLevel="DatahubAuthView.AuthLevels.WorkspaceLead" ProjectAcronym="@WorkspaceAcronym" ElevatedWorkspaceAccessEnabled="@ElevatedWorkspaceAccessEnabled">
-                    <MudText Typo="Typo.body1">
+                    <GcdsText>
                         @Localizer["If you are looking for a list of users external to the Government of Canada, see "]
-                        <MudLink Href="@Localizer[$"/{PageRoutes.WorkspacePrefix}/{WorkspaceAcronym}/{WorkspaceSidebar.SectionViews.ExternalUsers}"]">@Localizer["External Users"].</MudLink>
-                    </MudText>
+                        <a href="@Localizer[$"/{PageRoutes.WorkspacePrefix}/{WorkspaceAcronym}/{WorkspaceSidebar.SectionViews.ExternalUsers}"]">@Localizer["External Users"].</a>
+                    </GcdsText>
                 </DatahubAuthView>
             }
         </MudStack>
@@ -322,9 +281,7 @@
     private bool _gccfEnabled = false;
     private bool _showInviteForm;
     private bool _focusInviteUserButton;
-    private bool _focusInvitationsHeading;
-    private DHButton? _inviteUserButton;
-    private ElementReference _invitationsHeading;
+    private const string InviteUserButtonId = "invite-new-user";
 
     //
     private int _workspaceLeadCount => _projectUsers?.Count(x => x.Role?.Id == (int)Project_Role.RoleNames.WorkspaceLead) ?? 0;
@@ -340,8 +297,8 @@
 
     private int? _currentRoleFilter = default;
 
-    private readonly List<ProjectUserAddEntraUserCommand> _usersToAdd = new();
     private readonly List<ProjectUserUpdateCommand> _usersToUpdate = new();
+    private string? _inviteStatusMessage;
 
     private string _modifiedCellStyle;
 

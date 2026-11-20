@@ -16,6 +16,7 @@ using Datahub.Portal.Layout;
 using Datahub.Portal.Pages.Workspace.Users;
 using Datahub.SpecflowTests.Utils;
 using FluentAssertions;
+using GcdsWrapper.Blazor;
 using Google.Protobuf.WellKnownTypes;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Components.Forms;
@@ -260,11 +261,10 @@ namespace Datahub.SpecflowTests.Steps
             return roleSelector!;
         }
 
-        private static IRenderedComponent<MudButton>? FindSaveChangesButton(IRenderedComponent<WorkspaceUsersPage> workspaceUsersPage)
+        private static IRenderedComponent<GcdsButton>? FindSaveChangesButton(IRenderedComponent<WorkspaceUsersPage> workspaceUsersPage)
         {
-            var allButtons = workspaceUsersPage.FindComponents<MudButton>();
-            var saveChangesButton = allButtons.FirstOrDefault(b => b.Instance.Tag is string tagStr && tagStr == "SaveChanges");
-            return saveChangesButton;
+            return workspaceUsersPage.FindComponents<GcdsButton>()
+                .FirstOrDefault(button => button.Instance.Id == "save-changes");
         }
 
         private async Task ToggleDataStewardRole(string email, bool desiredStatus)
@@ -430,27 +430,17 @@ namespace Datahub.SpecflowTests.Steps
         public void WhenIAddAnotherLead()
         {
             var page = GetWorkspaceUserPageFromContext();
-            
-            // Get the instance itself, not the type
             var instance = page.Instance;
-            
-            // Access the field from the instance
-            var fieldUsersToAdd = instance.GetType().GetField("_usersToAdd", BindingFlags.NonPublic | BindingFlags.Instance);
-            fieldUsersToAdd.Should().NotBeNull("The _usersToAdd field should exist in the component");
-            
-            var usersToAdd = (List<ProjectUserAddEntraUserCommand>)fieldUsersToAdd.GetValue(instance);
-            usersToAdd.Should().NotBeNull("The _usersToAdd list should be initialized");
+            var projectUsersField = instance.GetType().GetField("_projectUsers", BindingFlags.NonPublic | BindingFlags.Instance);
+            projectUsersField.Should().NotBeNull("The _projectUsers field should exist in the component");
 
-            usersToAdd.Add(new ProjectUserAddEntraUserCommand
-            {
-                Email = "second_lead@test.com",
-                RoleId = (int)Project_Role.RoleNames.WorkspaceLead
-            });
-
-            // Run validation
-            var validateMethod = instance.GetType().GetMethod("ValidateWorkspaceRules", BindingFlags.NonPublic | BindingFlags.Instance);
-            validateMethod.Should().NotBeNull("The ValidateWorkspaceRules method should exist");
-            validateMethod.Invoke(instance, null);
+            var projectUsers = (List<UserRoleLinks>)projectUsersField!.GetValue(instance)!;
+            var nonLeadUser = projectUsers.First(user => user.RoleId != (int)Project_Role.RoleNames.WorkspaceLead);
+            var updateRoleMethod = instance.GetType().GetMethod(
+                "UpdateProjectMemberRole",
+                BindingFlags.NonPublic | BindingFlags.Instance);
+            updateRoleMethod.Should().NotBeNull("The UpdateProjectMemberRole method should exist");
+            updateRoleMethod!.Invoke(instance, [nonLeadUser, (int)Project_Role.RoleNames.WorkspaceLead]);
         }
 
         [Then(@"a validation error is shown preventing multiple leads")]

@@ -2,93 +2,111 @@
 @using Datahub.Application.Commands
 @using Datahub.Application.Services
 @using Datahub.Application.Services.UserManagement
-@using Datahub.Core.Model.Achievements
 @using Datahub.Core.Model.Projects
 @using Datahub.Core.Model.Users
 @using GcdsWrapper.Blazor
-@using MudBlazor.Utilities
 @inject IMSGraphService _msGraphService
 @inject IUserInformationService _userInformationService
+@inject IProjectUserManagementService _projectUserManagementService
+@inject ICultureService _cultureService
+@inject ISnackbar _snackbar
 
 <section id="entra-invite-form" role="region" aria-labelledby="entra-invite-heading">
-<MudPaper Elevation="0" Outlined Class="px-6 pb-6">
-    <GcdsHeading Id="entra-invite-heading" Tag="h2">
-        @Localizer["Invite New Users"]
-    </GcdsHeading>
-    <GcdsText>
-        @Localizer["Type in the user's email below and select the role to assign."]
-    </GcdsText>
-    <MudStack Row AlignItems="AlignItems.Center">
-        <GcdsInput Id="entra-user-email"
-                   Name="entra-user-email"
-                   Label="@Localizer["User's GC Email"]"
-                   Type="GcdsInputType.Email"
-                   Required
-                   @bind-Value="_userSearch"
-                   Class="flex-grow-1" />
-        <GcdsButton Type="GcdsButtonType.Button"
-                    OnClick="AddUserAsync"
-                    Disabled="@_searchingForUsers">
-            @Localizer["Add user"]
-        </GcdsButton>
-    </MudStack>
-    @if (_error)
-    {
-        <GcdsErrorMessage MessageId="entra-user-email-error">
-            @_errorMessage
-        </GcdsErrorMessage>
-    }
-    @if (_usersToAdd.Count > 0)
-    {
-        <GcdsHeading Id="pending-users-heading" Tag="h3">
-            @Localizer["Users to be added:"]
+    <MudPaper Elevation="0" Outlined Class="px-6 pb-6">
+        <GcdsHeading Id="entra-invite-heading" Tag="h2">
+            @Localizer["Invite New Users"]
         </GcdsHeading>
-        <ul class="pending-user-list d-flex flex-column gap-4 ma-0 pa-0"
-            style="@PendingUserListStyle" aria-labelledby="pending-users-heading">
-            @foreach (var user in _usersToAdd)
+        <div tabindex="-1" @ref="_stepHeading">
+            <GcdsStepper CurrentStep="@_page" TotalSteps="@TotalSteps" Tag="h3" lang="@_language">
+                @StepHeading
+            </GcdsStepper>
+        </div>
+
+        @if (_page == 1)
+        {
+            <GcdsInput Id="entra-user-email"
+                       Name="entra-user-email"
+                       Label="@Localizer["User's GC Email"]"
+                       Type="GcdsInputType.Email"
+                       Required
+                       Disabled="@_isLookingUpUser"
+                       @bind-Value="_userSearch"
+                       @bind-Value:after="EmailChanged" />
+            @if (!string.IsNullOrWhiteSpace(_errorMessage))
             {
-                <li class="pending-user-card">
-                    <MudPaper Elevation="0" Outlined Class="pa-4">
-                        <fieldset style="@PendingUserFieldsetStyle">
-                            <legend class="mud-typography mud-typography-h6 mb-3 pa-0">@GetListText(user.Command)</legend>
-                            <MudGrid Spacing="2">
-                                <MudItem xs="12" sm="10">
-                                    <GcdsSelect Id="@user.RoleSelectId" Name="@user.RoleSelectId" Label="@Localizer["Role"]"
-                                                @bind-Value="user.RoleId">
-                                        @foreach (var role in _projectRoles.Where(r => r.Id is not ((int)Project_Role.RoleNames.Removed or (int)Project_Role.RoleNames.WorkspaceLead or (int)Project_Role.RoleNames.DisabledUser)))
-                                        {
-                                            <option value="@role.Id">@Localizer[role.Name]</option>
-                                        }
-                                    </GcdsSelect>
-                                </MudItem>
-                                <MudItem xs="12" sm="2">
-                                    <MudStack Row AlignItems="AlignItems.End" Justify="Justify.FlexEnd" Class="h-100">
-                                        <GcdsButton Type="GcdsButtonType.Button" Role="GcdsButtonRole.Danger" OnClick="() => RemoveUser(user.Command)">
-                                            @Localizer["Remove"]
-                                        </GcdsButton>
-                                    </MudStack>
-                                </MudItem>
-                            </MudGrid>
-                        </fieldset>
-                    </MudPaper>
-                </li>
+                <GcdsErrorMessage MessageId="entra-user-email-error">
+                    @_errorMessage
+                </GcdsErrorMessage>
             }
-        </ul>
-    }
-    <MudStack Row Justify="Justify.FlexEnd" Class="mt-4">
-        <GcdsButton Type="GcdsButtonType.Button" Role="GcdsButtonRole.Secondary" OnClick="CancelAsync">
-            @Localizer["Cancel"]
-        </GcdsButton>
-        <GcdsButton Type="GcdsButtonType.Button" OnClick="CompleteAsync"
-                    Disabled="@(_usersToAdd.Count == 0)">
-            @Localizer["Add New Users"]
-        </GcdsButton>
-    </MudStack>
-</MudPaper>
+        }
+        else if (_page == 2)
+        {
+            <GcdsText>
+                <strong>@_command!.DisplayName</strong><br />
+                @_command.Email
+            </GcdsText>
+            <GcdsSelect Id="entra-user-role"
+                        Name="entra-user-role"
+                        Label="@Localizer["Select user role"]"
+                        DefaultValue="@Localizer["Please Select"]"
+                        Required
+                        @bind-Value="SelectedRoleId">
+                @foreach (var role in _projectRoles)
+                {
+                    <option value="@role.Id">@Localizer[role.Name]</option>
+                }
+            </GcdsSelect>
+        }
+        else
+        {
+            <GcdsText>
+                <ul>
+                    <li><strong>@Localizer["Name:"]</strong> @_command!.DisplayName</li>
+                    <li><strong>@Localizer["Email:"]</strong> @_command.Email</li>
+                    <li><strong>@Localizer["Role:"]</strong> @Localizer[SelectedRole!.Name]</li>
+                </ul>
+            </GcdsText>
+        }
+
+        <MudGrid Class="mt-4">
+            <MudItem xs="6" Class="d-flex justify-start">
+                <GcdsButton Type="GcdsButtonType.Button" Role="GcdsButtonRole.Danger" OnClick="CancelAsync">
+                    @Localizer["Cancel"]
+                </GcdsButton>
+            </MudItem>
+            <MudItem xs="6" Class="d-flex justify-end">
+                @if (_page > 1)
+                {
+                    <GcdsButton Type="GcdsButtonType.Button" Role="GcdsButtonRole.Secondary" OnClick="BackPageAsync"
+                                Disabled="@_isSubmitting" class="mr-2">
+                        @Localizer["Back"]
+                    </GcdsButton>
+                }
+                @if (_page < TotalSteps)
+                {
+                    <GcdsButton Type="GcdsButtonType.Button" OnClick="NextPageAsync"
+                                Disabled="@(!CanContinue || _isLookingUpUser)">
+                        @Localizer["Next"]
+                    </GcdsButton>
+                }
+                else
+                {
+                    <GcdsButton Type="GcdsButtonType.Button" OnClick="ConfirmAsync"
+                                Disabled="@(_isSubmitting || SubmissionDisabled)">
+                        @Localizer["Confirm and add user"]
+                    </GcdsButton>
+                }
+            </MudItem>
+        </MudGrid>
+    </MudPaper>
 </section>
 
 @code {
     #nullable enable
+    private const int TotalSteps = 3;
+    private const string UserExistsError = "The user is already a member of this workspace";
+    private const string NotValidEmailError = "Please enter a valid GC email address";
+
     [Parameter]
     public string ProjectAcronym { get; set; } = null!;
 
@@ -96,143 +114,218 @@
     public List<UserRoleLinks> CurrentProjectUsers { get; set; } = new();
 
     [Parameter]
-    public EventCallback<List<ProjectUserAddEntraUserCommand>> OnCompleted { get; set; }
+    public bool SubmissionDisabled { get; set; }
+
+    [Parameter]
+    public EventCallback OnCompleted { get; set; }
 
     [Parameter]
     public EventCallback OnCancelled { get; set; }
 
-    private readonly List<PendingEntraUser> _usersToAdd = new();
-    private int _nextRoleSelectId;
     private readonly EmailAddressAttribute _emailValidator = new();
+    private readonly List<Project_Role> _projectRoles = Project_Role.GetAll()
+        .Where(role => role.Id is not ((int)Project_Role.RoleNames.Removed
+            or (int)Project_Role.RoleNames.WorkspaceLead
+            or (int)Project_Role.RoleNames.DisabledUser))
+        .ToList();
+    private int _page = 1;
     private string _userSearch = string.Empty;
-    private bool _searchingForUsers;
-    private bool _error;
     private string _errorMessage = string.Empty;
-    private IEnumerable<Project_Role> _projectRoles = Enumerable.Empty<Project_Role>();
+    private ProjectUserAddEntraUserCommand? _command;
+    private bool _isLookingUpUser;
+    private bool _isSubmitting;
+    private bool _focusStepHeading;
+    private ElementReference _stepHeading;
 
-    private static readonly string PendingUserListStyle = new StyleBuilder()
-        .AddStyle("list-style-type", "none")
-        .Build();
+    private string _language => _cultureService.IsFrench
+        ? ICultureService.CanadaFrench
+        : ICultureService.CanadaEnglish;
 
-    private static readonly string PendingUserFieldsetStyle = new StyleBuilder()
-        .AddStyle("width", "100%")
-        .AddStyle("min-width", "0")
-        .AddStyle("margin", "0")
-        .AddStyle("padding", "0")
-        .AddStyle("border", "0")
-        .Build();
-
-    private const string RemoveUserIcon = "fa-duotone fa-trash-can-slash";
-    private const string UserExistsError = "The user is already a member of this workspace";
-    private const string NotValidEmailError = "Please enter a valid GC email address";
-
-    protected override void OnInitialized()
+    private string StepHeading => _page switch
     {
-        _projectRoles = Project_Role.GetAll().ToList();
+        1 => Localizer["Enter the user's GC email address"],
+        2 => Localizer["Select the user's role"],
+        _ => Localizer["Review and confirm"]
+    };
+
+    private bool CanContinue => _page switch
+    {
+        1 => !string.IsNullOrWhiteSpace(_userSearch),
+        2 => SelectedRole is not null,
+        _ => true
+    };
+
+    private Project_Role? SelectedRole => _command is null
+        ? null
+        : _projectRoles.FirstOrDefault(role => role.Id == _command.RoleId);
+
+    private string? SelectedRoleId
+    {
+        get => SelectedRole?.Id.ToString(System.Globalization.CultureInfo.InvariantCulture);
+        set
+        {
+            if (_command is not null)
+            {
+                _command.RoleId = int.TryParse(value, System.Globalization.NumberStyles.Integer,
+                    System.Globalization.CultureInfo.InvariantCulture, out var roleId)
+                    ? roleId
+                    : 0;
+            }
+        }
     }
 
-    private async Task AddUserAsync()
+    private bool IsValidGcEmail(string email)
     {
-        var search = _userSearch.Trim();
-        if (string.IsNullOrWhiteSpace(search)
-            || !_emailValidator.IsValid(search)
-            || !search.EndsWith(".gc.ca", StringComparison.OrdinalIgnoreCase))
+        var trimmedEmail = email.Trim();
+        return !string.IsNullOrWhiteSpace(trimmedEmail)
+            && _emailValidator.IsValid(trimmedEmail)
+            && trimmedEmail.EndsWith(".gc.ca", StringComparison.OrdinalIgnoreCase);
+    }
+
+    private void EmailChanged()
+    {
+        _command = null;
+        _errorMessage = string.Empty;
+    }
+
+    private async Task NextPageAsync()
+    {
+        if (_page >= TotalSteps || !CanContinue)
         {
-            ShowError(NotValidEmailError);
             return;
         }
 
-        _searchingForUsers = true;
+        if (_page == 1 && !await TryLoadUserAsync())
+        {
+            return;
+        }
+
+        _page++;
+        _focusStepHeading = true;
+        await InvokeAsync(StateHasChanged);
+    }
+
+    private async Task<bool> TryLoadUserAsync()
+    {
+        var search = _userSearch.Trim();
+        if (!IsValidGcEmail(search))
+        {
+            ShowError(NotValidEmailError);
+            return false;
+        }
+
+        _isLookingUpUser = true;
         try
         {
             var existingUsers = await _msGraphService.GetUsersListAsync(search, CancellationToken.None);
             var user = existingUsers.Values.FirstOrDefault(candidate =>
                 candidate.Mail.Equals(search, StringComparison.OrdinalIgnoreCase));
 
-            if (user is null)
+            if (user is null || string.IsNullOrWhiteSpace(user.Id))
             {
                 ShowError(NotValidEmailError);
-                return;
+                return false;
             }
 
-            await AddUserAsync(user);
+            if (CurrentProjectUsers.Any(projectUser =>
+                    projectUser.PortalUser.Email.Equals(user.Mail, StringComparison.OrdinalIgnoreCase)))
+            {
+                ShowError(UserExistsError);
+                return false;
+            }
+
+            _errorMessage = string.Empty;
+            _command = new ProjectUserAddEntraUserCommand
+            {
+                ProjectAcronym = ProjectAcronym,
+                GraphGuid = user.Id,
+                Email = user.Mail,
+                DisplayName = user.DisplayName,
+                PortalUser = await _userInformationService.GetEntraUserAsync(user.Id)
+            };
+            _userSearch = search;
+            return true;
         }
         finally
         {
-            _searchingForUsers = false;
+            _isLookingUpUser = false;
         }
-    }
-
-    private async Task AddUserAsync(GraphUser user)
-    {
-        if (string.IsNullOrWhiteSpace(user.Id))
-        {
-            ShowError(NotValidEmailError);
-            return;
-        }
-
-        if (CurrentProjectUsers.Any(projectUser => projectUser.PortalUser.Email.Equals(user.Mail, StringComparison.OrdinalIgnoreCase))
-            || _usersToAdd.Any(pendingUser => pendingUser.Command.Email.Equals(user.Mail, StringComparison.OrdinalIgnoreCase)))
-        {
-            ShowError(UserExistsError);
-            return;
-        }
-
-        ClearError();
-        var addUserCommand = new ProjectUserAddEntraUserCommand
-        {
-            ProjectAcronym = ProjectAcronym,
-            GraphGuid = user.Id,
-            Email = user.Mail,
-            DisplayName = user.DisplayName,
-            RoleId = (int)Project_Role.RoleNames.Guest,
-            PortalUser = await _userInformationService.GetEntraUserAsync(user.Id)
-        };
-
-        _usersToAdd.Add(new PendingEntraUser(addUserCommand, $"role-{_nextRoleSelectId++}"));
-        _userSearch = string.Empty;
     }
 
     private void ShowError(string message)
     {
-        _error = true;
+        _command = null;
         _errorMessage = Localizer[message];
     }
 
-    private void ClearError()
+    private async Task BackPageAsync()
     {
-        _error = false;
-        _errorMessage = string.Empty;
-    }
-
-    private void RemoveUser(ProjectUserAddEntraUserCommand user)
-    {
-        _usersToAdd.RemoveAll(u => u.Command.Email.Equals(user.Email, StringComparison.OrdinalIgnoreCase));
-    }
-
-    private static string GetListText(ProjectUserAddEntraUserCommand command) => command.DisplayName;
-
-    private Task CompleteAsync() => OnCompleted.InvokeAsync(_usersToAdd.Select(user => user.Command).ToList());
-
-    private Task CancelAsync() => OnCancelled.InvokeAsync();
-
-    private sealed class PendingEntraUser(ProjectUserAddEntraUserCommand command, string roleSelectId)
-    {
-        public ProjectUserAddEntraUserCommand Command { get; } = command;
-
-        public string RoleSelectId { get; } = roleSelectId;
-
-        public string RoleId
+        if (_page <= 1 || _isSubmitting)
         {
-            get => Command.RoleId.ToString(System.Globalization.CultureInfo.InvariantCulture);
-            set
-            {
-                if (int.TryParse(value, System.Globalization.NumberStyles.Integer,
-                    System.Globalization.CultureInfo.InvariantCulture, out var roleId))
-                {
-                    Command.RoleId = roleId;
-                }
-            }
+            return;
         }
+
+        _page--;
+        _focusStepHeading = true;
+        await InvokeAsync(StateHasChanged);
+    }
+
+    private async Task ConfirmAsync()
+    {
+        if (_command is null || SelectedRole is null || _isSubmitting || SubmissionDisabled)
+        {
+            return;
+        }
+
+        _isSubmitting = true;
+        try
+        {
+            var currentUser = await _userInformationService.GetCurrentPortalUserAsync();
+            var succeeded = await _projectUserManagementService.ProcessProjectUserCommandsAsync(
+                [], [_command], currentUser.Id.ToString(System.Globalization.CultureInfo.InvariantCulture));
+
+            if (succeeded)
+            {
+                await OnCompleted.InvokeAsync();
+                return;
+            }
+
+            _snackbar.Add(Localizer["Error adding new user to workspace"], Severity.Error);
+        }
+        catch (Exception)
+        {
+            _snackbar.Add(Localizer["Error adding new user to workspace"], Severity.Error);
+        }
+        finally
+        {
+            _isSubmitting = false;
+        }
+    }
+
+    private async Task CancelAsync()
+    {
+        ResetForm();
+        await OnCancelled.InvokeAsync();
+    }
+
+    private void ResetForm()
+    {
+        _page = 1;
+        _userSearch = string.Empty;
+        _errorMessage = string.Empty;
+        _command = null;
+        _isLookingUpUser = false;
+        _isSubmitting = false;
+    }
+
+    protected override async Task OnAfterRenderAsync(bool firstRender)
+    {
+        if (_focusStepHeading)
+        {
+            _focusStepHeading = false;
+            await _stepHeading.FocusAsync();
+        }
+
+        await base.OnAfterRenderAsync(firstRender);
     }
 }
