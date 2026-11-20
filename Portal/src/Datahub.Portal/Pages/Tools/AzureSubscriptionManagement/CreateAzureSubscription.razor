@@ -86,7 +86,7 @@
         }
 
         var azureSubscription = await _datahubAzureSubscriptionService.SubscriptionExistsAsync(_subscriptionId);
-        _valid = azureSubscription?.TenantId != null && azureSubscription?.SubscriptionName != null;
+        _valid = azureSubscription != null;
         _tenantId = azureSubscription?.TenantId ?? "-";
         _subscriptionName = azureSubscription?.SubscriptionName ?? "-";
 
