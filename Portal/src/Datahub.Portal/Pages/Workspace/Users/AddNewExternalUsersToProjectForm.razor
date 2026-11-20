@@ -84,7 +84,6 @@
                                Min="@MinimumAccountExpiryValue"
                                ErrorMessage="@AccountExpiryErrorMessage"
                                Required
-                               Disabled="@(_existingExternalPortalUser is not null)"
                                @bind-Value="AccountExpiryValue" />
         }
         else if (_page == 3)
@@ -304,7 +303,6 @@
         _command.FirstName = portalUser.ExternalUser!.FirstName;
         _command.LastName = portalUser.ExternalUser.LastName;
         _command.Organization = portalUser.ExternalUser.Organization;
-        _command.AccountExpiry = portalUser.ExternalUser.UserExpiryDate.UtcDateTime;
     }
 
     private async Task ValidateEmailAsync()
