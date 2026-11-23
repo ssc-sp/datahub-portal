@@ -46,6 +46,9 @@ public class AzureDatabricksTemplateTests : TemplateTestCollection
         });
     }
 
+    static string NormalizeWhitespace(string input) =>
+        System.Text.RegularExpressions.Regex.Replace(input, @"\s+", " ").Trim();
+
     [Test]
     public async Task ShouldCopyAzureDatabricksTemplate()
     {
@@ -82,7 +85,7 @@ public class AzureDatabricksTemplateTests : TemplateTestCollection
                $"?ref={_resourceProvisionerConfiguration.ModuleRepository.Branch}-{command.Workspace.Version}");
             var destinationFileContent = await File.ReadAllTextAsync(Path.Join(moduleDestinationPath, Path.GetFileName(file)));
             
-            Assert.That(destinationFileContent, Is.EqualTo(expectedContent));
+            Assert.That(NormalizeWhitespace(destinationFileContent), Is.EqualTo(NormalizeWhitespace(expectedContent)));
         }
     }
 

@@ -5,6 +5,9 @@ from azure.mgmt.keyvault.models import AccessPolicyEntry, VaultAccessPolicyParam
 import os
 import threading
 import lib.constants as constants
+import logging
+
+logger = logging.getLogger(__name__)
 
 _keyvault_operation_lock = threading.Semaphore(1)
 
@@ -39,7 +42,7 @@ def get_keyvault_uri(keyvault_name):
 
 def list_secrets(client:KeyVaultManagementClient, environment_name, definition_json):
     rg_name, vault_name = get_kv_reference(environment_name, definition_json)
-    print(f"using vault: [{rg_name}].[{vault_name}]")
+    logger.info("using vault: [%s].[%s]", rg_name, vault_name)
     
     vault = client.vaults.get(rg_name, vault_name)
     # Get a list of secrets    
@@ -48,7 +51,7 @@ def list_secrets(client:KeyVaultManagementClient, environment_name, definition_j
 
 def synchronize_access_policies(client:KeyVaultManagementClient, environment_name, definition_json, tenant_id):
     rg_name, vault_name = get_kv_reference(environment_name, definition_json)
-    print(f"using vault: [{rg_name}].[{vault_name}]")
+    logger.info("using vault: [%s].[%s]", rg_name, vault_name)
 
     _keyvault_operation_lock.acquire()
     try:
@@ -79,19 +82,19 @@ def synchronize_access_policies(client:KeyVaultManagementClient, environment_nam
                     break
 
             if not user_exists:
-                print(f"adding user {user_id} to access policies")
+                logger.info("adding user %s to access policies", user_id)
                 current_policies.append(access_policy)
             elif not valid_permissions:
-                print(f"updating permissions for user {user_id} in access policies")
+                logger.info("updating permissions for user %s to access policies", user_id)
                 current_policies.remove(existing_policy)
                 current_policies.append(access_policy)
             else:
-                print(f"user {user['ObjectId']} already exists in access policies - permissions are valid: {valid_permissions}")
+                logger.info("user %s already exists in access policies - permissions are valid: %s", user['ObjectId'], valid_permissions)
 
         removed_users = [user for user in definition_json['Workspace']['Users'] if user['Role'] == 'Removed']
         for policy in list(current_policies):
             if policy.object_id in (user['ObjectId'] for user in removed_users):
-                print(f"removing user {policy.object_id} from access policies")
+                logger.info("removing user %s from access policies", policy.object_id)
                 current_policies.remove(policy)
 
         vault.properties.access_policies = current_policies
