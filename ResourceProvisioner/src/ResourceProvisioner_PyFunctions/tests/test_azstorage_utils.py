@@ -156,6 +156,39 @@ class RemoveRoleAssignmentTests(unittest.TestCase):
 
         self.assertEqual(client.role_assignments.deleted, [(account_scope, "assignment-1")])
 
+    def test_has_blob_data_role_checks_all_user_assignments_for_requested_role(self):
+        module = importlib.import_module("lib.azstorage_utils")
+
+        class FakeRoleAssignment:
+            def __init__(self, principal_id, role_definition_id):
+                self.principal_id = principal_id
+                self.role_definition_id = role_definition_id
+
+        class FakeRoleAssignments:
+            def list_for_scope(self, scope):
+                return [
+                    FakeRoleAssignment(
+                        "user-123",
+                        "/subscriptions/sub-id/providers/Microsoft.Authorization/roleDefinitions/ba92f5b4-2d11-453d-a403-e96b0029c9fe",
+                    ),
+                    FakeRoleAssignment(
+                        "user-123",
+                        "/subscriptions/sub-id/providers/Microsoft.Authorization/roleDefinitions/2a2b9908-6ea1-4ae2-8e65-a410df84e7d1",
+                    ),
+                ]
+
+        class FakeClient:
+            role_assignments = FakeRoleAssignments()
+
+        client = FakeClient()
+        scope = "/subscriptions/sub-id/resourceGroups/rg/providers/Microsoft.Storage/storageAccounts/account"
+        self.assertTrue(
+            module.has_blob_data_role(client, scope, "user-123", module.BLOB_DATA_READER)
+        )
+        self.assertTrue(
+            module.has_blob_data_role(client, scope, "user-123", module.BLOB_DATA_CONTRIBUTOR)
+        )
+
 
 if __name__ == "__main__":
     unittest.main()
