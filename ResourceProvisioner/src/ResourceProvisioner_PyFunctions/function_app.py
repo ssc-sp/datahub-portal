@@ -329,7 +329,7 @@ def sync_databricks_workspace_users_function(workspace_definition):
         return
 
     environment_name = os.environ["DataHub_ENVNAME"]
-    subscription_id = os.environ["AzureSubscriptionId"]
+    subscription_id = resolve_subscription_id(workspace_definition)
 
     workspace_client = dtb_utils.get_workspace_client(databricksHost)
 
@@ -388,6 +388,25 @@ def resolve_databricks_host_url(workspace_definition):
     return None
 
 
+def resolve_subscription_id(workspace_definition):
+    """Resolve the Azure subscription ID from the workspace message payload."""
+    workspace = workspace_definition.get("Workspace")
+    if not isinstance(workspace, dict):
+        workspace = workspace_definition.get("workspace")
+
+    if not isinstance(workspace, dict):
+        raise ValueError("Workspace definition is missing the Workspace object")
+
+    subscription_id = workspace.get("SubscriptionId")
+    if subscription_id is None:
+        subscription_id = workspace.get("subscriptionId")
+
+    if subscription_id is None or not str(subscription_id).strip():
+        raise ValueError("Workspace definition is missing SubscriptionId")
+
+    return str(subscription_id).strip()
+
+
 def sync_keyvault_workspace_users_function(workspace_definition):
     """
     Synchronizes the users in the keyvault with the users in the definition file.
@@ -401,7 +420,7 @@ def sync_keyvault_workspace_users_function(workspace_definition):
     """
     # get environment name from environment variables
     environment_name = os.environ["DataHub_ENVNAME"]
-    subscription_id = os.environ["AzureSubscriptionId"]
+    subscription_id = resolve_subscription_id(workspace_definition)
     tenantId = os.environ["AzureTenantId"]
 
     kv_client = azkv_utils.get_keyvault_client(subscription_id, tenantId)
@@ -427,12 +446,12 @@ def sync_storage_workspace_users_function(workspace_definition):
     """
     # get environment name from environment variables
     environment_name = os.environ["DataHub_ENVNAME"]
-    subscription_id = os.environ["AzureSubscriptionId"]
+    subscription_id = resolve_subscription_id(workspace_definition)
     tenantId = os.environ["AzureTenantId"]
 
     sg_client = azsg_utils.get_authorization_client(subscription_id, tenantId)
     blob_containers = ["users", "shared", "datahub"]
-    azsg_utils.synchronize_access_policies(
+    azsg_utils.synchronize_blob_access_policies(
         sg_client,
         subscription_id,
         environment_name,
