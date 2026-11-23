@@ -18,7 +18,7 @@
                     Value="@SharedKeyAccessValue"
                     ValueChanged="HandleSharedKeyAccessChanged"
                     ValueExpression="@(() => SharedKeyAccessValue)"
-                    Disabled="@_isLoadingAccessState" />
+                    Disabled="@(_isLoadingAccessState || _hasLoadError)" />
 </SettingsField>
 
 @code {
@@ -30,6 +30,7 @@
     private string _storageResourceId = null;
     private bool _isLoadingAccessState = true;
     private bool _doesNotExist = false;
+    private bool _hasLoadError = false;
 
     private string SharedKeyAccessLabel => _isLoadingAccessState
         ? Localizer["Loading Shared Key Access State..."]

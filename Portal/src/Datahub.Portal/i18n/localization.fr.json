@@ -1323,6 +1323,7 @@
   "Failed to copy": "Échec de la copie",
   "Failed to delete article": "Échec de la suppression de l'article",
   "Failed to load file explorer": "Échec du chargement de l'explorateur de fichiers",
+  "Failed to load shared key access state.": "Échec du chargement de l'état de la clé partagée.",
   "Failed to load storage containers": "Échec du chargement des conteneurs de stockage",
   "Failed to publish the dataset.": "Échec de la publication de l'ensemble de données.",
   "Failed to save article": "Échec de l'enregistrement de l'article",
