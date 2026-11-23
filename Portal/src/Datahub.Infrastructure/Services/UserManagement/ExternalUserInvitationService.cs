@@ -6,6 +6,7 @@ using Datahub.Core.Model.Projects;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Logging;
 using Datahub.Application.Services.Notification;
+using Datahub.Application.Services.Security;
 using System.Reflection.Metadata;
 
 namespace Datahub.Infrastructure.Services.UserManagement;
@@ -21,14 +22,17 @@ public class ExternalUserInvitationService : IExternalUserInvitationService
     private readonly IDbContextFactory<DatahubProjectDBContext> _contextFactory;
     private readonly IGCNotifyService _gcNotifyService;
     private readonly ILogger<ExternalUserInvitationService> _logger;
+    private readonly IServiceAuthManager _serviceAuthManager;
 
     public ExternalUserInvitationService(
         IDbContextFactory<DatahubProjectDBContext> contextFactory,
         IGCNotifyService gcNotifyService,
+        IServiceAuthManager serviceAuthManager,
         ILogger<ExternalUserInvitationService> logger)
     {
         _contextFactory = contextFactory;
         _gcNotifyService = gcNotifyService;
+        _serviceAuthManager = serviceAuthManager;
         _logger = logger;
     }
 
@@ -89,6 +93,62 @@ public class ExternalUserInvitationService : IExternalUserInvitationService
             projectRoleId,
             inviter,
             invitationExpiry,
+            null,
+            GetCodeAcceptancePageUrl,
+            cancellationToken);
+    }
+
+    public async Task<WorkspaceInvitation> CreateReactivationInvitationAsync(
+        int externalUserId,
+        string projectAcronym,
+        string invitedEmail,
+        string invitationRationale,
+        int projectRoleId,
+        DateTimeOffset accountExpiry,
+        PortalUser inviter,
+        Func<WorkspaceInvitation, (string enURL, string frURL)> GetCodeAcceptancePageUrl,
+        CancellationToken cancellationToken = default)
+    {
+        ArgumentException.ThrowIfNullOrWhiteSpace(projectAcronym);
+        ArgumentException.ThrowIfNullOrWhiteSpace(invitedEmail);
+        ArgumentException.ThrowIfNullOrWhiteSpace(invitationRationale);
+
+        if (accountExpiry <= DateTimeOffset.UtcNow)
+        {
+            throw new InvalidOperationException("The reactivated account expiry must be in the future.");
+        }
+
+        await using var context = await _contextFactory.CreateDbContextAsync(cancellationToken);
+        var externalUser = await context.ExternalUsers
+            .FirstOrDefaultAsync(user => user.Id == externalUserId, cancellationToken);
+
+        if (externalUser?.UserDeactivatedAt is null)
+        {
+            throw new InvalidOperationException($"External user {externalUserId} is not deactivated.");
+        }
+
+        var activeInvitations = await context.ExternalUserRequests
+            .Where(i => i.User.Id == externalUserId)
+            .Where(i => i.Project.Project_Acronym_CD == projectAcronym)
+            .Where(i => i.InvitationTokenAccepted == null)
+            .Where(i => i.InvitationExpiry >= DateTimeOffset.UtcNow)
+            .ToListAsync(cancellationToken);
+
+        foreach (var invitation in activeInvitations)
+        {
+            invitation.InvitationExpiry = DateTimeOffset.UtcNow;
+        }
+
+        return await CreateInvitationAsync(
+            context,
+            externalUserId,
+            projectAcronym,
+            invitedEmail,
+            invitationRationale,
+            projectRoleId,
+            inviter,
+            null,
+            accountExpiry,
             GetCodeAcceptancePageUrl,
             cancellationToken);
     }
@@ -140,6 +200,14 @@ public class ExternalUserInvitationService : IExternalUserInvitationService
         await using var context = await _contextFactory.CreateDbContextAsync(cancellationToken);
         var now = DateTimeOffset.UtcNow;
 
+        var latestInvitation = await context.ExternalUserRequests
+            .Where(i => i.User.Id == externalUserId)
+            .Where(i => i.Project.Project_Acronym_CD == projectAcronym)
+            .OrderByDescending(i => i.Request_DT)
+            .FirstOrDefaultAsync(cancellationToken);
+        var isDeactivated = await context.ExternalUsers
+            .AnyAsync(user => user.Id == externalUserId && user.UserDeactivatedAt != null, cancellationToken);
+
         var activeInvitations = await context.ExternalUserRequests
             .Where(i => i.User.Id == externalUserId)
             .Where(i => i.Project.Project_Acronym_CD == projectAcronym)
@@ -166,6 +234,9 @@ public class ExternalUserInvitationService : IExternalUserInvitationService
             projectRoleId,
             inviter,
             null,
+            isDeactivated
+                ? latestInvitation?.ReactivationAccountExpiry
+                : null,
             GetCodeAcceptancePageUrl,
             cancellationToken);
     }
@@ -187,11 +258,17 @@ public class ExternalUserInvitationService : IExternalUserInvitationService
 
         var invitation = await context.ExternalUserRequests
             .Include(i => i.User)
+            .ThenInclude(user => user.DeactivatedByUser)
             .Include(i => i.Project)
             .Include(i => i.Requested_Role)
             .FirstOrDefaultAsync(i => i.InvitationToken == invitationToken, cancellationToken);
 
         if (invitation is null || invitation.InvitationTokenAccepted is not null || invitation.InvitationExpiry < now)
+        {
+            return false;
+        }
+
+        if (invitation.ReactivationAccountExpiry is not null && invitation.ReactivationAccountExpiry <= now)
         {
             return false;
         }
@@ -223,6 +300,41 @@ public class ExternalUserInvitationService : IExternalUserInvitationService
         invitation.InvitationCodeAccepted = now;
         invitation.InvitationTokenAccepted = now;
 
+        if (invitation.ReactivationAccountExpiry is not null)
+        {
+            if (invitation.User.UserDeactivatedAt is null)
+            {
+                return false;
+            }
+
+            invitation.User.UserExpiryDate = invitation.ReactivationAccountExpiry.Value;
+            invitation.User.UserDeactivatedAt = null;
+            invitation.User.DeactivationReason = null;
+            invitation.User.DeactivatedByUser = null;
+
+            var previousWorkspaceLinks = await context.UserRolesLinks
+                .Where(link => link.PortalUserId == activeUser.PortalUserId)
+                .Where(link => link.Project_ID != invitation.Project.Project_ID)
+                .ToListAsync(cancellationToken);
+
+            foreach (var previousWorkspaceLink in previousWorkspaceLinks)
+            {
+                previousWorkspaceLink.RoleId = (int)Project_Role.RoleNames.Removed;
+            }
+
+            var otherPendingInvitations = await context.ExternalUserRequests
+                .Where(other => other.User.Id == activeUser.Id)
+                .Where(other => other.RequestID != invitation.RequestID)
+                .Where(other => other.InvitationTokenAccepted == null)
+                .Where(other => other.InvitationExpiry >= now)
+                .ToListAsync(cancellationToken);
+
+            foreach (var otherPendingInvitation in otherPendingInvitations)
+            {
+                otherPendingInvitation.InvitationExpiry = now;
+            }
+        }
+
         var projectUserLink = await context.UserRolesLinks
             .FirstOrDefaultAsync(
                 x => x.Project_ID == invitation.Project.Project_ID && x.PortalUserId == activeUser.PortalUserId,
@@ -245,6 +357,7 @@ public class ExternalUserInvitationService : IExternalUserInvitationService
         }
 
         await context.SaveChangesAsync(cancellationToken);
+        _serviceAuthManager.InvalidateWorkspaceAuthorizationCache();
 
         _logger.LogInformation(
             "Completed invitation {RequestId} for external subject {ExternalSubject} in project {ProjectAcronym}",
@@ -264,6 +377,7 @@ public class ExternalUserInvitationService : IExternalUserInvitationService
         int projectRoleId,
         PortalUser inviter,
         DateTimeOffset? invitationExpiry,
+        DateTimeOffset? reactivationAccountExpiry,
         Func<WorkspaceInvitation, (string enURL, string frURL)> GetCodeAcceptancePageUrl,
         CancellationToken cancellationToken)
     {
@@ -300,6 +414,7 @@ public class ExternalUserInvitationService : IExternalUserInvitationService
             InvitationExpiry = invitationExpiry ?? DateTimeOffset.UtcNow.AddDays(InvitationDurationDays),
             InvitationCode = await GenerateUniqueInvitationCodeAsync(context, cancellationToken),
             InvitationRationale_EN = invitationRationale.Trim(),
+            ReactivationAccountExpiry = reactivationAccountExpiry,
             InvitedBy = inviter,
             ExternalSubjectInvited = string.IsNullOrWhiteSpace(externalUser.ExternalSubject)
                 ? null
