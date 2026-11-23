@@ -272,9 +272,20 @@
 
     private bool ToolExists(string toolName)
     {
-        return Workspace.Resources.Any(x => x.ResourceType == TerraformTemplate.GetTerraformServiceType(toolName) && x.Status == TerraformStatus.Completed)
+        var serviceTypes = ToolServiceTypes(toolName);
+        return Workspace.Resources.Any(x => serviceTypes.Contains(x.ResourceType) && x.Status == TerraformStatus.Completed)
             && UserCanAccessTool(toolName);
     }
+
+    // A tool is provisioned from its base template, or from its enhanced template in a Protected B workspace.
+    private static string[] ToolServiceTypes(string toolName) => toolName switch
+    {
+        TerraformTemplate.NewProjectTemplate => TerraformTemplate.WorkspaceTemplateServiceTypes,
+        TerraformTemplate.AzureDatabricks => TerraformTemplate.AzureDatabricksServiceTypes,
+        TerraformTemplate.AzurePostgres => TerraformTemplate.AzurePostgresServiceTypes,
+        TerraformTemplate.AzureAppService => TerraformTemplate.AzureAppServiceServiceTypes,
+        _ => [TerraformTemplate.GetTerraformServiceType(toolName)]
+    };
 
     private bool UserCanAccessTool(string toolName)
     {
