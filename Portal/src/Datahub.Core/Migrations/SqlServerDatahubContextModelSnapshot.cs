@@ -2103,6 +2103,9 @@ namespace Datahub.Core.Migrations
                     b.Property<DateTimeOffset?>("InvitationTokenAccepted")
                         .HasColumnType("datetimeoffset");
 
+                    b.Property<DateTimeOffset?>("ReactivationAccountExpiry")
+                        .HasColumnType("datetimeoffset");
+
                     b.Property<int>("InvitedById")
                         .HasColumnType("int");
 
