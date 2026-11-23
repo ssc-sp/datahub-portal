@@ -88,6 +88,10 @@ class FunctionAppMappingTests(unittest.TestCase):
                 return "{}"
         queue_utils_module.MassTransitMessage = MassTransitMessage
 
+        logging_utils_module = types.ModuleType("lib.logging_utils")
+        logging_utils_module.set_workspace_id = lambda workspace_definition: object()
+        logging_utils_module.reset_workspace_id = lambda token: None
+
         lib_module = types.ModuleType("lib")
         lib_module.__path__ = []
         databricks_utils = types.ModuleType("lib.databricks_utils")
@@ -104,6 +108,7 @@ class FunctionAppMappingTests(unittest.TestCase):
             "lib.azkeyvault_utils": azkeyvault_utils,
             "lib.azstorage_utils": azstorage_utils,
             "lib.queue_utils": queue_utils_module,
+            "lib.logging_utils": logging_utils_module,
         })
 
     def test_keys_upper_converts_nested_keys(self) -> None:
