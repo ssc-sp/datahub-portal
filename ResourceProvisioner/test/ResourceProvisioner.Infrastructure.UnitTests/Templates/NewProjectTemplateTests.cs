@@ -311,7 +311,7 @@ public class NewProjectTemplateTests : TemplateTestCollection
 
         var configFile = await File.ReadAllTextAsync(expectedConfigurationFilename);
 
-        foreach (Match match in Regex.Matches(configFile, @"^([\w_]+)\s*=\s*""(.*?)""", RegexOptions.Multiline))
+        foreach (Match match in System.Text.RegularExpressions.Regex.Matches(configFile, @"^([\w_]+)\s*=\s*""(.*?)""", RegexOptions.Multiline))
         {
             actualConfig[match.Groups[1].Value] = match.Groups[2].Value;
         }
