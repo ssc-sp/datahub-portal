@@ -992,6 +992,7 @@
   "Failed to copy": "Failed to copy",
   "Failed to delete article": "Failed to delete article",
   "Failed to load file explorer": "Failed to load file explorer",
+  "Failed to load shared key access state.": "Failed to load shared key access state.",
   "Failed to load storage containers": "Failed to load storage containers",
   "Failed to publish the dataset.": "Failed to publish the dataset.",
   "Failed to save article": "Failed to save article",
