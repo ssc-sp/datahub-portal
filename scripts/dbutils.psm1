@@ -55,7 +55,7 @@ function Copy-AzureDbToLocal {
         [Parameter(Mandatory=$true)]
         [string]$EnvironmentName
     )
-    
+    Write-Host "`nStarting database copy from Azure to LocalDB... Server name is $ServerName, Database name is $DatabaseName" -ForegroundColor Cyan
     # Validate credential inputs: mutually exclusive
     if (($Credential -and $UseKeyVaultCredentials)) {
         Write-Error "Specify one of -Credential, or -UseKeyVaultCredentials."
@@ -63,7 +63,11 @@ function Copy-AzureDbToLocal {
     }
     
     # Import appsettings to use KeyVault helpers
-    $scriptDir = Split-Path -Parent $MyInvocation.MyCommand.Path
+    $scriptDir = if ($MyInvocation.MyCommand.Path) {
+        Split-Path -Parent $MyInvocation.MyCommand.Path
+    } else {
+        "."
+    }
 
     if ($UseKeyVaultCredentials) {
         # Login user

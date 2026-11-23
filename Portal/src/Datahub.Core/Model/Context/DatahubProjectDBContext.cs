@@ -6,6 +6,7 @@ using Datahub.Core.Model.Datahub;
 using Datahub.Core.Model.Documentation;
 
 using Datahub.Core.Model.Onboarding;
+using Datahub.Core.Model.PipelineMonitoring;
 using Datahub.Core.Model.Projects;
 using Datahub.Core.Model.Repositories;
 using Datahub.Core.Model.Subscriptions;
@@ -29,6 +30,8 @@ public class DatahubProjectDBContext : DbContext //, ISeedable<DatahubProjectDBC
     public DbSet<UserRoleLinks> UserRolesLinks { get; set; }
 
     public DbSet<Project_Resources2> Project_Resources2 { get; set; }
+
+    public DbSet<PipelineObservation> PipelineObservations { get; set; }
 
     public DbSet<SharedDataFile> SharedDataFiles { get; set; }
     public DbSet<OpenDataSharedFile> OpenDataSharedFiles { get; set; }

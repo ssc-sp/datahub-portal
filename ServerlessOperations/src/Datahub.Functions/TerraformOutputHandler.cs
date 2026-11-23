@@ -292,7 +292,7 @@ public class TerraformOutputHandler(
             GetStatusMapping(outputVariables[TerraformVariables.OutputAzureAppServiceStatus].Value);
 
         var projectResource = await GetProjectResource(outputVariables,
-            TerraformTemplate.GetTerraformServiceType(TerraformTemplate.AzureAppService));
+            TerraformTemplate.AzureAppServiceServiceTypes);
 
         if (azureAppServiceStatus == TerraformStatus.Completed)
         {
@@ -332,7 +332,7 @@ public class TerraformOutputHandler(
 
 
         var projectResource = await GetProjectResource(outputVariables,
-            TerraformTemplate.GetTerraformServiceType(TerraformTemplate.AzureDatabricks));
+            TerraformTemplate.AzureDatabricksServiceTypes);
 
         if (databricksStatus == TerraformStatus.Completed)
         {
@@ -412,7 +412,7 @@ public class TerraformOutputHandler(
 
 
         var projectResource = await GetProjectResource(outputVariables,
-            TerraformTemplate.GetTerraformServiceType(TerraformTemplate.AzurePostgres));
+            TerraformTemplate.AzurePostgresServiceTypes);
 
         if (postgresStatus == TerraformStatus.Completed)
         {

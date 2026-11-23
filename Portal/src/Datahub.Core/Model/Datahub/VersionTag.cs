@@ -1,6 +1,7 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.ComponentModel.DataAnnotations;
+using System.ComponentModel.DataAnnotations.Schema;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
@@ -56,5 +57,12 @@ namespace Datahub.Core.Model.Datahub
         /// Gets or sets a value indicating whether an announcement was created for this version tag.
         /// </summary>
         public bool AnnouncementCreated { get; set; }
+
+        /// <summary>
+        /// Gets or sets a value indicating whether existing workspaces on the same minor version should be upgraded
+        /// to this version when it is added. Only used while adding a version; not stored.
+        /// </summary>
+        [NotMapped]
+        public bool UpgradeExistingWorkspaces { get; set; }
     }
 }

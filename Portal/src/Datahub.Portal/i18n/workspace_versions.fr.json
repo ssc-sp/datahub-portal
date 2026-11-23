@@ -10,6 +10,8 @@
   "Confirm Delete": "Confirmer Supprimer",
   "Confirm Workspace Update": "Confirmer la mise à jour de l'espace de travail",
   "Create Announcement": "Créer une annonce",
+  "Upgrade all workspaces on {0} to this version": "Mettre à niveau tous les espaces de travail de {0} vers cette version",
+  "the same minor version": "la même version mineure",
   "Current FSDH Version": "Version actuelle de la PFDS",
   "Current Version": "Version actuelle",
   "Edit Version": "Modifier la version",

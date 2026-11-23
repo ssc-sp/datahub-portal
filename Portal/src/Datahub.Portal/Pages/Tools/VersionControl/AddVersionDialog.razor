@@ -34,6 +34,10 @@
                          Label="@Localizer["Create Announcement"]"
                          Color="Color.Primary"
                          Class="mt-4" />
+            <MudCheckBox T="bool"
+                         @bind-Value="@_upgradeExistingWorkspaces"
+                         Label="@Localizer["Upgrade all workspaces on {0} to this version", MinorVersionLabel]"
+                         Color="Color.Primary" />
         }
     </DialogContent>
     <DialogActions>
@@ -58,6 +62,7 @@
     private string _versionDescription = string.Empty;
     private string _versionDescriptionFrench = string.Empty;
     private bool _createAnnouncement = false;
+    private bool _upgradeExistingWorkspaces = false;
     private (bool, bool, bool) _hasValidationError = (false, false, false);
     private string _errorText = string.Empty;
     private bool _isEditMode => EditingVersion != null;
@@ -127,7 +132,8 @@
                 VersionDescriptionFr = _versionDescriptionFrench,
                 CreatedDate = DateTime.UtcNow, 
                 IsActive = true,
-                AnnouncementCreated = _createAnnouncement
+                AnnouncementCreated = _createAnnouncement,
+                UpgradeExistingWorkspaces = _upgradeExistingWorkspaces
             };
         }
 
@@ -135,6 +141,12 @@
     }
 
     private void Cancel() => MudDialog.Cancel();
+
+    // e.g. "v7.4.x" for v7.4.3; the auto-upgrade only applies to workspaces on the same major.minor version
+    private string MinorVersionLabel =>
+        System.Version.TryParse(_version.TrimStart('v'), out var parsed) && IsValidVersionFormat(_version)
+            ? $"v{parsed.Major}.{parsed.Minor}.x"
+            : Localizer["the same minor version"];
 
     private bool IsValidVersionFormat(string version)
     {

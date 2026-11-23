@@ -15,7 +15,7 @@ namespace Datahub.Core.Migrations.SqliteDatahub
         protected override void BuildModel(ModelBuilder modelBuilder)
         {
 #pragma warning disable 612, 618
-            modelBuilder.HasAnnotation("ProductVersion", "10.0.13");
+            modelBuilder.HasAnnotation("ProductVersion", "10.0.14");
 
             modelBuilder.Entity("Datahub.Core.Model.Achievements.Achievement", b =>
                 {
@@ -874,6 +874,78 @@ namespace Datahub.Core.Migrations.SqliteDatahub
                     b.ToTable("SelfRegistrationDetails", (string)null);
                 });
 
+            modelBuilder.Entity("Datahub.Core.Model.PipelineMonitoring.PipelineObservation", b =>
+                {
+                    b.Property<Guid>("Id")
+                        .HasColumnType("TEXT");
+
+                    b.Property<int>("DefinitionId")
+                        .HasColumnType("INTEGER");
+
+                    b.Property<string>("Environment")
+                        .IsRequired()
+                        .HasMaxLength(16)
+                        .HasColumnType("TEXT");
+
+                    b.Property<string>("Kind")
+                        .IsRequired()
+                        .HasMaxLength(16)
+                        .HasColumnType("TEXT");
+
+                    b.Property<DateTime>("ObservedAtUtc")
+                        .HasColumnType("TEXT");
+
+                    b.Property<string>("Organization")
+                        .IsRequired()
+                        .HasMaxLength(64)
+                        .HasColumnType("TEXT");
+
+                    b.Property<string>("PayloadHash")
+                        .IsRequired()
+                        .HasMaxLength(64)
+                        .HasColumnType("TEXT");
+
+                    b.Property<string>("PayloadJson")
+                        .IsRequired()
+                        .HasColumnType("TEXT");
+
+                    b.Property<Guid>("ProjectId")
+                        .HasColumnType("TEXT");
+
+                    b.Property<DateTime>("ReceivedAtUtc")
+                        .HasColumnType("TEXT");
+
+                    b.Property<long?>("RunId")
+                        .HasColumnType("INTEGER");
+
+                    b.Property<DateTime?>("SourceChangedAtUtc")
+                        .HasColumnType("TEXT");
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("Organization", "ProjectId", "Environment", "DefinitionId", "Kind", "ObservedAtUtc");
+
+                    b.HasIndex("Organization", "ProjectId", "Environment", "DefinitionId", "RunId", "ObservedAtUtc");
+
+                    b.ToTable("PipelineObservations", (string)null);
+                });
+
+            modelBuilder.Entity("Datahub.Core.Model.PipelineMonitoring.PipelineObservationWorkspace", b =>
+                {
+                    b.Property<Guid>("ObservationId")
+                        .HasColumnType("TEXT");
+
+                    b.Property<string>("Acronym")
+                        .HasMaxLength(64)
+                        .HasColumnType("TEXT");
+
+                    b.HasKey("ObservationId", "Acronym");
+
+                    b.HasIndex("Acronym", "ObservationId");
+
+                    b.ToTable("PipelineObservationWorkspaces", (string)null);
+                });
+
             modelBuilder.Entity("Datahub.Core.Model.Projects.Datahub_Project", b =>
                 {
                     b.Property<int>("Project_ID")
@@ -1479,6 +1551,9 @@ namespace Datahub.Core.Migrations.SqliteDatahub
                         .ValueGeneratedOnAdd()
                         .HasColumnType("INTEGER");
 
+                    b.Property<byte>("Classification")
+                        .HasColumnType("INTEGER");
+
                     b.Property<string>("Nickname")
                         .HasMaxLength(100)
                         .HasColumnType("TEXT");
@@ -1499,6 +1574,9 @@ namespace Datahub.Core.Migrations.SqliteDatahub
                         .HasColumnType("TEXT");
 
                     b.HasKey("Id");
+
+                    b.HasIndex("SubscriptionId")
+                        .IsUnique();
 
                     b.ToTable("AzureSubscriptions", (string)null);
                 });
@@ -2228,6 +2306,15 @@ namespace Datahub.Core.Migrations.SqliteDatahub
                     b.Navigation("Project");
                 });
 
+            modelBuilder.Entity("Datahub.Core.Model.PipelineMonitoring.PipelineObservationWorkspace", b =>
+                {
+                    b.HasOne("Datahub.Core.Model.PipelineMonitoring.PipelineObservation", null)
+                        .WithMany("Workspaces")
+                        .HasForeignKey("ObservationId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+                });
+
             modelBuilder.Entity("Datahub.Core.Model.Projects.Datahub_Project", b =>
                 {
                     b.HasOne("Datahub.Core.Model.Subscriptions.DatahubAzureSubscription", "DatahubAzureSubscription")
@@ -2567,6 +2654,11 @@ namespace Datahub.Core.Migrations.SqliteDatahub
             modelBuilder.Entity("Datahub.Core.Model.Onboarding.GCHostingWorkspaceDetails", b =>
                 {
                     b.Navigation("WorkspacesInBudget");
+                });
+
+            modelBuilder.Entity("Datahub.Core.Model.PipelineMonitoring.PipelineObservation", b =>
+                {
+                    b.Navigation("Workspaces");
                 });
 
             modelBuilder.Entity("Datahub.Core.Model.Projects.Datahub_Project", b =>

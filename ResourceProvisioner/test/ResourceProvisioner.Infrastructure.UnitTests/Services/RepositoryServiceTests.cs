@@ -57,6 +57,25 @@ public class RepositoryServiceTests : TemplateTestCollection
     }
 
     [Test]
+    public async Task ShouldFetchModuleRepositoryAtOlderVersionTag()
+    {
+        // dev-v7.2.5 is not on the latest commit of main, so it is only found when the clone is not shallow
+        const string version = "v7.2.5";
+        const string expectedCommit = "d607fc629f88723379089a29c69cd219645fec4f";
+        var expectedClonePath = Path.Join(Environment.CurrentDirectory,
+            _configuration["ModuleRepository:LocalPath"], DirectoryUtils.tempDirectory, _configuration["ModuleRepository:Name"]);
+
+        await _repositoryService.FetchModuleRepository(version);
+
+        using var repository = new Repository(expectedClonePath);
+        Assert.Multiple(() =>
+        {
+            Assert.That(repository.Tags[$"dev-{version}"], Is.Not.Null);
+            Assert.That(repository.Head.Tip.Sha, Is.EqualTo(expectedCommit));
+        });
+    }
+
+    [Test]
     public async Task ShouldFetchModuleRepositoryAndOverwriteExisting()
     {
         var expectedClonePath = Path.Join(Environment.CurrentDirectory,

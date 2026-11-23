@@ -122,6 +122,7 @@ public partial class NetworkingManagementPage : ComponentBase
         if (obj is not VNet v) return;
         v.VNetId = _vnetBeforeEdit.VNetId;
         v.VNetName = _vnetBeforeEdit.VNetName;
+        v.SubscriptionId = _vnetBeforeEdit.SubscriptionId;
     }
 
     private void CommitVNetEdit(object obj)

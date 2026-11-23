@@ -3,6 +3,7 @@
 @using Datahub.Core.Model.Users
 @using Datahub.Infrastructure.Services.UserManagement
 @using Datahub.Portal.Pages.Tools.Users
+@using GcdsWrapper.Blazor
 @using MudBlazor.Utilities
 @using Datahub.Portal.Components.User
 @using Datahub.Application.Commands
@@ -31,17 +32,19 @@ else if (_gccfEnabled)
 {
     <MudStack>
         <MudStack Row Class="mt-6 mb-4">
-            <DHMainContentTitle Title="@Localizer["External Workspace Members"]" />
+            <DHMainContentTitle Title="@Localizer["External Workspace Users"]" />
+            <GcdsText>
+                @Localizer["External users are users who are not part of the Government of Canada but have been granted access to this workspace. You can manage their access and invite new users here."]"]
+            </GcdsText>
             <MudSpacer />
             <DatahubAuthView AuthLevel="DatahubAuthView.AuthLevels.WorkspaceLead" ProjectAcronym="@WorkspaceAcronym"
                              ElevatedWorkspaceAccessEnabled="@ElevatedWorkspaceAccessEnabled">
                 <Authorized>
-                    <DHButton @ref="_inviteUserButton" HtmlTag="button" ButtonType="ButtonType.Button"
-                              OnClick="ShowInviteUserForm" Variant="Variant.Outlined" Color="Color.Primary"
-                              EndIcon="@Icons.Material.Outlined.PersonAdd" aria-expanded="@(_showInviteUserForm ? "true" : "false")"
-                              aria-controls="external-invite-form">
+                    <GcdsButton Id="@InviteUserButtonId" Type="GcdsButtonType.Button" Role="GcdsButtonRole.Primary"
+                                OnClick="ShowInviteUserForm" aria-expanded="@(_showInviteUserForm ? "true" : "false")"
+                                aria-controls="external-invite-form">
                         @Localizer["Add user"]
-                    </DHButton>
+                    </GcdsButton>
                 </Authorized>
                 <NotAuthorized>
                     <MudTooltip Text="@Localizer["Only the workspace lead can invite external users"]">
@@ -239,7 +242,7 @@ else
     private bool _focusInviteUserButton;
     private string? _inviteStatusMessage;
     private PortalUser? _currentUser;
-    private DHButton? _inviteUserButton;
+    private const string InviteUserButtonId = "external-invite-user";
 
     private List<ExternalWorkspaceUserRow> _externalProjectUsers = [];
 
@@ -453,10 +456,10 @@ else
     protected override async Task OnAfterRenderAsync(bool firstRender)
     {
         await base.OnAfterRenderAsync(firstRender);
-        if (_focusInviteUserButton && _inviteUserButton is not null)
+        if (_focusInviteUserButton)
         {
             _focusInviteUserButton = false;
-            await _inviteUserButton.FocusAsync();
+            await _jsRuntime.InvokeVoidAsync("focusElementById", InviteUserButtonId);
         }
     }
 
