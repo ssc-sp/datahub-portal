@@ -39,9 +39,8 @@ public static class TerraformVariableExtraction
     /// <returns>Databricks url of the project</returns>
     public static string? ExtractDatabricksUrl(Datahub_Project? project, bool? isFrench)
     {
-        var databricksTemplateName = TerraformTemplate.GetTerraformServiceType(TerraformTemplate.AzureDatabricks);
         var databricksUrlVariable = ExtractStringVariable(
-            project?.Resources?.FirstOrDefault(r => r.ResourceType == databricksTemplateName)?.JsonContent,
+            project?.Resources?.FirstOrDefault(r => TerraformTemplate.AzureDatabricksServiceTypes.Contains(r.ResourceType))?.JsonContent,
             "workspace_url");
 
         return AddLanguageURLParameter(FormatDatabricksUrl(databricksUrlVariable), isFrench);
