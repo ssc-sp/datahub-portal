@@ -5,7 +5,6 @@ import logging
 import os
 import uuid
 import lib.constants as constants
-
 logger = logging.getLogger(__name__)
 
 BLOB_DATA_CONTRIBUTOR = "ba92f5b4-2d11-453d-a403-e96b0029c9fe"
@@ -138,13 +137,29 @@ def get_blob_container_scopes(subscription_id, resource_group_name, storage_acco
         for container_name in blob_containers
     ]
 
-def check_blob_reader_role(client:AuthorizationManagementClient, scope, user_object_id):
-    """Return whether the user has the managed blob reader role for the supplied scope."""
-    role_assignments = client.role_assignments.list_for_scope(scope)
-    for role in role_assignments:
-        if role.principal_id == user_object_id:
-            return _role_definition_guid(role.role_definition_id) == BLOB_DATA_READER
-    return None
+def has_blob_data_role(client:AuthorizationManagementClient, scope, user_object_id, role_id):
+    """Check whether the user has the specified blob data role at the supplied scope.
+
+    Returns:
+        True: The user has an assignment for the specified role.
+        False: The user has one or more assignments, but none is for the specified role.
+        None: The user has no assignments at this scope.
+
+    The distinction between False and None lets synchronization replace an
+    incorrect role assignment instead of treating it as a missing assignment.
+    """
+    user_assignments = list(filter(
+        lambda role: role.principal_id == user_object_id,
+        client.role_assignments.list_for_scope(scope),
+    ))
+    return (
+        any(map(
+            lambda role: _role_definition_guid(role.role_definition_id) == role_id,
+            user_assignments,
+        ))
+        if user_assignments
+        else None
+    )
 
 def check_role_assignment(client:AuthorizationManagementClient, scope, user_object_id, role_id):
     """Return whether the user has the specified role assignment at the supplied scope."""
@@ -201,8 +216,8 @@ def synchronize_blob_access_policies(client:AuthorizationManagementClient, subsc
                 assign_blob_role(client, subscription_id, storage_account_scope, user_id, True)
 
             for scope in scopes:
-                reader_role = check_blob_reader_role(client, scope, user_id)
                 if user['Role'] == 'Guest':
+                    reader_role = has_blob_data_role(client, scope, user_id, BLOB_DATA_READER)
                     if reader_role is None:
                         logger.info("Assigning user %s to access policies - read-only", user_id)
                         assign_blob_role(client, subscription_id, scope, user_id, True)
@@ -213,10 +228,14 @@ def synchronize_blob_access_policies(client:AuthorizationManagementClient, subsc
                     else:
                         logger.info("User %s already has read-only access policies", user_id)
                 else:
-                    if reader_role is None:
+                    # contributor, lead, admin, owner
+                    contributor_role = has_blob_data_role(
+                        client, scope, user_id, BLOB_DATA_CONTRIBUTOR
+                    )
+                    if contributor_role is None:
                         logger.info("Assigning user %s to access policies - read-write", user_id)
                         assign_blob_role(client, subscription_id, scope, user_id, False)
-                    elif reader_role:
+                    elif not contributor_role:
                         logger.info("Assigning user %s to access policies - read-write", user_id)
                         remove_existing_role(client, scope, user_id)
                         assign_blob_role(client, subscription_id, scope, user_id, False)
