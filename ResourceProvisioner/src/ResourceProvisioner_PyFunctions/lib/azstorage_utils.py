@@ -209,12 +209,6 @@ def synchronize_blob_access_policies(client:AuthorizationManagementClient, subsc
                 logger.info("Assigning user %s Storage Account Reader at account scope", user_id)
                 assign_storage_account_reader(client, subscription_id, storage_account_scope, user_id)
 
-            # Container listing is a data-plane operation and requires the Blob Data Reader
-            # role at the storage-account scope, in addition to the management-plane Reader role.
-            if not check_role_assignment(client, storage_account_scope, user_id, BLOB_DATA_READER):
-                logger.info("Assigning user %s Blob Data Reader at account scope", user_id)
-                assign_blob_role(client, subscription_id, storage_account_scope, user_id, True)
-
             for scope in scopes:
                 if user['Role'] == 'Guest':
                     reader_role = has_blob_data_role(client, scope, user_id, BLOB_DATA_READER)
