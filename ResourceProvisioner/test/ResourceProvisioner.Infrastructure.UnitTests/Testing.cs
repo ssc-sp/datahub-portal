@@ -232,6 +232,12 @@ public class Testing
 
     public const string CBR_ID = "5678";
 
+    /// <summary>
+    /// Subscription of the generated test workspaces. Deliberately not the configured subscription, so tests can tell
+    /// the two apart.
+    /// </summary>
+    public const string TestWorkspaceSubscriptionId = "00000000-0000-0000-0000-00000000beef";
+
     internal static TerraformWorkspace GenerateTestTerraformWorkspace(string workspaceAcronym, bool withUsers = true, string version = "latest")
     {
         if (!withUsers)
@@ -240,6 +246,7 @@ public class Testing
             {
                 Acronym = workspaceAcronym,
                 SSCCBRID = CBR_ID,
+                SubscriptionId = TestWorkspaceSubscriptionId,
                 Version = version
             };
         }
@@ -287,6 +294,7 @@ public class Testing
             Acronym = workspaceAcronym,
             Users = users,
             SSCCBRID = CBR_ID,
+            SubscriptionId = TestWorkspaceSubscriptionId,
             Version = version
         };
     }
