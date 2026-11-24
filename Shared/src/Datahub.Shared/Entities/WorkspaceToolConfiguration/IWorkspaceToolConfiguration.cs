@@ -1,4 +1,4 @@
-﻿using System;
+using System;
 using System.Collections.Generic;
 using System.Runtime.Serialization;
 using System.Text;
@@ -25,7 +25,7 @@ public interface IWorkspaceToolConfiguration
     /// <param name="workspaceDefinition">The definition of the workspace used to determine the tool configuration.</param>
     /// <returns>An instance of <see cref="IWorkspaceToolConfiguration"/> representing the configuration for the specified
     /// workspace.</returns>
-    static abstract IWorkspaceToolConfiguration ReadFromWorkspaceDefinition(WorkspaceDefinition workspaceDefinition);
+    IWorkspaceToolConfiguration ReadFromWorkspaceDefinition(WorkspaceDefinition workspaceDefinition);
 
     /// <summary>
     /// Retrieves the display label associated with the specified property name.
@@ -33,7 +33,7 @@ public interface IWorkspaceToolConfiguration
     /// </summary>
     /// <param name="propertyName">The name of the property for which to retrieve the label. Cannot be null or empty.</param>
     /// <returns>The display label for the specified property name.</returns>
-    static abstract string GetPropertyLabel(string propertyName);
+    string GetPropertyLabel(string propertyName);
 
     /// <summary>
     /// Generates a JSON string representing the input data for a resource based on the current tool configuration.
