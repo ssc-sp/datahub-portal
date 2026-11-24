@@ -66,9 +66,6 @@
         <MudStack Class="mt-6 mb-4">
             <MudStack Row Class="mt-6 mb-4">
                 <DHMainContentTitle Title="@Localizer["Workspace Users"]" />
-                <GcdsText>
-                    @Localizer["Government of Canada users who have access to this workspace. Admins or leads can change their roles, manage data steward access, and invite new users."]
-                </GcdsText>
                 <MudSpacer />
                 <DatahubAuthView AuthLevel="DatahubAuthView.AuthLevels.WorkspaceAdmin" ProjectAcronym="@WorkspaceAcronym" ElevatedWorkspaceAccessEnabled="@ElevatedWorkspaceAccessEnabled">
                     <GcdsButton Id="@InviteUserButtonId" Type="GcdsButtonType.Button" Role="GcdsButtonRole.Primary"
@@ -78,6 +75,9 @@
                     </GcdsButton>
                 </DatahubAuthView>
             </MudStack>
+            <GcdsText>
+                @Localizer["Government of Canada users who have access to this workspace. Admins or leads can change their roles, manage data steward access, and invite new users."]
+            </GcdsText>
             @if (!string.IsNullOrWhiteSpace(_inviteStatusMessage))
             {
                 <div class="mb-4" role="status">
