@@ -4,7 +4,7 @@ namespace Datahub.Shared.Entities.WorkspaceToolConfiguration
 {
     public class AppServiceConfigurationEnhanced : AppServiceConfiguration
     {
-        public static new IWorkspaceToolConfiguration ReadFromWorkspaceDefinition(WorkspaceDefinition workspaceDefinition) => workspaceDefinition.AppData.AppServiceConfiguration
+        public override IWorkspaceToolConfiguration ReadFromWorkspaceDefinition(WorkspaceDefinition workspaceDefinition) => workspaceDefinition.AppData.AppServiceConfiguration
             ?? new AppServiceConfigurationEnhanced
             {
                 Framework = AppServiceTemplates.CUSTOM,
@@ -54,7 +54,7 @@ namespace Datahub.Shared.Entities.WorkspaceToolConfiguration
             workspaceDefinition.AppData.AppServiceConfiguration = this;
         }
 
-        public static IWorkspaceToolConfiguration ReadFromWorkspaceDefinition(WorkspaceDefinition workspaceDefinition) => workspaceDefinition.AppData.AppServiceConfiguration
+        public virtual IWorkspaceToolConfiguration ReadFromWorkspaceDefinition(WorkspaceDefinition workspaceDefinition) => workspaceDefinition.AppData.AppServiceConfiguration
         ?? new AppServiceConfiguration
         {
             Framework = AppServiceTemplates.CUSTOM,
@@ -62,7 +62,7 @@ namespace Datahub.Shared.Entities.WorkspaceToolConfiguration
             ComposePath = string.Empty
         };
 
-        public static string GetPropertyLabel(string propertyName)
+        public virtual string GetPropertyLabel(string propertyName)
         {
             return propertyName switch
             {

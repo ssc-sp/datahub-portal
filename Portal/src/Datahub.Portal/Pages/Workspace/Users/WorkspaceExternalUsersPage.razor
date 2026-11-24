@@ -33,9 +33,6 @@ else if (_gccfEnabled)
     <MudStack>
         <MudStack Row Class="mt-6 mb-4">
             <DHMainContentTitle Title="@Localizer["External Workspace Users"]" />
-            <GcdsText>
-                @Localizer["External users are users who are not part of the Government of Canada but have been granted access to this workspace. You can manage their access and invite new users here."]"]
-            </GcdsText>
             <MudSpacer />
             <DatahubAuthView AuthLevel="DatahubAuthView.AuthLevels.WorkspaceLead" ProjectAcronym="@WorkspaceAcronym"
                              ElevatedWorkspaceAccessEnabled="@ElevatedWorkspaceAccessEnabled">
@@ -56,6 +53,9 @@ else if (_gccfEnabled)
                 </NotAuthorized>
             </DatahubAuthView>
         </MudStack>
+        <GcdsText>
+            @Localizer["External users are users who are not part of the Government of Canada but have been granted access to this workspace. You can manage their access and invite new users here."]"]
+        </GcdsText>
         @if (!string.IsNullOrWhiteSpace(_inviteStatusMessage))
         {
             <MudAlert Severity="Severity.Success" Class="mb-4" role="status">

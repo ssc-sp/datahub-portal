@@ -53,6 +53,8 @@ public class CreateResourceRunTests
                 {
                     Acronym = projectAcronym,
                     Name = "Test Project",
+                    // The portal always sends the workspace's subscription; the provisioner requires it
+                    SubscriptionId = "00000000-0000-0000-0000-000000000000",
                     TerraformOrganization = new TerraformOrganization
                     {
                         Name = "SBDA Number 42",
