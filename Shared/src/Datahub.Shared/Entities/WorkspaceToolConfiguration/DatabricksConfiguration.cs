@@ -8,7 +8,7 @@ namespace Datahub.Shared.Entities.WorkspaceToolConfiguration;
 
 public class DatabricksConfigurationEnhanced : DatabricksConfiguration
 {
-    public static new IWorkspaceToolConfiguration ReadFromWorkspaceDefinition(WorkspaceDefinition workspaceDefinition)
+    public override IWorkspaceToolConfiguration ReadFromWorkspaceDefinition(WorkspaceDefinition workspaceDefinition)
     {
         return workspaceDefinition.AppData.DatabricksConfiguration ?? new DatabricksConfigurationEnhanced();
     }
@@ -88,17 +88,12 @@ public class DatabricksConfiguration : IWorkspaceToolConfiguration
         workspaceDefinition.AppData.DatabricksConfiguration = this;
     }
 
-    public static IWorkspaceToolConfiguration ReadFromWorkspaceDefinition(WorkspaceDefinition workspaceDefinition)
+    public virtual IWorkspaceToolConfiguration ReadFromWorkspaceDefinition(WorkspaceDefinition workspaceDefinition)
     {
         return workspaceDefinition.AppData.DatabricksConfiguration ?? new DatabricksConfiguration();
     }
 
-    public string GenerateResourceInputJson()
-    {
-        return JsonSerializer.Serialize(this);
-    }
-
-    public static string GetPropertyLabel(string propertyName) => propertyName switch
+    public virtual string GetPropertyLabel(string propertyName) => propertyName switch
     {
         nameof(GeneralPurposeTierSku) => "General purpose tier",
         nameof(MachineLearningTierSku) => "ML tier",
@@ -107,4 +102,9 @@ public class DatabricksConfiguration : IWorkspaceToolConfiguration
         nameof(EnableMachineLearningGpu) => "Enable ML (GPU)",
         _ => propertyName
     };
+
+    public string GenerateResourceInputJson()
+    {
+        return JsonSerializer.Serialize(this);
+    }
 }

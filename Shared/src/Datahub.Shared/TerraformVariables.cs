@@ -56,6 +56,11 @@ public static class TerraformVariables
     public const string ServiceBusId = "service_bus_id";
 
     // Workspace related variables
+    /// <summary>
+    /// Azure subscription the workspace is deployed to. Taken from the workspace (unclassified or Protected B),
+    /// never from configuration.
+    /// </summary>
+    public const string AzureSubscriptionId = "az_subscription_id";
     public const string ProjectAcronym = "project_cd";
     public const string BudgetAmount = "budget_amount";
     public const string StorageSizeLimitInTb = "storage_size_limit_tb";
