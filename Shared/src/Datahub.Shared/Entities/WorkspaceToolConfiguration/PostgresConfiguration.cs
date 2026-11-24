@@ -7,7 +7,7 @@ namespace Datahub.Shared.Entities.WorkspaceToolConfiguration
 {
     public class PostgresConfigurationEnhanced : PostgresConfiguration
     {
-        public static new IWorkspaceToolConfiguration ReadFromWorkspaceDefinition(WorkspaceDefinition workspaceDefinition)
+        public override IWorkspaceToolConfiguration ReadFromWorkspaceDefinition(WorkspaceDefinition workspaceDefinition)
         {
             return workspaceDefinition.AppData.PostgresConfiguration ?? new PostgresConfigurationEnhanced();
         }
@@ -22,14 +22,14 @@ namespace Datahub.Shared.Entities.WorkspaceToolConfiguration
         public string PSQL_SKU { get; set; } = PostgresTier.DefaultTier.PSQL_SKU;
         public string? ResourceNameSuffix { get; set; }
 
-        public static string GetPropertyLabel(string propertyName) => propertyName switch
+        public virtual string GetPropertyLabel(string propertyName) => propertyName switch
         {
             nameof(PSQL_SKU) => "Database tier",
             nameof(ResourceNameSuffix) => "Resource name suffix",
             _ => propertyName
         };
 
-        public static IWorkspaceToolConfiguration ReadFromWorkspaceDefinition(WorkspaceDefinition workspaceDefinition)
+        public virtual IWorkspaceToolConfiguration ReadFromWorkspaceDefinition(WorkspaceDefinition workspaceDefinition)
         {
             return workspaceDefinition.AppData.PostgresConfiguration ?? new PostgresConfiguration();
         }
