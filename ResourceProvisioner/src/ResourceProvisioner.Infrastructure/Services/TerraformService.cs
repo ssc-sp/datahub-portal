@@ -412,6 +412,16 @@ public class TerraformService(
             return ComputeListVariableValue(terraformWorkspace, variableName);
         }
 
+        // The subscription is chosen per workspace by the portal (unclassified or Protected B), so it must not come
+        // from configuration, which holds a single subscription for every workspace.
+        if (variableName == TerraformVariables.AzureSubscriptionId)
+        {
+            return string.IsNullOrWhiteSpace(terraformWorkspace.SubscriptionId)
+                ? throw new MissingTerraformVariableException(
+                    $"Missing variable {variableName}: workspace {terraformWorkspace.Acronym} has no subscription ID")
+                : terraformWorkspace.SubscriptionId;
+        }
+
         var configValue = configuration[$"Terraform:Variables:{variableName}"];
         if (!string.IsNullOrEmpty(configValue))
             return configValue!;
