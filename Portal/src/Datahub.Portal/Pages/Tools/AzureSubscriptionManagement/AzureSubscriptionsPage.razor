@@ -67,7 +67,7 @@
                 <MudTableSortLabel SortBy="@(new Func<DatahubAzureSubscription, object>(x => x.Classification))">@Localizer["Classification"]</MudTableSortLabel>
             </MudTh>
             <MudTh>
-                <MudTableSortLabel SortBy="@(new Func<DatahubAzureSubscription, object>(x => _numberOfWorkspaceRemaining[x.SubscriptionId]))">@Localizer["Number of Workspaces"]</MudTableSortLabel>
+                <MudTableSortLabel SortBy="@(new Func<DatahubAzureSubscription, object>(x => GetNumberOfWorkspaces(x.SubscriptionId)))">@Localizer["Number of Workspaces"]</MudTableSortLabel>
             </MudTh>
         </HeaderContent>
         <RowTemplate>
@@ -78,7 +78,7 @@
             <MudTd DataLabel="@Localizer["Nickname"]">@context.Nickname</MudTd>
             <MudTd DataLabel="@Localizer["Classification"]">@context.Classification.ToSpacedString()</MudTd>
             <MudTd DataLabel="@Localizer["Number of Workspaces"]">
-                @(_portalConfiguration.Hosting.WorkspaceCountPerAzureSubscription - _numberOfWorkspaceRemaining[context.SubscriptionId]) / @_portalConfiguration.Hosting.WorkspaceCountPerAzureSubscription
+                @GetNumberOfWorkspaces(context.SubscriptionId) / @_portalConfiguration.Hosting.WorkspaceCountPerAzureSubscription
             </MudTd>
         </RowTemplate>
 
@@ -145,6 +145,4 @@
             _numberOfWorkspaceRemaining[subscription.SubscriptionId] = numberOfWorkspaces;
         }
     }
-
-
 }

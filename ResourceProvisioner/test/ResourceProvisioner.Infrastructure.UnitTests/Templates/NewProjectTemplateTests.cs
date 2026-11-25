@@ -3,6 +3,7 @@ using System.Text.Json.Nodes;
 using System.Text.RegularExpressions;
 using Datahub.Shared.Entities;
 using ResourceProvisioner.Application.Config;
+using ResourceProvisioner.Domain.Exceptions;
 using ResourceProvisioner.Infrastructure.Common;
 using ResourceProvisioner.Infrastructure.Services;
 using ResourceProvisioner.Infrastructure.UnitTests.Collections;
@@ -169,6 +170,56 @@ public class NewProjectTemplateTests : TemplateTestCollection
         });
     }
 
+    [Test]
+    public async Task ShouldUseWorkspaceSubscriptionForProtectedBWorkspace()
+    {
+        // A Protected B workspace is deployed to its own subscription, not the configured one
+        const string protectedBSubscriptionId = "00000000-0000-0000-0000-0000000000b0";
+        var workspaceAcronym = GenerateWorkspaceAcronym();
+        var command = GenerateTestWorkspaceDefinition(
+            workspaceAcronym, [TerraformTemplate.NewProjectTemplateEnhanced]);
+        command.Workspace.Version = "v7.2.1";
+        command.Workspace.IsProtectedB = true;
+        command.Workspace.SubnetGroupNumber = 1;
+        command.Workspace.SubscriptionId = protectedBSubscriptionId;
+
+        await _repositoryService.FetchRepositoriesAndCheckoutProjectBranch(command.Workspace);
+        await _terraformService.CopyTemplateAsync(TerraformTemplate.NewProjectTemplateEnhanced, command);
+
+        // The workspace was provisioned before with the configured subscription
+        var variablesFilename = Path.Join(DirectoryUtils.GetProjectPath(_resourceProvisionerConfiguration, workspaceAcronym),
+            $"{TerraformTemplate.NewProjectTemplate}.auto.tfvars.json");
+        var configuredSubscriptionId = _resourceProvisionerConfiguration.Terraform.Variables.az_subscription_id;
+        await File.WriteAllTextAsync(variablesFilename,
+            new JsonObject { ["az_subscription_id"] = configuredSubscriptionId }.ToJsonString());
+
+        await _terraformService.ExtractVariables(TerraformTemplate.NewProjectTemplateEnhanced, command);
+
+        var actualVariables = JsonSerializer.Deserialize<JsonObject>(await File.ReadAllTextAsync(variablesFilename))!;
+        Assert.Multiple(() =>
+        {
+            Assert.That(configuredSubscriptionId, Is.Not.EqualTo(protectedBSubscriptionId));
+            Assert.That(actualVariables["az_subscription_id"]?.ToString(), Is.EqualTo(protectedBSubscriptionId));
+        });
+    }
+
+    [Test]
+    public async Task ShouldFailWhenWorkspaceHasNoSubscription()
+    {
+        var workspaceAcronym = GenerateWorkspaceAcronym();
+        var command = GenerateTestWorkspaceDefinition(
+            workspaceAcronym, [TerraformTemplate.NewProjectTemplate]);
+        command.Workspace.SubscriptionId = string.Empty;
+
+        await _repositoryService.FetchRepositoriesAndCheckoutProjectBranch(command.Workspace);
+        await _terraformService.CopyTemplateAsync(TerraformTemplate.NewProjectTemplate, command);
+
+        // Falling back to the configured subscription would deploy the workspace to the wrong subscription
+        var exception = await Assert.ThrowsAsync<MissingTerraformVariableException>(async () =>
+            await _terraformService.ExtractVariables(TerraformTemplate.NewProjectTemplate, command));
+        Assert.That(exception!.Message, Does.Contain("az_subscription_id"));
+    }
+
     [TestCase("dev", true)]
     [TestCase("DEV", true)]
     [TestCase("pre", false)]
@@ -184,7 +235,7 @@ public class NewProjectTemplateTests : TemplateTestCollection
     {
         return new JsonObject
         {
-            ["az_subscription_id"] = _resourceProvisionerConfiguration.Terraform.Variables.az_subscription_id,
+            ["az_subscription_id"] = TestWorkspaceSubscriptionId,
             ["az_tenant_id"] = _resourceProvisionerConfiguration.Terraform.Variables.az_tenant_id,
             ["datahub_app_sp_oid"] = _resourceProvisionerConfiguration.Terraform.Variables.datahub_app_sp_oid,
             ["datahub_ado_sp_oid"] = _configuration["Terraform:Variables:datahub_ado_sp_oid"],
@@ -311,7 +362,7 @@ public class NewProjectTemplateTests : TemplateTestCollection
 
         var configFile = await File.ReadAllTextAsync(expectedConfigurationFilename);
 
-        foreach (Match match in Regex.Matches(configFile, @"^([\w_]+)\s*=\s*""(.*?)""", RegexOptions.Multiline))
+        foreach (Match match in System.Text.RegularExpressions.Regex.Matches(configFile, @"^([\w_]+)\s*=\s*""(.*?)""", RegexOptions.Multiline))
         {
             actualConfig[match.Groups[1].Value] = match.Groups[2].Value;
         }

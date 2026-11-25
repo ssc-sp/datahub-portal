@@ -88,6 +88,10 @@ class FunctionAppMappingTests(unittest.TestCase):
                 return "{}"
         queue_utils_module.MassTransitMessage = MassTransitMessage
 
+        logging_utils_module = types.ModuleType("lib.logging_utils")
+        logging_utils_module.set_workspace_id = lambda workspace_definition: object()
+        logging_utils_module.reset_workspace_id = lambda token: None
+
         lib_module = types.ModuleType("lib")
         lib_module.__path__ = []
         databricks_utils = types.ModuleType("lib.databricks_utils")
@@ -104,6 +108,7 @@ class FunctionAppMappingTests(unittest.TestCase):
             "lib.azkeyvault_utils": azkeyvault_utils,
             "lib.azstorage_utils": azstorage_utils,
             "lib.queue_utils": queue_utils_module,
+            "lib.logging_utils": logging_utils_module,
         })
 
     def test_keys_upper_converts_nested_keys(self) -> None:
@@ -200,6 +205,34 @@ class FunctionAppMappingTests(unittest.TestCase):
         host = self.function_app.resolve_databricks_host_url(workspace_definition)
         self.assertIsNone(host)
 
+    def test_resolve_subscription_id_supports_normalized_key(self) -> None:
+        workspace_definition = {
+            "Workspace": {
+                "SubscriptionId": "normalized-subscription-id",
+            }
+        }
+
+        self.assertEqual(
+            "normalized-subscription-id",
+            self.function_app.resolve_subscription_id(workspace_definition),
+        )
+
+    def test_resolve_subscription_id_supports_camel_case_key(self) -> None:
+        workspace_definition = {
+            "workspace": {
+                "subscriptionId": "camel-case-subscription-id",
+            }
+        }
+
+        self.assertEqual(
+            "camel-case-subscription-id",
+            self.function_app.resolve_subscription_id(workspace_definition),
+        )
+
+    def test_resolve_subscription_id_rejects_missing_value(self) -> None:
+        with self.assertRaisesRegex(ValueError, "missing SubscriptionId"):
+            self.function_app.resolve_subscription_id({"Workspace": {}})
+
     def test_sync_databricks_workspace_users_skips_when_host_missing(self) -> None:
         workspace_definition = {
             "Workspace": {"Acronym": "demo"},
@@ -213,6 +246,96 @@ class FunctionAppMappingTests(unittest.TestCase):
             create=True,
         ):
             self.function_app.sync_databricks_workspace_users_function(workspace_definition)
+
+    def test_databricks_sync_uses_subscription_id_from_message(self) -> None:
+        workspace_definition = {
+            "Workspace": {
+                "Acronym": "demo",
+                "SubscriptionId": "message-subscription",
+            },
+            "AppData": {
+                "DatabricksHostUrl": "https://example.databricks.net",
+            },
+        }
+
+        with patch.dict("os.environ", {
+            "DataHub_ENVNAME": "dev",
+            "AzureSubscriptionId": "environment-subscription",
+        }), patch.object(
+            self.function_app.dtb_utils,
+            "get_workspace_client",
+            return_value=object(),
+            create=True,
+        ), patch.object(
+            self.function_app.dtb_utils,
+            "remove_deleted_users_in_workspace",
+            create=True,
+        ), patch.object(
+            self.function_app.dtb_utils,
+            "synchronize_workspace_users",
+            create=True,
+        ), patch.object(
+            self.function_app.dtb_utils,
+            "synchronize_unity_catalog_permissions",
+            create=True,
+        ), patch.object(
+            self.function_app.dtb_utils,
+            "synchronize_workspace_secret_scopes",
+            create=True,
+        ) as sync_secret_scopes:
+            self.function_app.sync_databricks_workspace_users_function(workspace_definition)
+
+        self.assertEqual(
+            "message-subscription",
+            sync_secret_scopes.call_args.args[1],
+        )
+
+    def test_keyvault_sync_uses_subscription_id_from_message(self) -> None:
+        workspace_definition = {
+            "Workspace": {"SubscriptionId": "message-subscription"},
+        }
+
+        with patch.dict("os.environ", {
+            "DataHub_ENVNAME": "dev",
+            "AzureTenantId": "tenant-id",
+            "AzureSubscriptionId": "environment-subscription",
+        }), patch.object(
+            self.function_app.azkv_utils,
+            "get_keyvault_client",
+            return_value=object(),
+            create=True,
+        ) as get_client, patch.object(
+            self.function_app.azkv_utils,
+            "synchronize_access_policies",
+            create=True,
+        ):
+            self.function_app.sync_keyvault_workspace_users_function(workspace_definition)
+
+        self.assertEqual("message-subscription", get_client.call_args.args[0])
+
+    def test_storage_sync_uses_subscription_id_from_message(self) -> None:
+        workspace_definition = {
+            "Workspace": {"SubscriptionId": "message-subscription"},
+        }
+
+        with patch.dict("os.environ", {
+            "DataHub_ENVNAME": "dev",
+            "AzureTenantId": "tenant-id",
+            "AzureSubscriptionId": "environment-subscription",
+        }), patch.object(
+            self.function_app.azsg_utils,
+            "get_authorization_client",
+            return_value=object(),
+            create=True,
+        ) as get_client, patch.object(
+            self.function_app.azsg_utils,
+            "synchronize_blob_access_policies",
+            create=True,
+        ) as sync_policies:
+            self.function_app.sync_storage_workspace_users_function(workspace_definition)
+
+        self.assertEqual("message-subscription", get_client.call_args.args[0])
+        self.assertEqual("message-subscription", sync_policies.call_args.args[1])
 
     def test_new_sync_workspace_preserves_root_cause(self) -> None:
         workspace_definition = {

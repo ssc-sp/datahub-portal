@@ -45,20 +45,29 @@ public partial class WorkspaceSharedKeyAccessControl : ComponentBase
     private async Task RefreshStorageAllowSharedKeyAccess()
     {
         _isLoadingAccessState = true;
+        _hasLoadError = false;
         await InvokeAsync(StateHasChanged);
+
         try
         {
             var armClient = BuildArmClient(_portalConfiguration, TokenCredentialService);
             var resourceId = await BuildStorageResourceIdentifier();
             _accessState = await FetchStorageAllowSharedKeyAccess(armClient, resourceId);
         }
-        catch (InvalidOperationException e)
+        catch (InvalidOperationException)
         {
             _doesNotExist = true;
         }
-
-        _isLoadingAccessState = false;
-        await InvokeAsync(StateHasChanged);
+        catch (Exception)
+        {
+            _hasLoadError = true;
+            _snackbar.Add(Localizer["Failed to load shared key access state."], Severity.Error);
+        }
+        finally
+        {
+            _isLoadingAccessState = false;
+            await InvokeAsync(StateHasChanged);
+        }
     }
 
     /// <summary>

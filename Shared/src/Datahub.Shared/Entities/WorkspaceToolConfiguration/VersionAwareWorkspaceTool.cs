@@ -55,25 +55,19 @@ public class VersionAwareWorkspaceToolConfigInfo
 
     public IWorkspaceToolConfiguration ReadFromWorkspaceDefinition(WorkspaceDefinition workspaceDefinition)
     {
-        var methodName = nameof(IWorkspaceToolConfiguration.ReadFromWorkspaceDefinition);
-        var method = ConfigClass.GetMethod(methodName, System.Reflection.BindingFlags.Public | System.Reflection.BindingFlags.Static) ??
-            throw new InvalidOperationException($"The class {ConfigClass.FullName} does not implement the required static method {methodName}.");
-        if (method.Invoke(null, [workspaceDefinition]) is not IWorkspaceToolConfiguration config)
+        if (Activator.CreateInstance(ConfigClass) is not IWorkspaceToolConfiguration config)
         {
-            throw new InvalidOperationException($"The method {methodName} in class {ConfigClass.FullName} did not return a valid IWorkspaceToolConfiguration instance.");
+            throw new InvalidOperationException($"The class {ConfigClass.FullName} does not implement IWorkspaceToolConfiguration.");
         }
-        return config;
+        return config.ReadFromWorkspaceDefinition(workspaceDefinition);
     }
 
     public string GetPropertyLabel(string propertyName)
     {
-        var methodName = nameof(IWorkspaceToolConfiguration.GetPropertyLabel);
-        var method = ConfigClass.GetMethod(methodName, System.Reflection.BindingFlags.Public | System.Reflection.BindingFlags.Static) ??
-            throw new InvalidOperationException($"The class {ConfigClass.FullName} does not implement the required static method {methodName}.");
-        if (method.Invoke(null, [propertyName]) is not string label)
+        if (Activator.CreateInstance(ConfigClass) is not IWorkspaceToolConfiguration config)
         {
-            throw new InvalidOperationException($"The method {methodName} in class {ConfigClass.FullName} did not return a valid string label.");
+            throw new InvalidOperationException($"The class {ConfigClass.FullName} does not implement IWorkspaceToolConfiguration.");
         }
-        return label;
+        return config.GetPropertyLabel(propertyName);
     }
 }

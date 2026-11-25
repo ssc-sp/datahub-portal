@@ -59,16 +59,13 @@
     @if (_loading)
     {
         <MudProgressCircular Indeterminate Color="Color.Primary" />
-        <MudText Typo="Typo.body2" Class="mt-2">@Localizer["Loading workspace members..."]</MudText>
+        <MudText Typo="Typo.body2" Class="mt-2">@Localizer["Loading workspace users..."]</MudText>
     }
     else
     {
         <MudStack Class="mt-6 mb-4">
             <MudStack Row Class="mt-6 mb-4">
-                <DHMainContentTitle Title="@Localizer["Workspace Users"]" />
-                <GcdsText>
-                    @Localizer["Government of Canada users who have access to this workspace. Admins or leads can change their roles, manage data steward access, and invite new users."]
-                </GcdsText>
+                <DHMainContentTitle Title="@Localizer["Government of Canada Users"]" />
                 <MudSpacer />
                 <DatahubAuthView AuthLevel="DatahubAuthView.AuthLevels.WorkspaceAdmin" ProjectAcronym="@WorkspaceAcronym" ElevatedWorkspaceAccessEnabled="@ElevatedWorkspaceAccessEnabled">
                     <GcdsButton Id="@InviteUserButtonId" Type="GcdsButtonType.Button" Role="GcdsButtonRole.Primary"
@@ -78,6 +75,9 @@
                     </GcdsButton>
                 </DatahubAuthView>
             </MudStack>
+            <GcdsText>
+                @Localizer["Government of Canada users who have access to this workspace. Admins or leads can change their roles, manage data steward access, and invite new users."]
+            </GcdsText>
             @if (!string.IsNullOrWhiteSpace(_inviteStatusMessage))
             {
                 <div class="mb-4" role="status">

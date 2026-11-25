@@ -5,11 +5,11 @@ import logging
 import os
 import uuid
 import lib.constants as constants
-
 logger = logging.getLogger(__name__)
 
-CONTRIBUTOR="ba92f5b4-2d11-453d-a403-e96b0029c9fe"
-READER="acdd72a7-3385-48ef-bd42-f606fba81ae7"
+BLOB_DATA_CONTRIBUTOR = "ba92f5b4-2d11-453d-a403-e96b0029c9fe"
+BLOB_DATA_READER = "2a2b9908-6ea1-4ae2-8e65-a410df84e7d1"
+STORAGE_ACCOUNT_READER = "acdd72a7-3385-48ef-bd42-f606fba81ae7"
 
 def _role_definition_guid(role_definition_id):
     """Return the GUID portion of a role definition resource identifier."""
@@ -18,33 +18,43 @@ def _role_definition_guid(role_definition_id):
 def _is_managed_blob_role(role_definition_id):
     """Return whether the supplied role definition is one of the managed blob roles."""
     role_id = _role_definition_guid(role_definition_id)
-    return role_id == READER or role_id == CONTRIBUTOR
+    return role_id == BLOB_DATA_READER or role_id == BLOB_DATA_CONTRIBUTOR
 
-def assign_blob_role(auth_client, subscription_id, scope, user_object_id, read_only):
-    """Assign the appropriate blob reader/contributor role to a user for the supplied scope."""
-    if (read_only):
-        roleId = READER
-    else:
-        roleId = CONTRIBUTOR
-    # Define the role assignment parameters
-    # see https://learn.microsoft.com/en-us/azure/role-based-access-control/built-in-roles for details
+def _is_managed_storage_role(role_definition_id):
+    """Return whether the supplied role definition is managed by storage access synchronization."""
+    role_id = _role_definition_guid(role_definition_id)
+    return role_id == STORAGE_ACCOUNT_READER or _is_managed_blob_role(role_definition_id)
+
+def assign_role(auth_client, subscription_id, scope, user_object_id, role_id):
+    """Assign a built-in Azure role to a user for the supplied scope."""
     role_assignment_parameters = RoleAssignmentCreateParameters(
-        role_definition_id="/subscriptions/{subscriptionId}/providers/Microsoft.Authorization/roleDefinitions/{roleId}".format(subscriptionId=subscription_id,roleId=roleId),
+        role_definition_id="/subscriptions/{subscriptionId}/providers/Microsoft.Authorization/roleDefinitions/{roleId}".format(subscriptionId=subscription_id, roleId=role_id),
         principal_id=user_object_id
     )
 
-    # Assign the role
     auth_client.role_assignments.create(
         scope=scope,
         role_assignment_name=uuid.uuid4(),
         parameters=role_assignment_parameters
     )
 
+def assign_blob_role(auth_client, subscription_id, scope, user_object_id, read_only):
+    """Assign the appropriate blob reader/BLOB_DATA_CONTRIBUTOR role to a user for the supplied scope."""
+    if (read_only):
+        roleId = BLOB_DATA_READER
+    else:
+        roleId = BLOB_DATA_CONTRIBUTOR
+    assign_role(auth_client, subscription_id, scope, user_object_id, roleId)
+
+def assign_storage_account_reader(auth_client, subscription_id, scope, user_object_id):
+    """Assign Storage Account Reader at the storage account scope."""
+    assign_role(auth_client, subscription_id, scope, user_object_id, STORAGE_ACCOUNT_READER)
+
 def remove_existing_role(client:AuthorizationManagementClient, scope, user_object_id):
-    """Remove any managed blob role assignments for the specified user at the given scope."""
+    """Remove any managed storage role assignments for the specified user at the given scope."""
     role_assignments = client.role_assignments.list_for_scope(scope)
     for role in role_assignments:
-        if role.principal_id == user_object_id and _is_managed_blob_role(role.role_definition_id):
+        if role.principal_id == user_object_id and _is_managed_storage_role(role.role_definition_id):
             if hasattr(client.role_assignments, "delete"):
                 client.role_assignments.delete(scope, role.name)
             else:
@@ -127,13 +137,38 @@ def get_blob_container_scopes(subscription_id, resource_group_name, storage_acco
         for container_name in blob_containers
     ]
 
-def check_blob_reader_role(client:AuthorizationManagementClient, scope, user_object_id):
-    """Return whether the user has the managed blob reader role for the supplied scope."""
+def has_blob_data_role(client:AuthorizationManagementClient, scope, user_object_id, role_id):
+    """Check whether the user has the specified blob data role at the supplied scope.
+
+    Returns:
+        True: The user has an assignment for the specified role.
+        False: The user has one or more assignments, but none is for the specified role.
+        None: The user has no assignments at this scope.
+
+    The distinction between False and None lets synchronization replace an
+    incorrect role assignment instead of treating it as a missing assignment.
+    """
+    user_assignments = list(filter(
+        lambda role: role.principal_id == user_object_id,
+        client.role_assignments.list_for_scope(scope),
+    ))
+    return (
+        any(map(
+            lambda role: _role_definition_guid(role.role_definition_id) == role_id,
+            user_assignments,
+        ))
+        if user_assignments
+        else None
+    )
+
+def check_role_assignment(client:AuthorizationManagementClient, scope, user_object_id, role_id):
+    """Return whether the user has the specified role assignment at the supplied scope."""
     role_assignments = client.role_assignments.list_for_scope(scope)
-    for role in role_assignments:
-        if role.principal_id == user_object_id:
-            return _role_definition_guid(role.role_definition_id) == READER
-    return None
+    return any(
+        role.principal_id == user_object_id
+        and _role_definition_guid(role.role_definition_id) == role_id
+        for role in role_assignments
+    )
 
 def get_authorization_client(subscription_id, tenant_id) -> AuthorizationManagementClient:
     """
@@ -160,18 +195,23 @@ def get_authorization_client(subscription_id, tenant_id) -> AuthorizationManagem
     
     return auth_client    
 
-def synchronize_access_policies(client:AuthorizationManagementClient, subscription_id, environment_name, definition_json, blob_containers):
+def synchronize_blob_access_policies(client:AuthorizationManagementClient, subscription_id, environment_name, definition_json, blob_containers):
     """Synchronize blob access policies for workspace users based on their role assignments."""
     (rg_name,sg_account) = get_storage_reference(environment_name, definition_json)
+    storage_account_scope = get_scope(subscription_id, rg_name, sg_account)
     scopes = get_blob_container_scopes(subscription_id, rg_name, sg_account, blob_containers)
     # iterate through definition_json['Workspace']['Acronym']
     for user in (user for user in definition_json['Workspace']['Users'] if user['Role'] != 'Removed'):
         user_id = user['ObjectId']
         logger.info("Processing user %s access policies", user_id)
         try:
+            if not check_role_assignment(client, storage_account_scope, user_id, STORAGE_ACCOUNT_READER):
+                logger.info("Assigning user %s Storage Account Reader at account scope", user_id)
+                assign_storage_account_reader(client, subscription_id, storage_account_scope, user_id)
+
             for scope in scopes:
-                reader_role = check_blob_reader_role(client, scope, user_id)
                 if user['Role'] == 'Guest':
+                    reader_role = has_blob_data_role(client, scope, user_id, BLOB_DATA_READER)
                     if reader_role is None:
                         logger.info("Assigning user %s to access policies - read-only", user_id)
                         assign_blob_role(client, subscription_id, scope, user_id, True)
@@ -182,10 +222,14 @@ def synchronize_access_policies(client:AuthorizationManagementClient, subscripti
                     else:
                         logger.info("User %s already has read-only access policies", user_id)
                 else:
-                    if reader_role is None:
+                    # contributor, lead, admin, owner
+                    contributor_role = has_blob_data_role(
+                        client, scope, user_id, BLOB_DATA_CONTRIBUTOR
+                    )
+                    if contributor_role is None:
                         logger.info("Assigning user %s to access policies - read-write", user_id)
                         assign_blob_role(client, subscription_id, scope, user_id, False)
-                    elif reader_role:
+                    elif not contributor_role:
                         logger.info("Assigning user %s to access policies - read-write", user_id)
                         remove_existing_role(client, scope, user_id)
                         assign_blob_role(client, subscription_id, scope, user_id, False)
@@ -196,6 +240,7 @@ def synchronize_access_policies(client:AuthorizationManagementClient, subscripti
     for user in (user for user in definition_json['Workspace']['Users'] if user['Role'] == 'Removed'):
         try:
             logger.info("Removing user %s from access policies", user['ObjectId'])
+            remove_existing_role(client, storage_account_scope, user['ObjectId'])
             for scope in scopes:
                 remove_existing_role(client, scope, user['ObjectId'])
         except Exception:
