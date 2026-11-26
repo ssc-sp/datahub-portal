@@ -344,6 +344,9 @@ def sync_databricks_workspace_users_function(workspace_definition):
     dtb_utils.synchronize_unity_catalog_permissions(
         workspace_definition, workspace_client
     )
+    dtb_utils.synchronize_unity_catalog_account_groups(
+        workspace_definition, workspace_client
+    )
 
     dtb_utils.synchronize_workspace_secret_scopes(
         environment_name, subscription_id, workspace_definition, workspace_client

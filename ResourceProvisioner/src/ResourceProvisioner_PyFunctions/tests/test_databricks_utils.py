@@ -745,5 +745,179 @@ class DatabricksUtilsUnityCatalogTests(unittest.TestCase):
         self.assertNotIn("groups", result)
 
 
+class UnityCatalogAccountGroupsTests(unittest.TestCase):
+    """Tests for syncing the <dbk-name>-lead/-user/-guest Unity Catalog account groups."""
+
+    DBK_NAME = "gcqc-cto-fsdh-dbk-gta62-pre"
+
+    setUp = DatabricksUtilsUnityCatalogTests.setUp
+    tearDown = DatabricksUtilsUnityCatalogTests.tearDown
+    _install_stub_modules = DatabricksUtilsUnityCatalogTests._install_stub_modules
+
+    class FakeApiClient:
+        def __init__(self, members_by_group):
+            self.members_by_group = members_by_group
+            self.patches = {}
+
+        def do(self, method, path, body=None, **_kwargs):
+            group_id = path.rsplit("/", 1)[-1]
+            if method == "GET":
+                return {"id": group_id, "members": self.members_by_group.get(group_id, [])}
+            if method == "PATCH":
+                self.patches[group_id] = body
+                return None
+            raise AssertionError(f"unexpected {method} {path}")
+
+    def _workspace_client(self, groups, users, members_by_group=None):
+        api_client = self.FakeApiClient(members_by_group or {})
+        return types.SimpleNamespace(
+            groups=types.SimpleNamespace(list=lambda: groups),
+            users=types.SimpleNamespace(list=lambda: users),
+            api_client=api_client,
+        )
+
+    def _account_groups(self):
+        return [
+            types.SimpleNamespace(display_name="admins", id="admins-id"),
+            types.SimpleNamespace(display_name="project_lead", id="local-lead-id"),
+            types.SimpleNamespace(display_name=f"{self.DBK_NAME}-lead", id="lead-id"),
+            types.SimpleNamespace(display_name=f"{self.DBK_NAME}-user", id="user-id"),
+            types.SimpleNamespace(display_name=f"{self.DBK_NAME}-guest", id="guest-id"),
+            # another workspace's groups must be ignored
+            types.SimpleNamespace(display_name="gcqc-cto-fsdh-dbk-gta621-pre-lead", id="other-lead-id"),
+        ]
+
+    @staticmethod
+    def _user(user_id, email, object_id):
+        return types.SimpleNamespace(id=user_id, user_name=email, emails=[], external_id=object_id)
+
+    @staticmethod
+    def _added(patch_body):
+        return sorted(
+            member["value"]
+            for operation in patch_body["Operations"] if operation["op"] == "add"
+            for member in operation["value"]["members"]
+        )
+
+    @staticmethod
+    def _removed(patch_body):
+        return sorted(
+            operation["path"].split('"')[1]
+            for operation in patch_body["Operations"] if operation["op"] == "remove"
+        )
+
+    def test_role_lookup_maps_owner_and_admin_to_lead(self) -> None:
+        self.assertEqual(
+            {"Owner": "lead", "Admin": "lead", "User": "user", "Guest": "guest"},
+            self.databricks_utils.get_unity_catalog_account_group_lookup(),
+        )
+
+    def test_get_account_groups_finds_this_workspaces_groups_only(self) -> None:
+        workspace_client = self._workspace_client(self._account_groups(), [])
+        definition_json = {"Workspace": {"Acronym": "GTA62"}}
+
+        groups = self.databricks_utils.get_unity_catalog_account_groups(definition_json, workspace_client)
+
+        self.assertEqual({"lead": "lead-id", "user": "user-id", "guest": "guest-id"},
+                         {suffix: group.id for suffix, group in groups.items()})
+
+    def test_sync_adds_users_to_the_group_of_their_role(self) -> None:
+        users = [
+            self._user("u-owner", "owner@example.com", "oid-owner"),
+            self._user("u-admin", "admin@example.com", "oid-admin"),
+            self._user("u-user", "user@example.com", "oid-user"),
+            self._user("u-guest", "guest@example.com", "oid-guest"),
+        ]
+        workspace_client = self._workspace_client(self._account_groups(), users)
+        definition_json = {"Workspace": {"Acronym": "GTA62", "Users": [
+            {"Email": "owner@example.com", "ObjectId": "oid-owner", "Role": "Owner"},
+            {"Email": "admin@example.com", "ObjectId": "oid-admin", "Role": "Admin"},
+            {"Email": "user@example.com", "ObjectId": "oid-user", "Role": "User"},
+            {"Email": "guest@example.com", "ObjectId": "oid-guest", "Role": "Guest"},
+        ]}}
+
+        self.databricks_utils.synchronize_unity_catalog_account_groups(definition_json, workspace_client)
+
+        patches = workspace_client.api_client.patches
+        self.assertEqual({"lead-id", "user-id", "guest-id"}, set(patches))
+        self.assertEqual(["u-admin", "u-owner"], self._added(patches["lead-id"]))
+        self.assertEqual(["u-user"], self._added(patches["user-id"]))
+        self.assertEqual(["u-guest"], self._added(patches["guest-id"]))
+        self.assertEqual(
+            ["urn:ietf:params:scim:api:messages:2.0:PatchOp"], patches["lead-id"]["schemas"]
+        )
+
+    def test_sync_moves_user_when_role_changes_and_leaves_unknown_members(self) -> None:
+        users = [self._user("u-1", "promoted@example.com", "oid-1")]
+        workspace_client = self._workspace_client(
+            self._account_groups(),
+            users,
+            members_by_group={
+                "guest-id": [{"value": "u-1", "display": "promoted@example.com"}],
+                "lead-id": [{"value": "sp-terraform", "display": "terraform-sp"}],
+            },
+        )
+        definition_json = {"Workspace": {"Acronym": "GTA62", "Users": [
+            {"Email": "promoted@example.com", "ObjectId": "oid-1", "Role": "User"},
+        ]}}
+
+        self.databricks_utils.synchronize_unity_catalog_account_groups(definition_json, workspace_client)
+
+        patches = workspace_client.api_client.patches
+        self.assertEqual({"user-id", "guest-id"}, set(patches))
+        self.assertEqual(["u-1"], self._added(patches["user-id"]))
+        self.assertEqual(["u-1"], self._removed(patches["guest-id"]))
+        self.assertEqual([], self._added(patches["guest-id"]))
+
+    def test_sync_removes_removed_users_already_deleted_from_workspace(self) -> None:
+        workspace_client = self._workspace_client(
+            self._account_groups(),
+            [],
+            members_by_group={
+                "user-id": [
+                    {"value": "u-gone", "display": "Gone@Example.com"},
+                    {"value": "u-other", "display": "other@example.com"},
+                ],
+            },
+        )
+        definition_json = {"Workspace": {"Acronym": "GTA62", "Users": [
+            {"Email": "gone@example.com", "ObjectId": "oid-gone", "Role": "Removed"},
+        ]}}
+
+        self.databricks_utils.synchronize_unity_catalog_account_groups(definition_json, workspace_client)
+
+        patches = workspace_client.api_client.patches
+        self.assertEqual({"user-id"}, set(patches))
+        self.assertEqual(["u-gone"], self._removed(patches["user-id"]))
+
+    def test_sync_makes_no_changes_when_groups_are_up_to_date(self) -> None:
+        users = [self._user("u-guest", "guest@example.com", "oid-guest")]
+        workspace_client = self._workspace_client(
+            self._account_groups(),
+            users,
+            members_by_group={"guest-id": [{"value": "u-guest", "display": "guest@example.com"}]},
+        )
+        definition_json = {"Workspace": {"Acronym": "GTA62", "Users": [
+            {"Email": "guest@example.com", "ObjectId": "oid-guest", "Role": "Guest"},
+        ]}}
+
+        self.databricks_utils.synchronize_unity_catalog_account_groups(definition_json, workspace_client)
+
+        self.assertEqual({}, workspace_client.api_client.patches)
+
+    def test_sync_skips_workspaces_without_account_groups(self) -> None:
+        groups = [types.SimpleNamespace(display_name="project_lead", id="local-lead-id")]
+        workspace_client = self._workspace_client(
+            groups, [self._user("u-1", "owner@example.com", "oid-1")]
+        )
+        definition_json = {"Workspace": {"Acronym": "GTA62", "Users": [
+            {"Email": "owner@example.com", "ObjectId": "oid-1", "Role": "Owner"},
+        ]}}
+
+        self.databricks_utils.synchronize_unity_catalog_account_groups(definition_json, workspace_client)
+
+        self.assertEqual({}, workspace_client.api_client.patches)
+
+
 if __name__ == "__main__":
     unittest.main()
