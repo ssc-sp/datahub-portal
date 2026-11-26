@@ -280,6 +280,10 @@ class FunctionAppMappingTests(unittest.TestCase):
             create=True,
         ), patch.object(
             self.function_app.dtb_utils,
+            "synchronize_unity_catalog_account_groups",
+            create=True,
+        ) as sync_account_groups, patch.object(
+            self.function_app.dtb_utils,
             "synchronize_workspace_secret_scopes",
             create=True,
         ) as sync_secret_scopes:
@@ -289,6 +293,8 @@ class FunctionAppMappingTests(unittest.TestCase):
             "message-subscription",
             sync_secret_scopes.call_args.args[1],
         )
+        sync_account_groups.assert_called_once()
+        self.assertIs(workspace_definition, sync_account_groups.call_args.args[0])
 
     def test_keyvault_sync_uses_subscription_id_from_message(self) -> None:
         workspace_definition = {
