@@ -4,7 +4,12 @@ from databricks.sdk.service.workspace import AzureKeyVaultSecretScopeMetadata
 from databricks.sdk.service.workspace import ScopeBackendType
 import lib.azkeyvault_utils as azkv_utils
 import lib.constants as constants
-from lib.unity_catalog_constants import UNITY_CATALOG_PRESET_PRIVILEGES, UNITY_CATALOG_ROLE_PRESET
+from lib.unity_catalog_constants import (
+    ACCOUNT_GROUPS_API_PATH,
+    SCIM_PATCH_OP_SCHEMA,
+    UNITY_CATALOG_PRESET_PRIVILEGES,
+    UNITY_CATALOG_ROLE_PRESET,
+)
 import os
 import logging
 
@@ -563,6 +568,186 @@ def synchronize_unity_catalog_permissions(definition_json, workspace_client):
             principal,
             role_privileges,
         )
+
+
+def get_unity_catalog_account_group_lookup():
+    """
+    Returns a dictionary that maps the definition role to the suffix of the Unity Catalog account group.
+
+    The azure-databricks-enhanced module creates the account groups
+    lower("<resource_prefix>-dbk-<project_cd>-<environment_name>") + "-lead" / "-user" / "-guest",
+    grants them access to the workspace's external location and catalog, and assigns them to the workspace.
+
+    Returns:
+        dict: A dictionary that maps definition roles to account group suffixes.
+    """
+    return {
+        'Owner': 'lead',
+        'Admin': 'lead',
+        'User': 'user',
+        'Guest': 'guest',
+    }
+
+
+def get_unity_catalog_account_groups(definition_json, workspace_client):
+    """
+    Returns the workspace's Unity Catalog account groups keyed off their suffix (lead, user, guest).
+
+    The groups are found among the groups assigned to the workspace by their display name,
+    "<resource_prefix>-dbk-<acronym>-<environment_name>-<suffix>", so the resource prefix and environment
+    name don't have to be configured. Workspaces without these groups (e.g. the base azure-databricks module)
+    return an empty dictionary.
+
+    Args:
+        definition_json (dict): The workspace definition file as a dictionary (json).
+        workspace_client (WorkspaceClient): The databricks workspace client.
+
+    Returns:
+        dict: A dictionary of account groups keyed off their suffix.
+    """
+    acronym = (definition_json.get("Workspace", {}).get("Acronym") or "").strip().lower()
+    if not acronym:
+        return {}
+
+    marker = f"-dbk-{acronym}-"
+    suffixes = set(get_unity_catalog_account_group_lookup().values())
+    account_groups = {}
+    for group in workspace_client.groups.list():
+        display_name = (getattr(group, "display_name", None) or "").lower()
+        if marker not in display_name:
+            continue
+
+        suffix = display_name.rsplit("-", 1)[-1]
+        if suffix not in suffixes:
+            continue
+
+        if suffix in account_groups:
+            logger.warning(
+                "Found more than one Unity Catalog '%s' account group for workspace %s (%s, %s); using the first one",
+                suffix,
+                acronym,
+                account_groups[suffix].display_name,
+                group.display_name,
+            )
+            continue
+
+        account_groups[suffix] = group
+
+    return account_groups
+
+
+def _get_account_group_members(workspace_client, group_id):
+    """Return the account group's current members as a dictionary of member id to display name."""
+    response = workspace_client.api_client.do("GET", f"{ACCOUNT_GROUPS_API_PATH}/{group_id}") or {}
+    return {
+        member["value"]: (member.get("display") or "")
+        for member in response.get("members", []) or []
+        if member.get("value")
+    }
+
+
+def _update_account_group_members(workspace_client, group_id, add_ids, remove_ids):
+    """Add and remove account group members with a single SCIM PATCH."""
+    operations = []
+    if add_ids:
+        operations.append({
+            "op": "add",
+            "value": {"members": [{"value": member_id} for member_id in sorted(add_ids)]},
+        })
+    for member_id in sorted(remove_ids):
+        operations.append({"op": "remove", "path": f'members[value eq "{member_id}"]'})
+
+    if not operations:
+        return
+
+    workspace_client.api_client.do(
+        "PATCH",
+        f"{ACCOUNT_GROUPS_API_PATH}/{group_id}",
+        body={"schemas": [SCIM_PATCH_OP_SCHEMA], "Operations": operations},
+    )
+
+
+def synchronize_unity_catalog_account_groups(definition_json, workspace_client):
+    """
+    Synchronizes the membership of the workspace's Unity Catalog account groups (lead, user, guest)
+    with the users and roles in the definition file.
+
+    Each user is added to the group of their role and removed from the other two. Users with the
+    Removed role are removed from all three; they are usually already deleted from the workspace,
+    so they are also matched by email (the display name users are created with). Members that aren't
+    users in the definition file (e.g. service principals) are left alone.
+
+    Args:
+        definition_json (dict): The workspace definition file as a dictionary (json).
+        workspace_client (WorkspaceClient): The databricks workspace client.
+
+    Returns:
+        None
+    """
+    workspace_name = definition_json.get("Workspace", {}).get("Acronym", "unknown")
+    account_groups = get_unity_catalog_account_groups(definition_json, workspace_client)
+    if not account_groups:
+        logger.info(
+            "Workspace %s has no Unity Catalog lead/user/guest account groups; skipping group membership sync",
+            workspace_name,
+        )
+        return
+
+    role_lookup = get_unity_catalog_account_group_lookup()
+    desired_members = {suffix: set() for suffix in account_groups}
+    managed_ids = set()
+    removed_emails = set()
+
+    workspace_users = list(workspace_client.users.list())
+    for user in definition_json.get("Workspace", {}).get("Users", []):
+        workspace_user = _find_workspace_user_for_definition_user(workspace_users, user)
+        user_id = getattr(workspace_user, "id", None) if workspace_user is not None else None
+        if user.get("Role") == "Removed" and user.get("Email"):
+            removed_emails.add(user["Email"].strip().lower())
+        if not user_id:
+            if user.get("Role") == "Removed":
+                continue
+            logger.info(
+                "Skipping Unity Catalog group membership for %s because the user isn't in the workspace",
+                user.get("Email"),
+            )
+            continue
+
+        managed_ids.add(user_id)
+        suffix = role_lookup.get(user.get("Role"))
+        if suffix is None:
+            continue
+        if suffix not in desired_members:
+            logger.warning(
+                "Workspace %s has no Unity Catalog '%s' account group; %s (%s) can't be added to it",
+                workspace_name,
+                suffix,
+                user.get("Email"),
+                user.get("Role"),
+            )
+            continue
+        desired_members[suffix].add(user_id)
+
+    for suffix, group in account_groups.items():
+        current_members = _get_account_group_members(workspace_client, group.id)
+        current_ids = set(current_members)
+        removed_member_ids = {
+            member_id for member_id, display in current_members.items()
+            if display.strip().lower() in removed_emails
+        }
+        add_ids = desired_members[suffix] - current_ids
+        remove_ids = (current_ids & (managed_ids | removed_member_ids)) - desired_members[suffix]
+        if not add_ids and not remove_ids:
+            logger.info("Unity Catalog account group %s is up to date", group.display_name)
+            continue
+
+        logger.info(
+            "Updating Unity Catalog account group %s: adding %d member(s), removing %d member(s)",
+            group.display_name,
+            len(add_ids),
+            len(remove_ids),
+        )
+        _update_account_group_members(workspace_client, group.id, add_ids, remove_ids)
 
 
 def _get_workspace_group_for_role(workspace_groups, role_name):
