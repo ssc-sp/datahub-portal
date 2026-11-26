@@ -90,8 +90,13 @@ public partial class RepositoryService(
         return options;
     }
 
+    /// <summary>
+    /// Creates the clone options for the module repository. The clone is never shallow: a shallow clone only brings down
+    /// the tags on the latest commit, so a workspace on an older version would not find its version tag.
+    /// </summary>
     private CloneOptions CreateCloneOptions(string? issuerValidationName,
-        CredentialsHandler? credentialsProvider = null) => new CloneOptions(CreateFetchOptions(issuerValidationName, credentialsProvider));
+        CredentialsHandler? credentialsProvider = null) =>
+        new CloneOptions(CreateFetchOptions(issuerValidationName, credentialsProvider, shallow: false));
 
     private PushOptions CreatePushOptions(string? issuerValidationName,
         CredentialsHandler? credentialsProvider = null)

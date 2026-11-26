@@ -229,7 +229,7 @@ public class WorkspaceCreationService(
     {
         await using var db = await datahubProjectDbFactory.CreateDbContextAsync();
 
-        var subscription = await datahubAzureSubscriptionService.NextSubscriptionAsync();
+        var subscription = await datahubAzureSubscriptionService.NextSubscriptionAsync(classification);
 
         var project = new Datahub_Project()
         {

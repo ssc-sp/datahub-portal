@@ -361,7 +361,7 @@ namespace Datahub.Infrastructure.Services.Helpers
             else
             {
                 // We check if the project has a databricks resource. If not, we return a create status.
-                var hasDatabricksResource = project.Resources.Any(r => r.ResourceType == InfrastructureHealthCheckConstants.TerraformAzureDatabricksResourceType);
+                var hasDatabricksResource = project.Resources.Any(r => TerraformTemplate.AzureDatabricksServiceTypes.Contains(r.ResourceType));
 
                 if (!hasDatabricksResource)
                 {
@@ -627,7 +627,7 @@ namespace Datahub.Infrastructure.Services.Helpers
                 }
                 else
                 {
-                    var isRequested = TerraformVariableExtraction.IsResourceRequested(project, TerraformTemplate.AzureAppService);
+                    var isRequested = TerraformVariableExtraction.IsResourceRequested(project, TerraformTemplate.AzureAppServiceServiceTypes);
                     var appServiceConfig = TerraformVariableExtraction.ExtractAppServiceConfiguration(project);
 
                     if (!isRequested)

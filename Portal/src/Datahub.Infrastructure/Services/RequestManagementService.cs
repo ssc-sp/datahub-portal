@@ -172,8 +172,9 @@ public class RequestManagementService(
             var parsedMajorMinor = $"v{parsedVersion.Major}.{parsedVersion.Minor}";
 
             await using var db = await dbContextFactory.CreateDbContextAsync();
+            // Deleted workspaces (or ones with a pending delete request) are never upgraded
             var currentVersionProjects = await db.Projects
-                .Where(p => p.Version.StartsWith(parsedMajorMinor))
+                .Where(p => p.Version.StartsWith(parsedMajorMinor) && p.Deleted_DT == null)
                 .ToListAsync();
 
             if (currentVersionProjects.Any())

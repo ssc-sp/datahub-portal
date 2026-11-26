@@ -1,4 +1,5 @@
 using Datahub.Core.Model.Subscriptions;
+using Datahub.Metadata.Model;
 using Microsoft.AspNetCore.Components;
 using Microsoft.AspNetCore.Components.Web;
 using MudBlazor;
@@ -7,7 +8,6 @@ namespace Datahub.Portal.Pages.Tools.AzureSubscriptionManagement;
 
 public partial class AzureSubscriptionsPage : ComponentBase
 {
-
     private async Task HandleSubscriptionSubmitted(DatahubAzureSubscription subscription)
     {
         _logger.LogInformation("Adding Azure subscription {SubscriptionId}.", subscription.SubscriptionId);
@@ -15,7 +15,7 @@ public partial class AzureSubscriptionsPage : ComponentBase
         try
         {
             await _datahubAzureSubscriptionService.AddSubscriptionAsync(subscription);
-        
+
             _logger.LogInformation("Azure subscription {SubscriptionId} added.", subscription.SubscriptionId);
             _snackbar.Add(Localizer["Azure subscription added"], Severity.Success);
             StateHasChanged();
@@ -26,23 +26,23 @@ public partial class AzureSubscriptionsPage : ComponentBase
             _snackbar.Add(Localizer["Failed to add Azure subscription"], Severity.Error);
         }
     }
-    
+
     private void HandleCommitEditClicked(MouseEventArgs args)
     {
         _logger.LogInformation("Commit edit button clicked.");
         _snackbar.Add(Localizer["Sending Azure subscription updated"], Severity.Info);
     }
-    
+
     private void HandleRowEditCommit(object element)
     {
         if (element is not DatahubAzureSubscription datahubAzureSubscription)
         {
             return;
         }
-        
+
         _logger.LogInformation("Committing row edit for Azure subscription {SubscriptionId}.", datahubAzureSubscription.SubscriptionId);
         _snackbar.Add(Localizer["Committing Azure subscription update"], Severity.Info);
-        
+
         Task.Run(async () =>
         {
             await _datahubAzureSubscriptionService.UpdateSubscriptionAsync(datahubAzureSubscription);
@@ -60,23 +60,37 @@ public partial class AzureSubscriptionsPage : ComponentBase
             SubscriptionId = ((DatahubAzureSubscription)subscription).SubscriptionId,
             Nickname = ((DatahubAzureSubscription)subscription).Nickname,
             SubscriptionName = ((DatahubAzureSubscription)subscription).SubscriptionName,
+            Classification = ((DatahubAzureSubscription)subscription).Classification,
         };
-        
+
         _logger.LogInformation("Backing up item {SubscriptionId} for editing.", ((DatahubAzureSubscription)subscription).SubscriptionId);
     }
-    
+
     private void HandleRowEditCancel(object element)
     {
-        if(element is not DatahubAzureSubscription item)
+        if (element is not DatahubAzureSubscription item)
         {
             return;
         }
-        
+
         item.Id = _elementBeforeEdit.Id;
         item.TenantId = _elementBeforeEdit.TenantId;
         item.SubscriptionId = _elementBeforeEdit.SubscriptionId;
         item.Nickname = _elementBeforeEdit.Nickname;
-        
+        item.SubscriptionName = _elementBeforeEdit.SubscriptionName;
+        item.Classification = _elementBeforeEdit.Classification;
+
         _logger.LogInformation("Row edit cancelled for Azure subscription {SubscriptionId}.", item.SubscriptionId);
+    }
+
+    private int GetNumberOfWorkspaces(string? subscriptionId)
+    {
+        if (string.IsNullOrWhiteSpace(subscriptionId)
+            || !_numberOfWorkspaceRemaining.TryGetValue(subscriptionId, out var remainingWorkspaces))
+        {
+            return 0;
+        }
+
+        return _portalConfiguration.Hosting.WorkspaceCountPerAzureSubscription - remainingWorkspaces;
     }
 }

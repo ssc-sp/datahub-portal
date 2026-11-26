@@ -64,3 +64,30 @@ and call the method to extract the variable you want. The method will return eit
           | Property            | Value           |
           | PSQL_SKU            | B_Standard_B1ms |
           | ResourceNameSuffix  | 001             |
+
+    Scenario: Extracting a Databricks Workspace Url from a Protected B workspace
+        Given a datahub project with the following resources
+          | Resource Type                       | Json Content                                                                                                         |
+          | terraform:azure-databricks-enhanced | { "workspace_id": "pb-workspace-id", "workspace_url": "adb-1234.5.azuredatabricks.net", "workspace_name": "fsdh-dbk-pb-dev" } |
+        When I call the method to extract the databricks workspace url
+        Then I should get the following value
+          | Name          | Value                                  |
+          | databricksUrl | https://adb-1234.5.azuredatabricks.net |
+
+    Scenario: Extracting a Databricks Workspace Id from a Protected B workspace
+        Given a datahub project with the following resources
+          | Resource Type                       | Json Content                                                                                                         |
+          | terraform:azure-databricks-enhanced | { "workspace_id": "pb-workspace-id", "workspace_url": "adb-1234.5.azuredatabricks.net", "workspace_name": "fsdh-dbk-pb-dev" } |
+        When I call the method to extract the databricks workspace id
+        Then I should get the following value
+          | Name                  | Value           |
+          | databricksWorkspaceId | pb-workspace-id |
+
+    Scenario: Extracting a Postgres Host from a Protected B workspace
+        Given a datahub project with the following resources
+          | Resource Type                     | Json Content                                                                                                                                                                                       |
+          | terraform:azure-postgres-enhanced | { "postgres_dns": "fsdh-pb-psql-dev.postgres.database.azure.com", "postgres_db_name": "fsdh", "postgres_secret_name_admin": "datahub-psql-admin", "postgres_secret_name_password": "datahub-psql-password" } |
+        When I call the method to extract the postgres host
+        Then I should get the following value
+          | Name         | Value                                        |
+          | postgresHost | fsdh-pb-psql-dev.postgres.database.azure.com |

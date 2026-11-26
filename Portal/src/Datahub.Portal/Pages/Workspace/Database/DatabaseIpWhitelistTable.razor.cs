@@ -41,7 +41,7 @@ public partial class DatabaseIpWhitelistTable
         
         await using var context = await _dbContextFactory.CreateDbContextAsync();
         var subscriptionId = await RetrieveWorkspaceSubscriptionId(WorkspaceAcronym, context);
-        var dbResource = await context.Project_Resources2.AsNoTracking().Include(p => p.Project).FirstAsync(r => r.ResourceType == TerraformTemplate.GetTerraformServiceType(TerraformTemplate.AzurePostgres) && r.Project.Project_Acronym_CD == WorkspaceAcronym);
+        var dbResource = await context.Project_Resources2.AsNoTracking().Include(p => p.Project).FirstAsync(r => TerraformTemplate.AzurePostgresServiceTypes.Contains(r.ResourceType) && r.Project.Project_Acronym_CD == WorkspaceAcronym);
         var pgsqlId = dbResource.GetPostgresId();
 
         var postgresResource = client.GetPostgreSqlFlexibleServerResource(new ResourceIdentifier(pgsqlId));

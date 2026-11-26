@@ -1,5 +1,6 @@
 using Datahub.Core.Model.Projects;
 using Datahub.Core.Model.Subscriptions;
+using Datahub.Metadata.Model;
 
 namespace Datahub.Application.Services.Subscriptions;
 
@@ -17,8 +18,8 @@ public interface IDatahubAzureSubscriptionService
     /// Checks if a Datahub Azure subscription with the specified subscriptionId exists.
     /// </summary>
     /// <param name="subscriptionId">The subscription ID to check.</param>
-    /// <returns>Returns true if the subscription exists, otherwise false.</returns>
-    Task<DatahubAzureSubscription> SubscriptionExistsAsync(string subscriptionId);
+    /// <returns>Returns the subscription exists, otherwise null.</returns>
+    Task<DatahubAzureSubscription?> SubscriptionExistsAsync(string subscriptionId);
 
     /// <summary>
     /// Adds a Datahub Azure subscription to the database.
@@ -42,12 +43,13 @@ public interface IDatahubAzureSubscriptionService
     Task<int> NumberOfRemainingWorkspacesAsync(string subscriptionId);
 
     /// <summary>
-    /// Retrieves the next available Datahub Azure subscription.
+    /// Retrieves the next available Datahub Azure subscription for the specified classification.
     /// </summary>
+    /// <param name="classification">The required classification level for the target subscription.</param>
     /// <returns>
     /// The task result contains the next available Datahub Azure subscription.
     /// </returns>
-    Task<DatahubAzureSubscription> NextSubscriptionAsync();
+    Task<DatahubAzureSubscription> NextSubscriptionAsync(ClassificationType classification);
 
     /// <summary>
     /// Updates a Datahub Azure subscription in the database.

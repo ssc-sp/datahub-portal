@@ -370,8 +370,7 @@ namespace Datahub.Infrastructure.Services.WebApp
                 throw new Exception($"Workspace with acronym {workspaceAcronym} not found");
 
             var projectResource = workspace.Resources
-                .FirstOrDefault(x =>
-                    x.ResourceType == TerraformTemplate.GetTerraformServiceType(TerraformTemplate.AzureAppService));
+                .FirstOrDefault(x => TerraformTemplate.AzureAppServiceServiceTypes.Contains(x.ResourceType));
 
             if (projectResource == null)
                 throw new Exception($"Azure App Service resource not found for workspace {workspaceAcronym}");

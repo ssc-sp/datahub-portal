@@ -9,6 +9,7 @@ import json
 import bug_report_message as brm
 import healthcheck_message as hcm
 from lib.queue_utils import MassTransitMessage
+from lib.logging_utils import reset_workspace_id, set_workspace_id
 
 logger = logging.getLogger(__name__)
 
@@ -174,7 +175,7 @@ def send_exception_to_service_bus(exception_message):
         mtm_json = mass_transit_msg.to_json()
         q_message = servicebus.ServiceBusMessage(mtm_json)
         sender.send_messages(q_message)
-        print(f"Sent message to queue: {queue_name}")
+        logger.info("Sent message to queue: %s", queue_name)
 
 
 def send_healthcheck_to_service_bus(message):
@@ -199,7 +200,7 @@ def send_healthcheck_to_service_bus(message):
                 mtm_json, message_id=mass_transit_msg.messageId
             )
             sender.send_messages(q_message)
-            print(f"Sent message to queue: {check_results_queue_name}")
+            logger.info("Sent message to queue: %s", check_results_queue_name)
     except Exception:
         logger.exception(f"An error occurred while sending health check to service bus")
 
@@ -245,67 +246,71 @@ def new_sync_workspace(workspace_definition):
     Raises:
         RuntimeError: If one or more template synchronizations fail.
     """
-    sync_mappings = get_sync_func_mappings()
-    logger.info("Got template mappings")
+    workspace_id_token = set_workspace_id(workspace_definition)
+    try:
+        sync_mappings = get_sync_func_mappings()
+        logger.info("Got template mappings")
 
-    errors = []
-    failure_causes = []
+        errors = []
+        failure_causes = []
 
-    workspace_name = workspace_definition["Workspace"]["Acronym"]
-    logger.info(f"Synchronizing workspace users for {workspace_name}")
+        workspace_name = workspace_definition["Workspace"]["Acronym"]
+        logger.info(f"Synchronizing workspace users for {workspace_name}")
 
-    workspace_templates = workspace_definition["Templates"]
-    if not workspace_templates:
-        error_msg = f"Workspace {workspace_name} has no templates"
-        logger.error(error_msg)
-        errors.append(error_msg)
-    else:
-        template_names = [t["Name"] for t in workspace_templates]
-        logger.info(f"Got template names: {template_names}")
+        workspace_templates = workspace_definition["Templates"]
+        if not workspace_templates:
+            error_msg = f"Workspace {workspace_name} has no templates"
+            logger.error(error_msg)
+            errors.append(error_msg)
+        else:
+            template_names = [t["Name"] for t in workspace_templates]
+            logger.info(f"Got template names: {template_names}")
 
-        for t in template_names:
-            if t not in sync_mappings:
-                logger.info(f"Skipping template {t}")
-                continue
+            for t in template_names:
+                if t not in sync_mappings:
+                    logger.info(f"Skipping template {t}")
+                    continue
 
-            name, sync_fn = sync_mappings[t]
-            logger.debug(f"name: {name}, func: {sync_fn.__name__}")
+                name, sync_fn = sync_mappings[t]
+                logger.debug(f"name: {name}, func: {sync_fn.__name__}")
 
-            try:
-                logger.info(f"Synchronizing {name} for {workspace_name}.")
-                sync_fn(workspace_definition)
-            except Exception as e:
-                error_msg = (
-                    f"Error synchronizing {name} for {workspace_name}: "
-                    f"{type(e).__name__}: {e}"
-                )
-                logger.exception(error_msg)
-                errors.append(error_msg)
-                failure_causes.append(e)
-                send_exception_to_service_bus(error_msg)
+                try:
+                    logger.info(f"Synchronizing {name} for {workspace_name}.")
+                    sync_fn(workspace_definition)
+                except Exception as e:
+                    error_msg = (
+                        f"Error synchronizing {name} for {workspace_name}: "
+                        f"{type(e).__name__}: {e}"
+                    )
+                    logger.exception(error_msg)
+                    errors.append(error_msg)
+                    failure_causes.append(e)
+                    send_exception_to_service_bus(error_msg)
 
-    errors_joined = ERROR_DETAILS_JOINER.join(errors)
-    health_status = (
-        hcm.HealthcheckMessage.STATUS_UNHEALTHY
-        if errors_joined
-        else hcm.HealthcheckMessage.STATUS_HEALTHY
-    )
-    health_msg = hcm.HealthcheckMessage(
-        hcm.HealthcheckMessage.TYPE_WORKSPACE_SYNC,
-        "workspaces",
-        workspace_name,
-        errors_joined,
-        health_status,
-    )
-    send_healthcheck_to_service_bus(health_msg)
-    if health_status == hcm.HealthcheckMessage.STATUS_HEALTHY:
-        logger.info(f"Successfully synced workspace {workspace_name}")
-    else:
-        overall_sync_error = f"Workspace {workspace_name} had problems while synchronizing: {errors_joined}"
-        logger.error(overall_sync_error)
-        if failure_causes:
-            raise RuntimeError(overall_sync_error) from failure_causes[0]
-        raise RuntimeError(overall_sync_error)
+        errors_joined = ERROR_DETAILS_JOINER.join(errors)
+        health_status = (
+            hcm.HealthcheckMessage.STATUS_UNHEALTHY
+            if errors_joined
+            else hcm.HealthcheckMessage.STATUS_HEALTHY
+        )
+        health_msg = hcm.HealthcheckMessage(
+            hcm.HealthcheckMessage.TYPE_WORKSPACE_SYNC,
+            "workspaces",
+            workspace_name,
+            errors_joined,
+            health_status,
+        )
+        send_healthcheck_to_service_bus(health_msg)
+        if health_status == hcm.HealthcheckMessage.STATUS_HEALTHY:
+            logger.info(f"Successfully synced workspace {workspace_name}")
+        else:
+            overall_sync_error = f"Workspace {workspace_name} had problems while synchronizing: {errors_joined}"
+            logger.error(overall_sync_error)
+            if failure_causes:
+                raise RuntimeError(overall_sync_error) from failure_causes[0]
+            raise RuntimeError(overall_sync_error)
+    finally:
+        reset_workspace_id(workspace_id_token)
 
 
 def sync_databricks_workspace_users_function(workspace_definition):
@@ -329,7 +334,7 @@ def sync_databricks_workspace_users_function(workspace_definition):
         return
 
     environment_name = os.environ["DataHub_ENVNAME"]
-    subscription_id = os.environ["AzureSubscriptionId"]
+    subscription_id = resolve_subscription_id(workspace_definition)
 
     workspace_client = dtb_utils.get_workspace_client(databricksHost)
 
@@ -388,6 +393,25 @@ def resolve_databricks_host_url(workspace_definition):
     return None
 
 
+def resolve_subscription_id(workspace_definition):
+    """Resolve the Azure subscription ID from the workspace message payload."""
+    workspace = workspace_definition.get("Workspace")
+    if not isinstance(workspace, dict):
+        workspace = workspace_definition.get("workspace")
+
+    if not isinstance(workspace, dict):
+        raise ValueError("Workspace definition is missing the Workspace object")
+
+    subscription_id = workspace.get("SubscriptionId")
+    if subscription_id is None:
+        subscription_id = workspace.get("subscriptionId")
+
+    if subscription_id is None or not str(subscription_id).strip():
+        raise ValueError("Workspace definition is missing SubscriptionId")
+
+    return str(subscription_id).strip()
+
+
 def sync_keyvault_workspace_users_function(workspace_definition):
     """
     Synchronizes the users in the keyvault with the users in the definition file.
@@ -401,7 +425,7 @@ def sync_keyvault_workspace_users_function(workspace_definition):
     """
     # get environment name from environment variables
     environment_name = os.environ["DataHub_ENVNAME"]
-    subscription_id = os.environ["AzureSubscriptionId"]
+    subscription_id = resolve_subscription_id(workspace_definition)
     tenantId = os.environ["AzureTenantId"]
 
     kv_client = azkv_utils.get_keyvault_client(subscription_id, tenantId)
@@ -427,12 +451,12 @@ def sync_storage_workspace_users_function(workspace_definition):
     """
     # get environment name from environment variables
     environment_name = os.environ["DataHub_ENVNAME"]
-    subscription_id = os.environ["AzureSubscriptionId"]
+    subscription_id = resolve_subscription_id(workspace_definition)
     tenantId = os.environ["AzureTenantId"]
 
     sg_client = azsg_utils.get_authorization_client(subscription_id, tenantId)
     blob_containers = ["users", "shared", "datahub"]
-    azsg_utils.synchronize_access_policies(
+    azsg_utils.synchronize_blob_access_policies(
         sg_client,
         subscription_id,
         environment_name,

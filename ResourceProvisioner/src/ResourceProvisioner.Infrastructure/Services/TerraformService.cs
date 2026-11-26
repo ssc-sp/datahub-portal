@@ -172,12 +172,62 @@ public class TerraformService(
 
         var workspaceDeletionFilePath = Path.Join(projectPath, $"delete.ps1");
 
-        var contentline1 = $"az account set --subscription {terraformWorkspace.SubscriptionId}";
-        var contentline2 = $"az group delete --name {resourcegroup} --yes";
+        var lines = new List<string>
+        {
+            $"az account set --subscription {terraformWorkspace.SubscriptionId}",
+            $"az group delete --name {resourcegroup} --yes"
+        };
+        // Azure normally removes the Databricks managed resource group with the Databricks workspace, but sometimes
+        // leaves it behind.
+        var variables = resourceProvisionerConfiguration.Value.Terraform?.Variables;
+        if (string.IsNullOrWhiteSpace(variables?.resource_prefix) ||
+            string.IsNullOrWhiteSpace(variables.environment_name))
+        {
+            logger.LogWarning("Not deleting the Databricks managed resource group of {Acronym}: resource_prefix or environment_name isn't configured",
+                terraformWorkspace.Acronym);
+        }
+        else
+        {
+            var managedRg = GetDatabricksManagedResourceGroupName(variables.resource_prefix, terraformWorkspace.Acronym,
+                variables.environment_name);
+            lines.AddRange(DeleteDatabricksManagedResourceGroupLines(terraformWorkspace.SubscriptionId, resourcegroup,
+                managedRg));
+        }
 
-        var content = $"{contentline1}\n{contentline2}";
+        var content = string.Join("\n", lines);
         await File.WriteAllTextAsync(workspaceDeletionFilePath, content);
         logger.LogInformation("Created workspace deletion file {DeletedFilePath}", workspaceDeletionFilePath);
+    }
+
+    /// <summary>
+    /// The name of the resource group Azure Databricks manages for a workspace, as the azure-databricks and
+    /// azure-databricks-enhanced modules name it: lower("${resource_prefix}-dbk-${project_cd}-${environment_name}-rg").
+    /// </summary>
+    internal static string GetDatabricksManagedResourceGroupName(string resourcePrefix, string acronym,
+        string environmentName) =>
+        $"{resourcePrefix}-dbk-{acronym}-{environmentName}-rg".ToLowerInvariant();
+
+    /// <summary>
+    /// PowerShell lines for delete.ps1 that delete the Databricks managed resource group only if it still exists and is
+    /// managed by a Databricks workspace in the workspace resource group, so workspaces without Databricks, or a group
+    /// that isn't this workspace's, are left alone. They run after the workspace resource group is deleted.
+    /// </summary>
+    internal static IEnumerable<string> DeleteDatabricksManagedResourceGroupLines(string subscriptionId,
+        string resourcegroup, string managedRg)
+    {
+        var expectedManagedBy =
+            $"/subscriptions/{subscriptionId}/resourceGroups/{resourcegroup}/providers/Microsoft.Databricks/workspaces/*";
+        return
+        [
+            $"if ((az group exists --name {managedRg}) -eq \"true\") {{",
+            $"  $managedBy = az group show --name {managedRg} --query managedBy --output tsv",
+            $"  if ($managedBy -like '{expectedManagedBy}') {{",
+            $"    az group delete --name {managedRg} --yes",
+            "  } else {",
+            $"    Write-Host \"Not deleting {managedRg}: it is managed by '$managedBy', not a Databricks workspace in {resourcegroup}\"",
+            "  }",
+            "}"
+        ];
     }
 
     public async Task DeleteTemplateAsync(string templateName, TerraformWorkspace terraformWorkspace)
@@ -360,6 +410,16 @@ public class TerraformService(
         if (variableType == TerraformVariables.ListAnyType)
         {
             return ComputeListVariableValue(terraformWorkspace, variableName);
+        }
+
+        // The subscription is chosen per workspace by the portal (unclassified or Protected B), so it must not come
+        // from configuration, which holds a single subscription for every workspace.
+        if (variableName == TerraformVariables.AzureSubscriptionId)
+        {
+            return string.IsNullOrWhiteSpace(terraformWorkspace.SubscriptionId)
+                ? throw new MissingTerraformVariableException(
+                    $"Missing variable {variableName}: workspace {terraformWorkspace.Acronym} has no subscription ID")
+                : terraformWorkspace.SubscriptionId;
         }
 
         var configValue = configuration[$"Terraform:Variables:{variableName}"];

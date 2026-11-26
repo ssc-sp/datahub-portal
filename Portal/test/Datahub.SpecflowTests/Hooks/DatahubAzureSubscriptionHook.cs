@@ -5,6 +5,7 @@ using Datahub.Core.Model.Context;
 using Datahub.Core.Model.Subscriptions;
 using Datahub.Infrastructure.Services.Security;
 using Datahub.Infrastructure.Services.Subscriptions;
+using Datahub.Metadata.Model;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.Logging.Abstractions;
@@ -58,7 +59,8 @@ public class DatahubAzureSubscriptionHook
                 {
                     TenantId = Testing.WorkspaceTenantGuid,
                     SubscriptionId = subscriptionId,
-                    SubscriptionName = Testing.SubscriptionName
+                    SubscriptionName = Testing.SubscriptionName,                    
+                    Classification = ClassificationType.Unclassified
                 });
             });
         

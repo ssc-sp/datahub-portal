@@ -476,7 +476,7 @@ DatahubAuthView.AuthLevels.Unauthorized,
             SectionViews.Repositories => Localizer["Repositories"],
             SectionViews.ArcGis => Localizer["ArcGIS"],
             SectionViews.Toolbox => Localizer["Toolbox"],
-            SectionViews.Users => Localizer["Users"],
+            SectionViews.Users => Localizer["GC Users"],
             SectionViews.ExternalUsers => Localizer["External Users"],
             SectionViews.Metadata => Localizer["Metadata"],
             SectionViews.Reports => Localizer["Reports"],
@@ -517,18 +517,18 @@ DatahubAuthView.AuthLevels.Unauthorized,
         {
             SectionViews.Dashboard => true,
             SectionViews.Healthcheck => true,
-            SectionViews.Databricks => _project.Resources.Any(r => r.ResourceType ==
-TerraformTemplate.GetTerraformServiceType(TerraformTemplate.AzureDatabricks) && r.Status != TerraformStatus.Deleted),
+            SectionViews.Databricks => _project.Resources.Any(r =>
+TerraformTemplate.AzureDatabricksServiceTypes.Contains(r.ResourceType) && r.Status != TerraformStatus.Deleted),
             SectionViews.Storage => _isExternalUser || _project.Resources.Any(r =>
 TerraformTemplate.WorkspaceTemplateServiceTypes.Contains(r.ResourceType) && r.Status != TerraformStatus.Deleted),
             SectionViews.Publishing => _datahubPortalConfiguration.CkanConfiguration.IsFeatureEnabled && _project.Resources.Any(r =>
 r.ResourceType == TerraformTemplate.GetTerraformServiceType(TerraformTemplate.NewProjectTemplate)),
-            SectionViews.WebApp => _project.Resources.Any(r => r.ResourceType ==
-TerraformTemplate.GetTerraformServiceType(TerraformTemplate.AzureAppService) && r.Status != TerraformStatus.Deleted),
-            SectionViews.SqlDatabase => _project.Resources.Any(r => r.ResourceType ==
-TerraformTemplate.GetTerraformServiceType(TerraformTemplate.AzurePostgres) && r.Status != TerraformStatus.Deleted),
-            SectionViews.Repositories => _project.Resources.Any(r => r.ResourceType ==
-TerraformTemplate.GetTerraformServiceType(TerraformTemplate.AzureDatabricks) && r.Status != TerraformStatus.Deleted),
+            SectionViews.WebApp => _project.Resources.Any(r =>
+TerraformTemplate.AzureAppServiceServiceTypes.Contains(r.ResourceType) && r.Status != TerraformStatus.Deleted),
+            SectionViews.SqlDatabase => _project.Resources.Any(r =>
+TerraformTemplate.AzurePostgresServiceTypes.Contains(r.ResourceType) && r.Status != TerraformStatus.Deleted),
+            SectionViews.Repositories => _project.Resources.Any(r =>
+TerraformTemplate.AzureDatabricksServiceTypes.Contains(r.ResourceType) && r.Status != TerraformStatus.Deleted),
             SectionViews.ArcGis => _project.Resources.Any(r => r.ResourceType ==
 TerraformTemplate.GetTerraformServiceType(TerraformTemplate.AzureArcGis) && r.Status != TerraformStatus.Deleted),
             _ => false
@@ -541,18 +541,18 @@ TerraformTemplate.GetTerraformServiceType(TerraformTemplate.AzureArcGis) && r.St
         {
             SectionViews.Dashboard => false,
             SectionViews.Healthcheck => false,
-            SectionViews.Databricks => !_project?.Resources.Any(r => r.ResourceType ==
-TerraformTemplate.GetTerraformServiceType(TerraformTemplate.AzureDatabricks) && r.CreatedAt.HasValue) ?? true,
+            SectionViews.Databricks => !_project?.Resources.Any(r =>
+TerraformTemplate.AzureDatabricksServiceTypes.Contains(r.ResourceType) && r.CreatedAt.HasValue) ?? true,
             SectionViews.Storage => !_isExternalUser && (!_project?.Resources.Any(r =>
 TerraformTemplate.WorkspaceTemplateServiceTypes.Contains(r.ResourceType) && r.CreatedAt.HasValue) ?? true),
             SectionViews.Publishing => !_datahubPortalConfiguration.CkanConfiguration.IsFeatureEnabled ||
 (!_project?.Resources.Any(r => r.ResourceType ==
 TerraformTemplate.GetTerraformServiceType(TerraformTemplate.NewProjectTemplate) && r.CreatedAt.HasValue) ?? true),
             SectionViews.WebApp => string.IsNullOrEmpty(_project?.WebApp_URL),
-            SectionViews.SqlDatabase => !_project?.Resources.Any(r => r.ResourceType ==
-TerraformTemplate.GetTerraformServiceType(TerraformTemplate.AzurePostgres) && r.CreatedAt.HasValue) ?? true,
-            SectionViews.Repositories => !_project?.Resources.Any(r => r.ResourceType ==
-TerraformTemplate.GetTerraformServiceType(TerraformTemplate.AzureDatabricks) && r.CreatedAt.HasValue) ?? true,
+            SectionViews.SqlDatabase => !_project?.Resources.Any(r =>
+TerraformTemplate.AzurePostgresServiceTypes.Contains(r.ResourceType) && r.CreatedAt.HasValue) ?? true,
+            SectionViews.Repositories => !_project?.Resources.Any(r =>
+TerraformTemplate.AzureDatabricksServiceTypes.Contains(r.ResourceType) && r.CreatedAt.HasValue) ?? true,
             SectionViews.ArcGis => !_project?.Resources.Any(r => r.ResourceType ==
 TerraformTemplate.GetTerraformServiceType(TerraformTemplate.AzureArcGis) && r.CreatedAt.HasValue) ?? true,
             _ => true

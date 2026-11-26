@@ -5,6 +5,7 @@ using Datahub.Core.Model.Context;
 using Datahub.Core.Model.Projects;
 using Datahub.Core.Model.Subscriptions;
 using Datahub.Infrastructure.Services;
+using Datahub.Metadata.Model;
 using Microsoft.EntityFrameworkCore;
 
 namespace Datahub.Infrastructure.UnitTests.Services;
@@ -60,7 +61,7 @@ public class SubnetPoolServiceTests
             VNetName = "vnet",
             Subscription = new DatahubAzureSubscription
             {
-                TenantId = "tenant", SubscriptionId = "sub", SubscriptionName = "Test subscription"
+                TenantId = "tenant", SubscriptionId = "sub", SubscriptionName = "Test subscription", Classification = ClassificationType.Unclassified
             }
         };
         ctx.Subnets.AddRange(groups.Select(g => new Subnet { SubnetName = $"group-{g}", SubnetGroup = g, VNet = vnet }));

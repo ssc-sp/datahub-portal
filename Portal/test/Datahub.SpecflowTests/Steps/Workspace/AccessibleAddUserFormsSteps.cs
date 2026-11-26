@@ -29,8 +29,10 @@ public class AccessibleAddUserFormsSteps : BunitTestSteps, IDisposable
     private IRenderedComponent<AddNewEntraUsersToProjectForm>? _entraForm;
     private IRenderedComponent<AddNewExternalUsersToProjectForm>? _externalForm;
     private IMSGraphService? _graphService;
-    private List<ProjectUserAddEntraUserCommand>? _completedEntraUsers;
+    private IProjectUserManagementService? _projectUserManagementService;
+    private bool _entraFormCompleted;
     private bool _cancelled;
+    private IDbContextFactory<DatahubProjectDBContext>? _externalDbContextFactory;
 
     [Given("the Entra add-user form is rendered")]
     public void GivenTheEntraAddUserFormIsRendered()
@@ -46,12 +48,34 @@ public class AccessibleAddUserFormsSteps : BunitTestSteps, IDisposable
         _graphService.GetUsersListAsync(Arg.Any<string>(), Arg.Any<CancellationToken>())
             .Returns(new Dictionary<string, GraphUser> { [graphUser.Id] = graphUser });
         Services.AddSingleton(_graphService);
-        Services.AddSingleton(Substitute.For<IUserInformationService>());
+        var userInformationService = Substitute.For<IUserInformationService>();
+        userInformationService.GetCurrentPortalUserAsync().Returns(new PortalUser
+        {
+            Id = 7,
+            Email = "workspace.admin@example.gc.ca"
+        });
+        userInformationService.GetEntraUserAsync(graphUser.Id).Returns(new PortalUser
+        {
+            Email = graphUser.Mail,
+            DisplayName = graphUser.DisplayName
+        });
+        Services.AddSingleton(userInformationService);
+        _projectUserManagementService = Substitute.For<IProjectUserManagementService>();
+        _projectUserManagementService.ProcessProjectUserCommandsAsync(
+                Arg.Any<List<ProjectUserUpdateCommand>>(),
+                Arg.Any<List<ProjectUserAddEntraUserCommand>>(),
+                Arg.Any<string>())
+            .Returns(true);
+        Services.AddSingleton(_projectUserManagementService);
+        Services.AddSingleton(Substitute.For<ISnackbar>());
+        var cultureService = Substitute.For<ICultureService>();
+        cultureService.IsFrench.Returns(false);
+        Services.AddSingleton(cultureService);
 
         _entraForm = Render<AddNewEntraUsersToProjectForm>(parameters => parameters
             .Add(form => form.ProjectAcronym, "TEST")
             .Add(form => form.CurrentProjectUsers, [])
-            .Add(form => form.OnCompleted, users => _completedEntraUsers = users)
+            .Add(form => form.OnCompleted, () => _entraFormCompleted = true)
             .Add(form => form.OnCancelled, () => _cancelled = true));
     }
 
@@ -67,7 +91,8 @@ public class AccessibleAddUserFormsSteps : BunitTestSteps, IDisposable
             context.Project_Roles.AddRange(Project_Role.GetAll().Where(role => role.IsExternalRole));
             context.SaveChanges();
         }
-        Services.AddSingleton<IDbContextFactory<DatahubProjectDBContext>>(new SpecFlowDbContextFactory(options));
+        _externalDbContextFactory = new SpecFlowDbContextFactory(options);
+        Services.AddSingleton<IDbContextFactory<DatahubProjectDBContext>>(_externalDbContextFactory);
         Services.AddSingleton(Substitute.For<IUserInformationService>());
         Services.AddSingleton(Substitute.For<IExternalUserInvitationService>());
         Services.AddSingleton(Substitute.For<ISnackbar>());
@@ -119,6 +144,16 @@ public class AccessibleAddUserFormsSteps : BunitTestSteps, IDisposable
         stepper.Markup.Should().Contain("Enter the user's primary email address");
     }
 
+    [Then("the Entra add-user form announces step 1 of 3")]
+    public void ThenTheEntraAddUserFormAnnouncesStepOneOfThree()
+    {
+        ArgumentNullException.ThrowIfNull(_entraForm);
+        var stepper = _entraForm.FindComponent<GcdsStepper>();
+        stepper.Instance.CurrentStep.Should().Be(1);
+        stepper.Instance.TotalSteps.Should().Be(3);
+        stepper.Markup.Should().Contain("Enter the user's GC email address");
+    }
+
     [Then("the add-user form actions use button semantics")]
     public void ThenTheAddUserFormActionsUseButtonSemantics()
     {
@@ -127,7 +162,7 @@ public class AccessibleAddUserFormsSteps : BunitTestSteps, IDisposable
         cancelButton.Instance.Type.Should().Be(GcdsButtonType.Button);
 
         var forwardButton = buttons.Single(button =>
-            button.Markup.Contains(_entraForm is not null ? "Add New Users" : "Next", StringComparison.Ordinal));
+            button.Markup.Contains("Next", StringComparison.Ordinal));
         forwardButton.Instance.Type.Should().Be(GcdsButtonType.Button);
     }
 
@@ -138,7 +173,7 @@ public class AccessibleAddUserFormsSteps : BunitTestSteps, IDisposable
         {
             _entraForm.FindComponents<MudAutocomplete<string>>().Should().BeEmpty();
             _entraForm.FindComponents<GcdsInput>().Should().ContainSingle();
-            _entraForm.FindComponents<GcdsButton>().Should().HaveCount(3);
+            _entraForm.FindComponents<GcdsButton>().Should().HaveCount(2);
             return;
         }
 
@@ -193,12 +228,12 @@ public class AccessibleAddUserFormsSteps : BunitTestSteps, IDisposable
         errorMessage.Markup.Should().Contain("Please enter a valid GC email address");
     }
 
-    [Then("no Entra user is pending")]
-    public void ThenNoEntraUserIsPending()
+    [Then("the Entra form remains on the email step")]
+    public void ThenTheEntraFormRemainsOnTheEmailStep()
     {
         ArgumentNullException.ThrowIfNull(_entraForm);
-        _entraForm.FindAll(".pending-user-card").Should().BeEmpty();
-        FindButton(_entraForm, "Add New Users").Instance.Disabled.Should().BeTrue();
+        _entraForm.FindComponent<GcdsStepper>().Instance.CurrentStep.Should().Be(1);
+        _entraForm.FindComponents<GcdsSelect>().Should().BeEmpty();
     }
 
     [Then("Entra ID was not searched")]
@@ -209,25 +244,15 @@ public class AccessibleAddUserFormsSteps : BunitTestSteps, IDisposable
             .GetUsersListAsync(Arg.Any<string>(), Arg.Any<CancellationToken>());
     }
 
-    [Then("the pending Entra user is displayed as an accessible list item")]
-    public void ThenThePendingEntraUserIsDisplayedAsAnAccessibleListItem()
+    [Then("the Entra role step is displayed")]
+    public void ThenTheEntraRoleStepIsDisplayed()
     {
         ArgumentNullException.ThrowIfNull(_entraForm);
-        _entraForm.FindAll("table").Should().BeEmpty();
-
-        var heading = _entraForm.Find("#pending-users-heading");
-        heading.TagName.Should().Be("GCDS-HEADING");
-        heading.GetAttribute("tag").Should().Be("h3");
-        heading.TextContent.Trim().Should().Be("Users to be added:");
-
-        var list = _entraForm.Find("ul.pending-user-list");
-        list.GetAttribute("aria-labelledby").Should().Be("pending-users-heading");
-        var listItem = list.Children.Should().ContainSingle().Which;
-        listItem.TagName.Should().Be("LI");
-        var legend = listItem.QuerySelector("fieldset legend");
-        legend.Should().NotBeNull();
-        legend!.TextContent.Trim().Should().Be("Test User");
-        listItem.QuerySelector("gcds-select").Should().NotBeNull();
+        var stepper = _entraForm.FindComponent<GcdsStepper>();
+        stepper.Instance.CurrentStep.Should().Be(2);
+        stepper.Markup.Should().Contain("Select the user's role");
+        _entraForm.FindComponent<GcdsSelect>().Instance.Id.Should().Be("entra-user-role");
+        _entraForm.Markup.Should().Contain("Test User");
     }
 
     [When("the Entra user's role is changed to Collaborator")]
@@ -242,20 +267,47 @@ public class AccessibleAddUserFormsSteps : BunitTestSteps, IDisposable
         await roleSelect.InvokeAsync(() => roleSelect.Instance.ValueChanged.InvokeAsync(collaboratorRoleId));
     }
 
+    [When("the Entra add-user form advances to review")]
+    public async Task WhenTheEntraAddUserFormAdvancesToReview()
+    {
+        ArgumentNullException.ThrowIfNull(_entraForm);
+        var button = FindButton(_entraForm, "Next");
+        await button.InvokeAsync(() => button.Instance.OnClick.InvokeAsync(default));
+    }
+
+    [Then("the Entra user and role are shown for review")]
+    public void ThenTheEntraUserAndRoleAreShownForReview()
+    {
+        ArgumentNullException.ThrowIfNull(_entraForm);
+        var stepper = _entraForm.FindComponent<GcdsStepper>();
+        stepper.Instance.CurrentStep.Should().Be(3);
+        stepper.Markup.Should().Contain("Review and confirm");
+        _entraForm.Markup.Should().Contain("Test User");
+        _entraForm.Markup.Should().Contain("test.user@example.gc.ca");
+        _entraForm.Markup.Should().Contain("Collaborator");
+    }
+
     [When("the Entra add-user form is submitted")]
     public async Task WhenTheEntraAddUserFormIsSubmitted()
     {
         ArgumentNullException.ThrowIfNull(_entraForm);
         var button = _entraForm.FindComponents<GcdsButton>()
-            .Single(candidate => candidate.Markup.Contains("Add New Users", StringComparison.Ordinal));
+            .Single(candidate => candidate.Markup.Contains("Confirm and add user", StringComparison.Ordinal));
         await button.InvokeAsync(() => button.Instance.OnClick.InvokeAsync(default));
     }
 
     [Then("the Entra user is submitted as a Collaborator")]
     public void ThenTheEntraUserIsSubmittedAsACollaborator()
     {
-        _completedEntraUsers.Should().ContainSingle()
-            .Which.RoleId.Should().Be((int)Project_Role.RoleNames.Collaborator);
+        ArgumentNullException.ThrowIfNull(_projectUserManagementService);
+        _projectUserManagementService.Received(1).ProcessProjectUserCommandsAsync(
+            Arg.Is<List<ProjectUserUpdateCommand>>(updates => updates.Count == 0),
+            Arg.Is<List<ProjectUserAddEntraUserCommand>>(users =>
+                users.Count == 1
+                && users[0].Email == "test.user@example.gc.ca"
+                && users[0].RoleId == (int)Project_Role.RoleNames.Collaborator),
+            "7");
+        _entraFormCompleted.Should().BeTrue();
     }
 
     [When("a valid external email address is entered")]
@@ -267,6 +319,48 @@ public class AccessibleAddUserFormsSteps : BunitTestSteps, IDisposable
 
         _externalForm.WaitForAssertion(() =>
             FindButton(_externalForm, "Next").Instance.Disabled.Should().BeFalse());
+    }
+
+    [Given("a deactivated external user with email {string} exists")]
+    public async Task GivenADeactivatedExternalUserExists(string email)
+    {
+        ArgumentNullException.ThrowIfNull(_externalDbContextFactory);
+        await using var context = await _externalDbContextFactory.CreateDbContextAsync();
+        var portalUser = new PortalUser
+        {
+            Email = email,
+            DisplayName = "Deactivated User"
+        };
+        portalUser.ExternalUser = new ExternalUser
+        {
+            FirstName = "Deactivated",
+            LastName = "User",
+            Organization = "SSC",
+            UserExpiryDate = DateTimeOffset.UtcNow.AddDays(-1),
+            UserDeactivatedAt = DateTimeOffset.UtcNow.AddDays(-2),
+            PortalUser = portalUser
+        };
+        context.PortalUsers.Add(portalUser);
+        await context.SaveChangesAsync();
+    }
+
+    [When("the external email {string} is entered")]
+    public async Task WhenTheExternalEmailIsEntered(string email)
+    {
+        ArgumentNullException.ThrowIfNull(_externalForm);
+        var emailField = _externalForm.FindComponent<GcdsInput>();
+        await emailField.InvokeAsync(() => emailField.Instance.ValueChanged.InvokeAsync(email));
+    }
+
+    [Then("the form identifies a deactivated user")]
+    public void ThenTheFormIdentifiesADeactivatedUser()
+    {
+        ArgumentNullException.ThrowIfNull(_externalForm);
+        _externalForm.WaitForAssertion(() =>
+        {
+            _externalForm.Markup.Should().Contain("Deactivated user found");
+            _externalForm.Markup.Should().Contain("Access will be restored after the invitation is accepted");
+        });
     }
 
     [When("the external add-user form advances to user details")]
@@ -313,6 +407,16 @@ public class AccessibleAddUserFormsSteps : BunitTestSteps, IDisposable
             .Be(System.Linq.Expressions.ExpressionType.MemberAccess);
         dateInput.Instance.Min.Should().Be(
             DateTime.Today.AddDays(1).ToString("yyyy-MM-dd", CultureInfo.InvariantCulture));
+    }
+
+    [Then("the reactivation account expiry is editable and in the future")]
+    public void ThenTheReactivationAccountExpiryIsEditableAndInTheFuture()
+    {
+        ArgumentNullException.ThrowIfNull(_externalForm);
+        var dateInput = _externalForm.FindComponent<GcdsDateInput>();
+        dateInput.Instance.Disabled.Should().BeFalse();
+        DateTime.ParseExact(dateInput.Instance.Value!, "yyyy-MM-dd", CultureInfo.InvariantCulture)
+            .Should().BeAfter(DateTime.Today);
     }
 
     [Then("the external account expiry only accepts future dates")]
@@ -372,8 +476,8 @@ public class AccessibleAddUserFormsSteps : BunitTestSteps, IDisposable
         var emailInput = _entraForm.FindComponent<GcdsInput>();
 
         await emailInput.InvokeAsync(() => emailInput.Instance.ValueChanged.InvokeAsync(email));
-        var addButton = FindButton(_entraForm, "Add user");
-        await addButton.InvokeAsync(() => addButton.Instance.OnClick.InvokeAsync(default));
+        var nextButton = FindButton(_entraForm, "Next");
+        await nextButton.InvokeAsync(() => nextButton.Instance.OnClick.InvokeAsync(default));
     }
 
     private IReadOnlyList<IRenderedComponent<GcdsButton>> GetButtonsInCurrentForm()

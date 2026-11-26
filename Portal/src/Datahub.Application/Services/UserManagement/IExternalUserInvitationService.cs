@@ -34,6 +34,20 @@ public interface IExternalUserInvitationService
         CancellationToken cancellationToken = default);
 
     /// <summary>
+    /// Creates an invitation that will reactivate a deactivated external user when accepted.
+    /// </summary>
+    Task<WorkspaceInvitation> CreateReactivationInvitationAsync(
+        int externalUserId,
+        string projectAcronym,
+        string invitedEmail,
+        string invitationRationale,
+        int projectRoleId,
+        DateTimeOffset accountExpiry,
+        PortalUser inviter,
+        Func<WorkspaceInvitation, (string enURL, string frURL)> GetCodeAcceptancePageUrl,
+        CancellationToken cancellationToken = default);
+
+    /// <summary>
     /// Determines whether the specified invitation token is expired.
     /// </summary>
     /// <param name="invitationToken">The unique identifier of the invitation token to validate.</param>

@@ -3,6 +3,8 @@
 @using Datahub.Core.Components.Code
 @using Datahub.Portal.Pages.Workspace.Storage.Container
 @using Datahub.Core.Storage
+@using Datahub.Core.Model.Projects
+@using Datahub.Metadata.Model
 @using Datahub.Portal.Components.User
 
 
@@ -54,6 +56,9 @@ else
     [CascadingParameter(Name = "ProjectAcronym")]
     public string ProjectAcronym { get; set; }
 
+    [CascadingParameter(Name = "Project")]
+    public Datahub_Project? Project { get; set; }
+
     [Parameter]
     public string DisplayName { get; set; }
 
@@ -80,7 +85,8 @@ else
                 TryAdd(_properties, Localizer["Account Kind"], azureMetadata.StorageAccountType);
                 TryAdd(_properties, Localizer["Replication"], azureMetadata.GeoRedundancy);
                 TryAdd(_properties, Localizer["Versioning"], azureMetadata.Versioning ? "True" : "False");
-                TryAdd(_properties, Localizer["Url"], (azureMetadata.Url, @<InlineCodeWithCopy>@azureMetadata.Url</InlineCodeWithCopy>));
+                if (Project?.Data_Sensitivity != ClassificationType.ProtectedB)
+                    TryAdd(_properties, Localizer["Url"], (azureMetadata.Url, @<InlineCodeWithCopy>@azureMetadata.Url</InlineCodeWithCopy>));
             }
 
             _loading = false;

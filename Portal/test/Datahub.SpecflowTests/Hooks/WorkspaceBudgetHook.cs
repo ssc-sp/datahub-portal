@@ -15,6 +15,7 @@ using Datahub.Core.Model.Context;
 using Datahub.Core.Model.Projects;
 using Datahub.Core.Model.Subscriptions;
 using Datahub.Infrastructure.Services.Cost;
+using Datahub.Metadata.Model;
 using Datahub.Shared.Entities;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Configuration;
@@ -109,6 +110,7 @@ namespace Datahub.SpecflowTests.Hooks
                 TenantId = Testing.WorkspaceTenantGuid,
                 SubscriptionId = Testing.WorkspaceSubscriptionGuid,
                 SubscriptionName = Testing.SubscriptionName,
+                Classification = ClassificationType.Unclassified
             };
             context.AzureSubscriptions.Add(sub);
             context.SaveChanges();

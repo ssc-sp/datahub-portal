@@ -3,6 +3,7 @@ using Datahub.Core.Model.Onboarding;
 using Datahub.Core.Model.Projects;
 using Datahub.Core.Model.Subscriptions;
 using Datahub.Core.Model.Users;
+using Datahub.Metadata.Model;
 using Datahub.Shared;
 using Datahub.Shared.Entities;
 using Microsoft.EntityFrameworkCore;
@@ -28,7 +29,8 @@ public static class GenerateWorkspaceHelper
             Nickname = "Test Subscription",
             TenantId = Testing.WorkspaceTenantGuid,
             SubscriptionId = Testing.WorkspaceSubscriptionGuid,
-            SubscriptionName = Testing.SubscriptionName
+            SubscriptionName = Testing.SubscriptionName,
+            Classification = ClassificationType.Unclassified
         };
         ctx.AzureSubscriptions.Add(datahubAzureSubscription);
         await ctx.SaveChangesAsync();
