@@ -3,6 +3,12 @@
 Privilege names are API tokens aligned with Databricks Unity Catalog GRANT semantics.
 """
 
+# Databricks account groups API, called through the workspace host (same endpoint the Terraform modules use).
+ACCOUNT_GROUPS_API_PATH = "/api/2.0/account/scim/v2/Groups"
+
+# SCIM 2.0 (RFC 7644) schema required in every PATCH request body.
+SCIM_PATCH_OP_SCHEMA = "urn:ietf:params:scim:api:messages:2.0:PatchOp"
+
 # Role-level privilege presets requested by product semantics.
 UNITY_CATALOG_ROLE_PRESET = {
     "Owner": "ALL_PRIVILEGES",

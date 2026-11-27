@@ -295,21 +295,21 @@ tracing = ["opentelemetry-api (>=1.26,<2.0)"]
 
 [[package]]
 name = "azure-functions"
-version = "1.25.0"
+version = "1.26.0"
 description = "Python library for Azure Functions."
 optional = false
-python-versions = ">=3.10"
+python-versions = "<3.13,>=3.10"
 groups = ["main"]
 files = [
-    {file = "azure_functions-1.25.0-py3-none-any.whl", hash = "sha256:0d01e52c0871a01a65911bc163a0dfd7f09725ba43cea17a09909cc5d298c1d2"},
-    {file = "azure_functions-1.25.0.tar.gz", hash = "sha256:3c737657110b6cfd14e6871515ab66c377b9ceecaca8dcbf5b391d2433424756"},
+    {file = "azure_functions-1.26.0-py3-none-any.whl", hash = "sha256:4d97c30716a14db3b584dfe0dd72df5ea38adb922ad5ca046e4b0af0a309ddcb"},
+    {file = "azure_functions-1.26.0.tar.gz", hash = "sha256:f4aad4a401bdc7833cce4c17352ce410fc4e419dcc6ece5f02247fdee3fbb838"},
 ]
 
 [package.dependencies]
 werkzeug = {version = ">=3.1.3,<3.2.0", markers = "python_version >= \"3.9\""}
 
 [package.extras]
-dev = ["azure-functions-durable", "coverage", "flake8 (>=4.0.1,<4.1.0) ; python_version < \"3.11\"", "flake8 (>=7.1.1,<7.2.0) ; python_version >= \"3.11\"", "flake8-docstrings", "pre-commit", "pytest", "pytest-cov", "pytest-instafail"]
+dev = ["azure-functions-durable", "coverage", "flake8 (>=4.0.1,<4.1.0) ; python_version < \"3.11\"", "flake8 (>=7.1.1,<7.2.0) ; python_version >= \"3.11\"", "flake8-docstrings", "mcp", "pre-commit", "pytest", "pytest-cov", "pytest-instafail"]
 
 [[package]]
 name = "azure-graphrbac"

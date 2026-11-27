@@ -3,6 +3,38 @@
 <!-- markdownlint-disable MD024 -->
 # Changelog
 
+## [10.5.0](https://github.com/ssc-sp/datahub-portal/compare/v10.4.0...v10.5.0) (2026-11-26)
+
+
+### Features
+
+* add pipeline monitoring persistence foundation (AB[#4665](https://github.com/ssc-sp/datahub-portal/issues/4665)) ([#2198](https://github.com/ssc-sp/datahub-portal/issues/2198)) ([0ed3833](https://github.com/ssc-sp/datahub-portal/commit/0ed383371adfbba6cdc3e5d089a354eccd1aa9f9))
+* Portal pipeline improvements ([#2168](https://github.com/ssc-sp/datahub-portal/issues/2168)) ([483fb04](https://github.com/ssc-sp/datahub-portal/commit/483fb0489daa43e7afa63f314bb8e74c912ee950))
+* Protected B subscriptions for PB workspaces ([#2203](https://github.com/ssc-sp/datahub-portal/issues/2203)) ([7d7314d](https://github.com/ssc-sp/datahub-portal/commit/7d7314d992f31851b31d04cc4b30e1080224c9b6))
+* Simplifying the invitation UI for GC users and aligning it with external users ([#2197](https://github.com/ssc-sp/datahub-portal/issues/2197)) ([89063dd](https://github.com/ssc-sp/datahub-portal/commit/89063dd99b74a94dd149bc5cd03c471a0c3658a3))
+
+
+### Bug Fixes
+
+* Adding a module version only upgrades workspaces when opted in ([#2202](https://github.com/ssc-sp/datahub-portal/issues/2202)) ([031f182](https://github.com/ssc-sp/datahub-portal/commit/031f182c66c7ecf397745eb486c416bc8d8e2cdf))
+* Adding the ability for workspace leads to reactivate external users ([#2187](https://github.com/ssc-sp/datahub-portal/issues/2187)) ([52a18c7](https://github.com/ssc-sp/datahub-portal/commit/52a18c78036c318dac0a3d724c12c3ab2d4a8df5))
+* bug fixes for subscription editor and workspace settings in PB ([#2207](https://github.com/ssc-sp/datahub-portal/issues/2207)) ([e089b2f](https://github.com/ssc-sp/datahub-portal/commit/e089b2fb300ecd9a34e880443ad9d74f66519be1))
+* Deleting a workspace also deletes its leftover Databricks managed resource group ([#2206](https://github.com/ssc-sp/datahub-portal/issues/2206)) ([c5a0e4d](https://github.com/ssc-sp/datahub-portal/commit/c5a0e4db31c673fb8d32656e4556d3566c04f07a))
+* **deps:** update .net core & extensions ([#2194](https://github.com/ssc-sp/datahub-portal/issues/2194)) ([25540c8](https://github.com/ssc-sp/datahub-portal/commit/25540c8fbdb83b4e2745cf73f2eccd07081e391c))
+* **deps:** update masstransit ecosystem to 8.5.12 ([#2195](https://github.com/ssc-sp/datahub-portal/issues/2195)) ([53dc034](https://github.com/ssc-sp/datahub-portal/commit/53dc03493522231fdd2d794d7f6ad5070e68d34d))
+* **deps:** update miscellaneous dependencies ([#2039](https://github.com/ssc-sp/datahub-portal/issues/2039)) ([7f0e96d](https://github.com/ssc-sp/datahub-portal/commit/7f0e96db615b6c8874e39ab8903ecb0800c2d193))
+* fixed subscription source for storage sync and storage account permissions  ([#2205](https://github.com/ssc-sp/datahub-portal/issues/2205)) ([c28873c](https://github.com/ssc-sp/datahub-portal/commit/c28873ca1cb7e145ce440e5488394d71d202f2f5))
+* Fixing a typo on the external users page ([#2217](https://github.com/ssc-sp/datahub-portal/issues/2217)) ([0fbaeef](https://github.com/ssc-sp/datahub-portal/commit/0fbaeefbc8e12b21ca54f6ad59daa32899f8063a))
+* hide storage URL for Protected B workspaces ([#2215](https://github.com/ssc-sp/datahub-portal/issues/2215)) ([d46ba36](https://github.com/ssc-sp/datahub-portal/commit/d46ba36d933c8156c11646a4c5abcfadbdb7e367))
+* missing reflection methods ([#2213](https://github.com/ssc-sp/datahub-portal/issues/2213)) ([8df8b62](https://github.com/ssc-sp/datahub-portal/commit/8df8b625d95a56eefd90cb2059c156aec7438e3d))
+* Output handler marks Protected B workspace tools as deployed (AB[#5117](https://github.com/ssc-sp/datahub-portal/issues/5117)) ([#2201](https://github.com/ssc-sp/datahub-portal/issues/2201)) ([739c958](https://github.com/ssc-sp/datahub-portal/commit/739c9586913586a3eef56aed0433970d85d94064))
+* Protected B workspace tools appear in the workspace sidebar and pages ([#2210](https://github.com/ssc-sp/datahub-portal/issues/2210)) ([2b473e2](https://github.com/ssc-sp/datahub-portal/commit/2b473e254922b670b41421f0a98527918f5a9a0c))
+* Putting the invite new users description on a new line ([#2211](https://github.com/ssc-sp/datahub-portal/issues/2211)) ([f9d5c1f](https://github.com/ssc-sp/datahub-portal/commit/f9d5c1f9c697eed10ff3daad4d3ac715932e2267))
+* python function did not assign contributor role correctly ([#2208](https://github.com/ssc-sp/datahub-portal/issues/2208)) ([b6b2638](https://github.com/ssc-sp/datahub-portal/commit/b6b2638bee6a71101e5716d9aa7a11366d459298))
+* Resource Provisioner uses the workspace's module version tag instead of main  ([#2200](https://github.com/ssc-sp/datahub-portal/issues/2200)) ([161e8bd](https://github.com/ssc-sp/datahub-portal/commit/161e8bd62e743e463bb6799090a716e7e41d490e))
+* Resource Provisioner uses the workspace's subscription instead of the configured one ([#2212](https://github.com/ssc-sp/datahub-portal/issues/2212)) ([a7c3437](https://github.com/ssc-sp/datahub-portal/commit/a7c3437fb56d017c277fec16890f51783cad68a5))
+* Updating external users page formatting and language for GC users ([#2214](https://github.com/ssc-sp/datahub-portal/issues/2214)) ([15332bf](https://github.com/ssc-sp/datahub-portal/commit/15332bf60a35df4f90e371a88bf9eef212194cab))
+
 ## [10.4.0](https://github.com/ssc-sp/datahub-portal/compare/v10.3.0...v10.4.0) (2026-11-13)
 
 
