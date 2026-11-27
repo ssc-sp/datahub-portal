@@ -66,42 +66,55 @@
         }
         <MudSpacer />
         <nav>
-            <ul style=@CardActionListStyle>
-				@foreach (var tool in IsEntraUser ? EntraToolActions : ExternalToolActions)
-                {
-                    @if (ToolExists(tool))
+            @if (HasAdditionalActions)
+            {
+                <ul style=@CardActionListStyle>
+                    @foreach (var tool in IsEntraUser ? EntraToolActions : ExternalToolActions)
+                    {
+                        @if (ToolExists(tool))
+                        {
+                            <li style=@CardActionStyle>
+                                <DHButton Underline NoWrap FullWidth
+                                          Color="Color.Primary"
+                                          Href=@ToolLink(tool)
+                                          EndIcon=@Icons.Material.Filled.KeyboardDoubleArrowRight>
+                                    @ToolLabel(tool)
+                                </DHButton>
+                            </li>
+                        }
+                    }
+                    @if (ShowCost && CostBarColor() != Color.Primary)
                     {
                         <li style=@CardActionStyle>
                             <DHButton Underline NoWrap FullWidth
                                       Color="Color.Primary"
-                                      Href=@ToolLink(tool)
-                                      EndIcon=@Icons.Material.Filled.KeyboardDoubleArrowRight>
-                                @ToolLabel(tool)
+                                      Href="@($"/{PageRoutes.WorkspacePrefix}/{Workspace.Project_Acronym_CD}/{WorkspaceSidebar.SectionViews.Reports}")"
+                                      EndIcon="@Icons.Material.Filled.KeyboardDoubleArrowRight">
+                                @Localizer["Reports"]
                             </DHButton>
                         </li>
                     }
-                }
-                @if (ShowCost && CostBarColor() != Color.Primary)
-                {
-                    <li style=@CardActionStyle>
+                    <li style=@CardMainActionStyle>
                         <DHButton Underline NoWrap FullWidth
                                   Color="Color.Primary"
-                                  Href="@($"/{PageRoutes.WorkspacePrefix}/{Workspace.Project_Acronym_CD}/{WorkspaceSidebar.SectionViews.Reports}")"
+                                  Variant="Variant.Outlined"
+                                  Href="@($"/{PageRoutes.WorkspacePrefix}/{Workspace?.Project_Acronym_CD}")"
                                   EndIcon="@Icons.Material.Filled.KeyboardDoubleArrowRight">
-                            @Localizer["Reports"]
+                            @Localizer["View workspace"]
                         </DHButton>
                     </li>
-                }
-                <li style=@CardMainActionStyle>
-                    <DHButton Underline NoWrap FullWidth
-                              Color="Color.Primary"
-                              Variant="Variant.Outlined"
-                              Href="@($"/{PageRoutes.WorkspacePrefix}/{Workspace?.Project_Acronym_CD}")"
-                              EndIcon="@Icons.Material.Filled.KeyboardDoubleArrowRight">
-                        @Localizer["View workspace"]
-                    </DHButton>
-                </li>
-            </ul>
+                </ul>
+            }
+            else
+            {
+                <DHButton Underline NoWrap FullWidth
+                          Color="Color.Primary"
+                          Variant="Variant.Outlined"
+                          Href="@($"/{PageRoutes.WorkspacePrefix}/{Workspace?.Project_Acronym_CD}")"
+                          EndIcon="@Icons.Material.Filled.KeyboardDoubleArrowRight">
+                    @Localizer["View workspace"]
+                </DHButton>
+            }
         </nav>
     </MudStack>
     @if (ShowCost)
@@ -200,6 +213,8 @@
 	private int NumberOfRepositories => Workspace?.Repositories?.Count ?? 0;
 	private static List<string> EntraToolActions => [TerraformTemplate.NewProjectTemplate, TerraformTemplate.AzureDatabricks, TerraformTemplate.AzurePostgres, TerraformTemplate.AzureAppService];
 	private static List<string> ExternalToolActions => [TerraformTemplate.NewProjectTemplate, TerraformTemplate.AzureAppService];
+	private bool HasAdditionalActions => (IsEntraUser ? EntraToolActions : ExternalToolActions).Any(ToolExists)
+		|| (ShowCost && CostBarColor() != Color.Primary);
 	private Tuple<decimal, decimal> WorkspaceUsage => ShowCost ? new Tuple<decimal, decimal>(Workspace.Credits == null ? 0 : (decimal)Workspace.Credits.Current, Workspace.Project_Budget ?? 100) : null;
 
 	protected override async Task OnParametersSetAsync()
