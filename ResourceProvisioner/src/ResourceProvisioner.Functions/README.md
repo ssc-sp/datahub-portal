@@ -211,4 +211,11 @@ All settings live in `local.settings.json` (local dev) or Azure Function App set
    func start
    ```
 
+Some Terraform variables differ by environment and aren't in the settings template, for example `psql_dns_zone_id`, which only Protected B Postgres (`azure-postgres-enhanced`) needs. To provision those tools locally, set the variable in the shell before starting the host instead of adding it to a settings file:
+
+```powershell
+$env:Terraform__Variables__psql_dns_zone_id = "<resource ID of the environment's fsdh.private.postgres.database.azure.com private DNS zone>"
+func start
+```
+
 To send a test message, publish a JSON envelope (see [Message format](#message-format) above) to the `resource-run-request` queue on your Service Bus namespace.
