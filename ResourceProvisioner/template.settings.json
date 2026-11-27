@@ -55,6 +55,7 @@
       "vnet_name": "g2dc-cto_fsdh_seed-rg",
       "vnet_rg": "g2dc-cto_fsdh_seed-rg",
       "subnet_name_prefix": "fsdh-dbr",
+      "psql_dns_zone_id": "/subscriptions/487842c9-eab7-4873-ac07-6fbf6ef9d720/resourceGroups/g2dc-cto_fsdh_seed-rg/providers/Microsoft.Network/privateDnsZones/fsdh.private.postgres.database.azure.com",
       "service_bus_id": "overwritten-by-terraform",
       "common_tags": {
         "Sector": "Science Program",

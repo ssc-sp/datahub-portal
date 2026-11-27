@@ -1,3 +1,4 @@
+using Datahub.Shared.Entities;
 using Polly;
 using Polly.Retry;
 using ResourceProvisioner.Application.Config;
@@ -131,14 +132,32 @@ public static class DirectoryUtils
         ); // i.e. /home/site/wwwroot/../tmp/caf2aaaf-a3d6-4518-ad8b-06c78fa8dc40/datahub-resource-modules
     }
 
+    /// <summary>
+    /// Gets the folder of a template in the checked-out module repository. If the template's folder was renamed in a
+    /// later module version (see <see cref="TerraformTemplate.RenamedTemplateFolders"/>), the folder that exists in the
+    /// checked-out version is used.
+    /// </summary>
     public static string GetTemplatePath(ResourceProvisionerConfiguration resourceProvisionerConfiguration,
         string? templateName)
     {
         if (templateName == null)
             throw new ArgumentNullException(nameof(templateName));
 
-        return Path.Join(GetModuleRepositoryPath(resourceProvisionerConfiguration),
-            resourceProvisionerConfiguration.ModuleRepository.TemplatePathPrefix, templateName);
+        var templatesPath = Path.Join(GetModuleRepositoryPath(resourceProvisionerConfiguration),
+            resourceProvisionerConfiguration.ModuleRepository.TemplatePathPrefix);
+        var templatePath = Path.Join(templatesPath, templateName);
+
+        if (!Directory.Exists(templatePath)
+            && TerraformTemplate.RenamedTemplateFolders.TryGetValue(templateName, out var renamedFolder))
+        {
+            var renamedTemplatePath = Path.Join(templatesPath, renamedFolder);
+            if (Directory.Exists(renamedTemplatePath))
+            {
+                return renamedTemplatePath;
+            }
+        }
+
+        return templatePath;
     }
 
     public static string GetProjectPath(ResourceProvisionerConfiguration resourceProvisionerConfiguration,

@@ -191,6 +191,7 @@ All settings live in `local.settings.json` (local dev) or Azure Function App set
 | `Terraform__Variables__budget_amount` | Default workspace budget in CAD |
 | `Terraform__Variables__storage_size_limit_tb` | Default storage quota in TB |
 | `Terraform__Variables__ssc_cbrid` | SSC CBRID identifier |
+| `Terraform__Variables__psql_dns_zone_id` | Resource ID of the private DNS zone for Azure Postgres (`fsdh.private.postgres.database.azure.com`). Required by the Protected B Postgres template (`azure-postgres-enhanced`) |
 | `Terraform__Variables__common_tags__Sector` | Common tag: Sector |
 | `Terraform__Variables__common_tags__Environment` | Common tag: Environment |
 | `Terraform__Variables__common_tags__ClientOrganization` | Common tag: ClientOrganization |
