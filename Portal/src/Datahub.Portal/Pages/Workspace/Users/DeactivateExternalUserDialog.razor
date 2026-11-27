@@ -6,6 +6,7 @@
 @using Datahub.Core.Model.Achievements
 @using Datahub.Core.Model.Projects
 @using Datahub.Core.Model.Users
+@using Microsoft.EntityFrameworkCore.ChangeTracking
 @inject IMSGraphService _msGraphService
 @inject IUserEnrollmentService _userEnrollmentService
 @inject IUserInformationService _userInformationService
@@ -31,14 +32,14 @@
           <DHButton Color="Color.Error" OnClick="Cancel" Variant="Variant.Filled">@Localizer["Cancel"]</DHButton>
         </MudItem>
         <MudItem xs="6" class="d-flex justify-end">
-          <DHButton Color="Color.Primary" OnClick="SaveUserChanges" Variant="Variant.Filled">@Localizer["Deactivate User"]</DHButton>
+                <DHButton Color="Color.Primary" OnClick="SaveUserChanges" Variant="Variant.Filled" Disabled="(_reasonForDeactivating == (String.Empty))">@Localizer["Deactivate User"]</DHButton>
         </MudItem>
       </MudGrid>
     </DialogActions>
 </MudDialog>
 
 @code {
-#nullable enable
+    #nullable enable
     [CascadingParameter]
     IMudDialogInstance MudDialog { get; set; } = null!;
 
@@ -50,7 +51,6 @@
 
     private string _reasonForDeactivating = string.Empty;
 
-
     private void Cancel() => MudDialog.Cancel();
 
 
@@ -58,14 +58,23 @@
     {
         await using var context = await _dbFactory.CreateDbContextAsync();
 
-        SelectedUser.PortalUser.ExternalUser.UserDeactivatedAt = DateTime.UtcNow;
-        SelectedUser.PortalUser.ExternalUser.DeactivationReason = _reasonForDeactivating;
-        SelectedUser.PortalUser.ExternalUser.DeactivatedByUser = CurrentUser;
-        // SelectedUser.DeactivatedByUserId = CurrentUser.Id;
+        var userRoleLinks = context.UserRolesLinks.Where(p => p.ProjectUser_ID == SelectedUser.ProjectUser_ID).Include(u => u.PortalUser).ThenInclude(u => u.ExternalUser).ToList();
 
-        context.Update(SelectedUser);
+        var currentUser = await context.PortalUsers
+        .FirstOrDefaultAsync(p => p.Id == CurrentUser.Id);
+
+        foreach (var userRoleLink in userRoleLinks)
+        {
+            if (userRoleLink.PortalUser.ExternalUser != null)
+            {
+                userRoleLink.PortalUser.ExternalUser.UserDeactivatedAt = DateTime.Now;
+                userRoleLink.PortalUser.ExternalUser.DeactivationReason = _reasonForDeactivating;
+                userRoleLink.PortalUser.ExternalUser.DeactivatedByUser = currentUser;
+
+                context.Update(userRoleLink);
+            }
+        }
         await context.SaveChangesAsync();
-
         UpdateProject();
     }
 

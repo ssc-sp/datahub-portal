@@ -15,14 +15,13 @@
 <MudDialog Style="min-width: 40vw; max-width: 75vw;">
     <DialogContent>
         <MudStack>
-            @if (SelectedExternalUser.PortalUser.ExternalUser.UserDeactivatedAt is not null)
+            @if (_isDeactivated)
             {
-                //IsDateDisabledFunc="@((DateTime dt) => (dt < DateTime.Today))"
-                <DHIcon Icon="Icons.Material.Outlined.Warning" Color="Color.Warning"/>
-                <MudText>@Localizer["User has been deactivated"]</MudText>
-                <MudText>@Localizer["Reason:"]</MudText>
-                <MudText>@Localizer[SelectedExternalUser.PortalUser.ExternalUser.DeactivationReason]</MudText>
-
+                <MudStack AlignItems="AlignItems.Center" Class="mt-4" Style="width: 100%">
+                    <DHIcon Icon="@Icons.Material.Filled.Error" Color="Color.Error" Size="Size.Medium"/>
+                    <MudText Typo="Typo.h5">@Localizer["User has been deactivated"]</MudText>
+                    <MudText Typo="Typo.h6">@Localizer["Reason:"] @Localizer[SelectedExternalUser.PortalUser.ExternalUser.DeactivationReason]</MudText>      
+                </MudStack>
             }
             <MudTextField T="string"
                             Class="form-control"
@@ -30,6 +29,7 @@
                             Label="@Localizer["Display name"]"
                             Required="true"
                             RequiredError="@Localizer["Name is required"]"
+                            Disabled="_isDeactivated"
                             Variant="Variant.Outlined" />
             <MudTextField T="string"
                             Class="form-control"
@@ -43,8 +43,9 @@
                             Label="@Localizer["Organization"]"
                             Required="true"
                             RequiredError="@Localizer["Name is required"]"
+                            Disabled="_isDeactivated"
                             Variant="Variant.Outlined" />
-            <MudSelect @bind-Value="role" Label="Select user role" Placeholder="Please Select">
+            <MudSelect @bind-Value="role" Label="Select user role" Placeholder="Please Select" Disabled="_isDeactivated">
                 <MudSelectItem Value="7">@Localizer["Web App"]</MudSelectItem>
                 <MudSelectItem Value="8">@Localizer["Storage"]</MudSelectItem>
                 <MudSelectItem Value="9">@Localizer["Web App and Storage"]</MudSelectItem>
@@ -52,6 +53,7 @@
             <MudDatePicker Label="Account Expiry"
                             @bind-Date="accountExpiry"
                             Required="true"
+                            Disabled="_isDeactivated"
                             ShowToolbar="false" />
         </MudStack>
     </DialogContent>
@@ -79,6 +81,7 @@
     public PortalUser CurrentUser { get; set; } = null!;
 
     private bool _changed = false;
+    private bool _isDeactivated = false;
     private string name = string.Empty;
     private string email = string.Empty;
     private string organization = string.Empty;
@@ -92,6 +95,7 @@
     {
         name = SelectedExternalUser.PortalUser.DisplayName ?? "UNKNOWN";
         email = SelectedExternalUser.PortalUser.Email;
+        _isDeactivated = (SelectedExternalUser.PortalUser.ExternalUser.UserDeactivatedAt != null);
 
         if (SelectedExternalUser.PortalUser.ExternalUser != null)
         {
