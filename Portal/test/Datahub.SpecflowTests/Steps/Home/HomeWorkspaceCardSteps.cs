@@ -6,6 +6,8 @@ using Datahub.Core.Services.Projects;
 using Datahub.Portal.Components.Projects;
 using Datahub.Portal.Pages.Explore;
 using Datahub.Portal.Pages.Home;
+using Datahub.Shared;
+using Datahub.Shared.Entities;
 using Datahub.SpecflowTests.Utils;
 using FluentAssertions;
 using Microsoft.Extensions.Caching.Memory;
@@ -30,16 +32,33 @@ public sealed class HomeWorkspaceCardSteps(ScenarioContext scenarioContext) : Bu
     {
         var excludedRole = Enum.Parse<Project_Role.RoleNames>(roleName);
 
-        scenarioContext[WorkspaceContextKey] = new Datahub_Project
-        {
-            Project_Acronym_CD = "TEST",
-            Project_Name = "Test workspace"
-        };
+        scenarioContext[WorkspaceContextKey] = CreateWorkspace();
         scenarioContext[WorkspaceUsersContextKey] = new List<UserRoleLinks>
         {
             CreateUser(Project_Role.RoleNames.Collaborator),
             CreateUser(excludedRole)
         };
+    }
+
+    [Given("a home workspace card has no additional actions")]
+    public void GivenAHomeWorkspaceCardHasNoAdditionalActions()
+    {
+        scenarioContext[WorkspaceContextKey] = CreateWorkspace();
+        scenarioContext[WorkspaceUsersContextKey] = new List<UserRoleLinks>();
+    }
+
+    [Given("a home workspace card has a completed storage action")]
+    public void GivenAHomeWorkspaceCardHasACompletedStorageAction()
+    {
+        var workspace = CreateWorkspace();
+        workspace.Resources.Add(new Project_Resources2
+        {
+            ResourceType = TerraformTemplate.GetTerraformServiceType(TerraformTemplate.NewProjectTemplate),
+            Status = TerraformStatus.Completed
+        });
+
+        scenarioContext[WorkspaceContextKey] = workspace;
+        scenarioContext[WorkspaceUsersContextKey] = new List<UserRoleLinks>();
     }
 
     [When("the home workspace card is rendered")]
@@ -82,6 +101,33 @@ public sealed class HomeWorkspaceCardSteps(ScenarioContext scenarioContext) : Bu
         var details = workspaceCard.FindComponent<ProjectPreviewCardIconDetails>();
 
         details.Instance.NumberOfUsers.Should().Be(expectedCount);
+    }
+
+    [Then("the view workspace action should not be in a list")]
+    public void ThenTheViewWorkspaceActionShouldNotBeInAList()
+    {
+        var workspaceCard = scenarioContext.Get<IRenderedComponent<HomeWorkspaceCard>>(WorkspaceCardContextKey);
+
+        workspaceCard.FindAll("nav a[href='/w/TEST']").Should().ContainSingle();
+        workspaceCard.FindAll("nav li a[href='/w/TEST']").Should().BeEmpty();
+    }
+
+    [Then("the view workspace action should be in a list")]
+    public void ThenTheViewWorkspaceActionShouldBeInAList()
+    {
+        var workspaceCard = scenarioContext.Get<IRenderedComponent<HomeWorkspaceCard>>(WorkspaceCardContextKey);
+
+        workspaceCard.FindAll("nav a[href='/w/TEST']").Should().ContainSingle();
+        workspaceCard.FindAll("nav li a[href='/w/TEST']").Should().ContainSingle();
+    }
+
+    private static Datahub_Project CreateWorkspace()
+    {
+        return new Datahub_Project
+        {
+            Project_Acronym_CD = "TEST",
+            Project_Name = "Test workspace"
+        };
     }
 
     private static UserRoleLinks CreateUser(Project_Role.RoleNames roleName)
