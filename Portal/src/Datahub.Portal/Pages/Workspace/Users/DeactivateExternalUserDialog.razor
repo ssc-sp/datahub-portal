@@ -6,6 +6,7 @@
 @using Datahub.Core.Model.Achievements
 @using Datahub.Core.Model.Projects
 @using Datahub.Core.Model.Users
+@using GcdsWrapper.Blazor
 @using Microsoft.EntityFrameworkCore.ChangeTracking
 @inject IMSGraphService _msGraphService
 @inject IUserEnrollmentService _userEnrollmentService
@@ -29,10 +30,16 @@
     <DialogActions>
       <MudGrid>
         <MudItem xs="6" class="d-flex justify-start">
-          <DHButton Color="Color.Error" OnClick="Cancel" Variant="Variant.Filled">@Localizer["Cancel"]</DHButton>
+            <GcdsButton Id="@CancelButtonId" Type="GcdsButtonType.Button" Size="GcdsButtonSize.Small" Role="GcdsButtonRole.Danger"
+                                OnClick="Cancel">
+                @Localizer["Cancel"]
+            </GcdsButton>
         </MudItem>
         <MudItem xs="6" class="d-flex justify-end">
-                <DHButton Color="Color.Primary" OnClick="SaveUserChanges" Variant="Variant.Filled" Disabled="(_reasonForDeactivating == (String.Empty))">@Localizer["Deactivate User"]</DHButton>
+            <GcdsButton Id="@SaveChangesButtonId" Type="GcdsButtonType.Button" Size="GcdsButtonSize.Small" Role="GcdsButtonRole.Primary"
+                            Disabled="(_reasonForDeactivating == (String.Empty))" OnClick="SaveUserChanges">
+                @Localizer["Save"]
+            </GcdsButton>
         </MudItem>
       </MudGrid>
     </DialogActions>
@@ -48,6 +55,9 @@
 
     [Parameter]
     public PortalUser CurrentUser { get; set; } = null!;
+
+    private const string CancelButtonId = "cancel-button";
+    private const string SaveChangesButtonId = "save-changes-button";
 
     private string _reasonForDeactivating = string.Empty;
 
