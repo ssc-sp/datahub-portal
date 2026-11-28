@@ -54,20 +54,20 @@ else
 @code {
 
     [CascadingParameter(Name = "ProjectAcronym")]
-    public string ProjectAcronym { get; set; }
+    public string ProjectAcronym { get; set; } = null!;
 
     [CascadingParameter(Name = "Project")]
-    public Datahub_Project? Project { get; set; }
+    public Datahub_Project Project { get; set; } = null!;
 
     [Parameter]
-    public string DisplayName { get; set; }
+    public string DisplayName { get; set; } = null!;
 
     [Parameter]
-    public CloudStorageContainer Container { get; set; }
+    public CloudStorageContainer Container { get; set; } = null!;
 
     private bool _loading = true;
     private string _root = "/";
-    private Dictionary<string, (string, RenderFragment)> _properties;
+    private Dictionary<string, (string, RenderFragment)> _properties = null!;
     private CloudStorageContainer _lastContainer = default;
 
     protected override async Task OnParametersSetAsync()

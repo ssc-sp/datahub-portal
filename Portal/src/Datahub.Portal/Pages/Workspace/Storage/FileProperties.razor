@@ -94,8 +94,6 @@
 
             @if (_classification != ClassificationType.ProtectedB)
             {
-                <MudText class="label">@Localizer["Power BI URL"]</MudText>
-                <InlineCodeWithCopy>@_powerBiPasteText</InlineCodeWithCopy>
                 <MudText class="label">@Localizer["File URL"]</MudText>
                 <InlineCodeWithCopy>@_fileLinkUrl</InlineCodeWithCopy>
             }            
@@ -186,10 +184,9 @@
     }
 
     private List<(string, string)> _properties;
-    private string _powerBiPasteText;
-    private string _fileLinkUrl;
-    private string _databricksPasteText;
-    private string _fullFileName;
+    private string _fileLinkUrl = "-";
+    private string _databricksPasteText = "-";
+    private string _fullFileName = "-";
     private ClassificationType _classification;
     private bool _workspaceStorageMetadataEnabled;
 
@@ -217,16 +214,35 @@
             .Select(p => (p.Key, Value: File.GetMetadataPropertyValue(p.Key)))
             .ToList();
 
-        var fullFilePath = $"{File.folderpath}/{File.filename}".Replace("//","/").TrimStart('/');
+        var fullFilePath = $"{File.folderpath}/{File.filename}".Replace("//", "/").TrimStart('/');
+        _databricksPasteText = null;
         if (StorageAccountMetadata is AzureStorageMetadata azureStorageMetadata && !string.IsNullOrEmpty(azureStorageMetadata.Url))
         {
-            var accountName = azureStorageMetadata.Url.Split('.')[0].Replace("https://", "");
-            _fileLinkUrl = $"{azureStorageMetadata.Url}/{effectiveFolderPath}/{File.filename}".Replace("//", "/");
-            _powerBiPasteText = $"abfs://{_commonAzureServices.FileSystemName}@{accountName}.dfs.core.windows.net/{effectiveFolderPath}/{File.filename}".Replace("//", "/");
-        }
-        if (!string.IsNullOrEmpty(fullFilePath))
-        {
-            _databricksPasteText = $"/mnt/fsdh-dbk-main-mount/{fullFilePath}";
+            var fileRelativePath = $"{effectiveFolderPath.Trim('/')}/{File.filename}".Replace("//", "/").Trim('/');
+            var fileUrl = $"{azureStorageMetadata.Url.TrimEnd('/')}/{fileRelativePath}";
+
+            if (Uri.TryCreate(fileUrl, UriKind.Absolute, out var fileUri))
+            {
+                _fileLinkUrl = fileUri.AbsoluteUri;
+
+                var accountName = azureStorageMetadata.AccountName;
+                var pathSegments = fileUri.AbsolutePath.Trim('/').Split('/', 2);
+                if (!string.IsNullOrEmpty(accountName) && pathSegments.Length > 0)
+                {
+                    var containerName = azureStorageMetadata.Container;
+                    var relativePath = pathSegments.Length > 1
+                        ? pathSegments[1]
+                        : string.Empty;
+
+                    if (string.IsNullOrEmpty(containerName))
+                        containerName = pathSegments[0];
+
+                    if (pathSegments.Length == 1)
+                        relativePath = File.filename;
+
+                    _databricksPasteText = $"abfss://{containerName}@{accountName}.dfs.core.windows.net/{relativePath}";
+                }
+            }
         }
         _classification = Project.Data_Sensitivity;
         var fileFolder = StorageManager.ProviderType == CloudStorageProviderType.AWS && FolderName != null
