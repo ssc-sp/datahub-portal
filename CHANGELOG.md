@@ -3,6 +3,15 @@
 <!-- markdownlint-disable MD024 -->
 # Changelog
 
+## [10.5.1](https://github.com/ssc-sp/datahub-portal/compare/v10.5.0...v10.5.1) (2026-11-28)
+
+
+### Bug Fixes
+
+* external user deactivation ([#2226](https://github.com/ssc-sp/datahub-portal/issues/2226)) ([8331b6f](https://github.com/ssc-sp/datahub-portal/commit/8331b6fb1c1dcd3d7f39af8c634b99ef189ced2e))
+* fixed databricks URLs for new unity paths ([#2227](https://github.com/ssc-sp/datahub-portal/issues/2227)) ([05aeec3](https://github.com/ssc-sp/datahub-portal/commit/05aeec3b9cc3a1deb4fe3586ef2777bda7046343))
+* sync Unity Catalog lead/user/guest group membership in Python function ([#2220](https://github.com/ssc-sp/datahub-portal/issues/2220)) ([7e42f80](https://github.com/ssc-sp/datahub-portal/commit/7e42f80b8dd7bf2757d5c5609b4c3bd50ff25051))
+
 ## [10.5.0](https://github.com/ssc-sp/datahub-portal/compare/v10.4.0...v10.5.0) (2026-11-26)
 
 
