@@ -1,4 +1,4 @@
-azure-functions==1.*
+azure-functions==2.*
 azure-graphrbac
 azure-identity==1.*
 azure-keyvault==4.*
