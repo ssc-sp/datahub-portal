@@ -3,8 +3,6 @@ using Azure.Storage.Blobs;
 using Azure.Storage.Files.DataLake;
 using Azure.Storage.Files.DataLake.Models;
 using Azure.Storage.Sas;
-using DefaultAzureCredential = Azure.Identity.DefaultAzureCredential;
-using DefaultAzureCredentialOptions = Azure.Identity.DefaultAzureCredentialOptions;
 using Datahub.Core.Data;
 using Datahub.Core.Storage;
 using Datahub.Infrastructure.Services.Security;
@@ -12,11 +10,7 @@ using Datahub.Portal.Pages.Workspace.Storage.ResourcePages;
 using Microsoft.VisualStudio.Services.Common;
 using Datahub.Infrastructure.Services.Helpers;
 using Azure.Storage.Blobs.Models;
-using Datahub.Application.Services.Security;
-using Datahub.Application.Services.UserManagement;
-using System.Security.Claims;
 using Azure.Core;
-using System.Threading;
 using Azure;
 using Datahub.Shared.Entities;
 
@@ -224,6 +218,7 @@ public class AzureCloudStorageManager : ICloudStorageManager
         AzureStorageMetadata storageMetadata = new()
         {
             Container = container,
+            AccountName = _accountName,
             Url = containerClient.Uri.ToString(),
             Versioning = true,
             GeoRedundancy = accountInfo?.SkuName.ToString(),
