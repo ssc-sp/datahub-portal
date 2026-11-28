@@ -191,6 +191,7 @@ All settings live in `local.settings.json` (local dev) or Azure Function App set
 | `Terraform__Variables__budget_amount` | Default workspace budget in CAD |
 | `Terraform__Variables__storage_size_limit_tb` | Default storage quota in TB |
 | `Terraform__Variables__ssc_cbrid` | SSC CBRID identifier |
+| `Terraform__Variables__psql_dns_zone_id` | Resource ID of the private DNS zone for Azure Postgres (`fsdh.private.postgres.database.azure.com`). Required by the Protected B Postgres template (`azure-postgres-enhanced`) |
 | `Terraform__Variables__common_tags__Sector` | Common tag: Sector |
 | `Terraform__Variables__common_tags__Environment` | Common tag: Environment |
 | `Terraform__Variables__common_tags__ClientOrganization` | Common tag: ClientOrganization |
@@ -209,5 +210,12 @@ All settings live in `local.settings.json` (local dev) or Azure Function App set
    ```powershell
    func start
    ```
+
+Some Terraform variables differ by environment and aren't in the settings template, for example `psql_dns_zone_id`, which only Protected B Postgres (`azure-postgres-enhanced`) needs. To provision those tools locally, set the variable in the shell before starting the host instead of adding it to a settings file:
+
+```powershell
+$env:Terraform__Variables__psql_dns_zone_id = "<resource ID of the environment's fsdh.private.postgres.database.azure.com private DNS zone>"
+func start
+```
 
 To send a test message, publish a JSON envelope (see [Message format](#message-format) above) to the `resource-run-request` queue on your Service Bus namespace.

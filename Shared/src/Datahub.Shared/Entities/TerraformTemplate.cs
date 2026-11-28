@@ -94,6 +94,16 @@ public class TerraformTemplate
     public const string NewProjectTemplateFile = "main";
 
     /// <summary>
+    /// Template folders in the module repository that were renamed in later module versions. A workspace's module
+    /// version decides which folder exists: older versions use the template name, newer ones use the folder listed here.
+    /// </summary>
+    public static readonly IReadOnlyDictionary<string, string> RenamedTemplateFolders = new Dictionary<string, string>
+    {
+        [AzurePostgres] = "azure-postgresql",
+        [AzurePostgresEnhanced] = "azure-postgresql-enhanced"
+    };
+
+    /// <summary>
     /// Service types (<c>terraform:{name}</c>) of the workspace templates, for matching <c>Project_Resources2.ResourceType</c>.
     /// </summary>
     public static readonly string[] WorkspaceTemplateServiceTypes =
