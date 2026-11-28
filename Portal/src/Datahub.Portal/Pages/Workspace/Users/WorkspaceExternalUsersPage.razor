@@ -186,29 +186,39 @@ else if (_gccfEnabled)
                         <MudStack Row AlignItems="AlignItems.Center" Wrap="Wrap.Wrap">
                             @if (rowContext.UserRoleLink is not null)
                             {
-                                <DHButton Variant="Variant.Filled" OnClick="() => OpenManageUserDialog(rowContext.UserRoleLink!)">
+                                <GcdsButton Id="@EditUserButtonId" Type="GcdsButtonType.Button" Size="GcdsButtonSize.Small" Role="GcdsButtonRole.Primary"
+                                            OnClick="() => OpenManageUserDialog(rowContext.UserRoleLink!)">
                                     @Localizer["View/Edit"]
-                                </DHButton>
+                                </GcdsButton>
+                                
                                 @if (CanDeactivateUser(rowContext))
                                 {
-                                    <DHButton Variant="Variant.Filled" OnClick="() => OpenDeactivateUserDialog(rowContext.UserRoleLink!)">
+                                    <GcdsButton Id="@DeactivateUserButtonId" Type="GcdsButtonType.Button" Size="GcdsButtonSize.Small" Role="GcdsButtonRole.Primary"
+                                                OnClick="() => OpenDeactivateUserDialog(rowContext.UserRoleLink!)">
                                         @Localizer["Deactivate user"]
-                                    </DHButton>
+                                    </GcdsButton>
                                 }
                             }
                             @if (CanExtendUser(rowContext))
                             {
-                                <DHButton Variant="Variant.Filled" OnClick="() => OpenExtendUserDialog(rowContext)">
-                                    @Localizer["Extend"]
-                                </DHButton>
+                                <GcdsButton Id="@ExtendUserButtonId" Type="GcdsButtonType.Button" Size="GcdsButtonSize.Small" Role="GcdsButtonRole.Primary"
+                                            OnClick="() => OpenExtendUserDialog(rowContext)">
+                                    @Localizer["Extend user"]
+                                </GcdsButton>
                             }
                             @if (CanCancelInvitation(rowContext))
                             {
-                                <DHButton Variant="Variant.Filled" OnClick="() => CancelInvitationAsync(rowContext)">@Localizer["Cancel invitation"]</DHButton>
+                                <GcdsButton Id="@CancelInvitationUserButtonId" Type="GcdsButtonType.Button" Size="GcdsButtonSize.Small" Role="GcdsButtonRole.Primary"
+                                            OnClick="() => CancelInvitationAsync(rowContext)">
+                                    @Localizer["Cancel invitation"]
+                                </GcdsButton>
                             }
                             @if (CanResendInvitation(rowContext))
                             {
-                                <DHButton Variant="Variant.Filled" OnClick="() => ResendInvitationAsync(rowContext)">@Localizer["Resend invitation"]</DHButton>
+                                <GcdsButton Id="@ResendInvitationUserButtonId" Type="GcdsButtonType.Button" Size="GcdsButtonSize.Small" Role="GcdsButtonRole.Primary"
+                                            OnClick="() => ResendInvitationAsync(rowContext)">
+                                    @Localizer["Resend invitation"]
+                                </GcdsButton>
                             }
                         </MudStack>
                     </MudTd>
@@ -243,6 +253,11 @@ else
     private string? _inviteStatusMessage;
     private PortalUser? _currentUser;
     private const string InviteUserButtonId = "external-invite-user";
+    private const string EditUserButtonId = "external-user-edit";
+    private const string DeactivateUserButtonId = "external-user-deactivate";
+    private const string ExtendUserButtonId = "external-user-extend";
+    private const string CancelInvitationUserButtonId = "external-user-cancel-invitation";
+    private const string ResendInvitationUserButtonId = "external-user-resend-invitation";
 
     private List<ExternalWorkspaceUserRow> _externalProjectUsers = [];
 
